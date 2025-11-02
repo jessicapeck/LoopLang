@@ -3,11 +3,11 @@ open Ast
 
 let () =
   let filename = Sys.argv.(1) in
-  let chan = open_in filename in
-  let lexbuf = Lexing.from_channel chan in
+  let channel = open_in filename in
+  let lexbuf = Lexing.from_channel channel in
   try
     let ast = Parser.pattern Lexer.token lexbuf in
-    print_endline (Ast.string_of_expr ast)
+    print_endline (Ast.string_of_pattern ast)
   with
   | Parser.Error ->
       let pos = lexbuf.lex_curr_p in

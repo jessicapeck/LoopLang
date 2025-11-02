@@ -12,7 +12,7 @@
 %token NEWLINE
 %token EOF
 
-%start <Ast.expr> pattern
+%start <Ast.pattern> pattern
 %%
 
 pattern:

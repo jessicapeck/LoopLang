@@ -13,7 +13,7 @@
 
 rule token = parse
     | [' ' '\t']                                { token lexbuf }
-    | '\n'                             { next_line lexbuf; NEWLINE }
+    | '\n'                                      { next_line lexbuf; NEWLINE }
     | "ch"                                      { CH }
     | "sc"                                      { SC }
     | "inc"                                     { INC }
