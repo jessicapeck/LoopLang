@@ -2,11 +2,11 @@
     open Ast
 %}
 
-%token<int> INT
+%token<int> INT MULINT
 %token<string> ID
 %token CH SC INC DEC
 %token ROW
-%token MUL EQ
+%token EQ
 %token DEF LET FOR TO
 %token LPAREN RPAREN LBRACKET RBRACKET COMMA COLON
 %token NEWLINE
@@ -30,11 +30,11 @@ stitch_list:
     | stitch                    { [$1] }
 
 stitch:
-    | CH MUL INT                { Stitch(CH, $3) }
+    | CH MULINT                 { Stitch(CH, $2) }
     | CH                        { Stitch(CH, 1) }
-    | SC MUL INT                { Stitch(SC, $3) }
+    | SC MULINT                 { Stitch(SC, $2) }
     | SC                        { Stitch(SC, 1) }
-    | INC MUL INT               { Stitch(INC, $3) }
+    | INC MULINT                { Stitch(INC, $2) }
     | INC                       { Stitch(INC, 1) }
-    | DEC MUL INT               { Stitch(DEC, $3) }
+    | DEC MULINT                { Stitch(DEC, $2) }
     | DEC                       { Stitch(DEC, 1) }

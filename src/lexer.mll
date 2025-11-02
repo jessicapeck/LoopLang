@@ -19,13 +19,13 @@ rule token = parse
     | "inc"                                     { INC }
     | "dec"                                     { DEC }
     | 'r' | 'R' | "row" | "ROW"                 { ROW }
-    | 'x'                                       { MUL }
+    | 'x' (['0'-'9']+ as num)                   { MULINT (int_of_string num)}
     | "def"                                     { DEF }
     | "let"                                     { LET }
     | "for"                                     { FOR }
     | "to"                                      { TO }
     | ['0'-'9']+ as num                         { INT (int_of_string num) }
-    | ['a'-'z' 'A'-'Z']+ as id                  { ID id } (* FIX: if you allow numbers in variable names then this will compete with MUL and INT pairs*)
+    | ['a'-'z' 'A'-'Z' '0'-'9']+ as id          { ID id }
     | '='                                       { EQ }
     | '('                                       { LPAREN }
     | ')'                                       { RPAREN }
