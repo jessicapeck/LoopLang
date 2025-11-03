@@ -12,11 +12,13 @@
 
 
 (* TODO: make the scope of the function body be defined by indentation *)
+(* TODO: extend to include MULINT with a NumVar *)
 rule token = parse
     | [' ' '\t']                                { token lexbuf }
     | '\n'                                      { next_line lexbuf; NEWLINE }
     | "ch"                                      { CH }
     | "sc"                                      { SC }
+    | "dc"                                      { DC }
     | "inc"                                     { INC }
     | "dec"                                     { DEC }
     | 'r' | 'R' | "row" | "ROW"                 { ROW }

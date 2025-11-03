@@ -4,11 +4,11 @@
 
 %token<int> INT MULINT
 %token<string> ID
-%token CH SC INC DEC
+%token CH SC DC INC DEC
 %token ROW
 %token EQ
 %token LET DEF FOR TO
-%token LPAREN RPAREN LBRACKET RBRACKET COMMA COLON
+%token LPAREN RPAREN LBRACKET RBRACKET LBRACE RBRACE COMMA COLON
 %token NEWLINE
 %token EOF
 
@@ -22,11 +22,12 @@ pattern:
 pattern_item_list:
     | pattern_item NEWLINE pattern_item_list                                        { $1 :: $3 }
     | pattern_item                                                                  { [$1] }
+    | NEWLINE pattern_item_list                                                     { $2 }
 
 pattern_item:
     (* TODO: make the scope of the function body be defined by indentation *)
     | DEF ID LPAREN param_list RPAREN COLON NEWLINE LBRACE statement_list RBRACE    { FuncDef($2, $4, $9) }
-    | statement                                                                     { StmtItem($1) }
+    | statement                                                                     { Stmt($1) }
 
 param_list:
     | ID COMMA param_list                                                           { $1 :: $3 }
@@ -37,28 +38,40 @@ statement_list:
     | statement                                                                     { [$1] }
 
 statement:
+    | LET ID EQ stitch_list                                                         { StitchSeqDef($2, $4) }
     | LET ID EQ int_expr                                                            { IntDef($2, $4) }
-    | LET ID EQ stitch_list                                                         { StitchListDef($2, $4) }
-    | row                                                                           { Row($1) }
+    | ROW int_expr COLON stitch_list                                                { Row($2, $4) }
     | LET ID EQ ID LPAREN arg_list RPAREN                                           { LetCallDef($2, $4, $6) }
 
-row:
-    | ROW int_expr COLON stitch_list                                                { Row($2, $4) }
+arg_list:
+    | arg COMMA arg_list                                                            { $1 :: $3 }
+    | arg                                                                           { [$1] }
+
+arg:
+    | int_expr                                                                      { NumArg($1) }
+    | stitch_list                                                                   { StitchSeqArg($1) }
 
 stitch_list:
-    | stitch COMMA stitch_list                                                      { $1 :: $3 }
-    | stitch                                                                        { [$1] }
+    | stitch_seq_item COMMA stitch_list                                             { $1 :: $3 }
+    | stitch_seq_item                                                               { [$1] }
+
+stitch_seq_item:
+    | mult_expr                                                                     { StitchSeqItem($1) }
+    | ID                                                                            { StitchSeqItemVar($1) }
 
 (* TODO: work out how to distinguish between ID, and MULINT with a NumVar *)
-stitch:
-    | CH MULINT                                                                     { StitchExpr(CH, $2) }
-    | CH                                                                            { StitchExpr(CH, 1) }
-    | SC MULINT                                                                     { StitchExpr(SC, $2) }
-    | SC                                                                            { StitchExpr(SC, 1) }
-    | INC MULINT                                                                    { StitchExpr(INC, $2) }
-    | INC                                                                           { StitchExpr(INC, 1) }
-    | DEC MULINT                                                                    { StitchExpr(DEC, $2) }
-    | DEC                                                                           { StitchExpr(DEC, 1) }
+mult_expr:
+    | CH MULINT                                                                     { StitchMultExpr(CH, Lit($2)) }
+    | CH                                                                            { StitchMultExpr(CH, Lit(1)) }
+    | SC MULINT                                                                     { StitchMultExpr(SC, Lit($2)) }
+    | SC                                                                            { StitchMultExpr(SC, Lit(1)) }
+    | DC MULINT                                                                     { StitchMultExpr(DC, Lit($2)) }
+    | DC                                                                            { StitchMultExpr(DC, Lit(1)) }
+    | INC MULINT                                                                    { StitchMultExpr(INC, Lit($2)) }
+    | INC                                                                           { StitchMultExpr(INC, Lit(1)) }
+    | DEC MULINT                                                                    { StitchMultExpr(DEC, Lit($2)) }
+    | DEC                                                                           { StitchMultExpr(DEC, Lit(1)) }
+    | LBRACKET stitch_list RBRACKET MULINT                                          { StitchSeqMultExpr($2, Lit($4)) }
 
 int_expr:
     | INT                                                                           { Lit($1) }
