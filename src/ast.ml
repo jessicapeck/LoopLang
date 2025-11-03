@@ -1,13 +1,41 @@
+type var = string
+
 type stitch = CH | SC | INC | DEC
 
-type stitch_expr = 
-  | Stitch of stitch * int
+type int_expr = 
+  | Lit of int (* Lit(5) *)
+  | NumVar of var (* NumVar("i") *)
 
-type row =
-  | Row of int * stitch_expr list
+(* TODO: decide whether users should be allowed to define their own stitch abbreviations *)
+type stitch_expr = 
+  | StitchExpr of stitch * int_expr (* StitchExpr(SC, Lit(5)) or StitchExpr(SC, NumVar("i")) *)
+
+type stitch_list_item =
+  | StitchListItem of stitch_expr
+  | StitchListItemVar of var (* StitchExprPartVar("seq") *)
+
+type argument = 
+  | NumArg of int_expr
+  | StitchListArg of stitch_list_item list
+
+(* TODO: extend function call implementation to allow inlining *)
+type statement =
+  | IntDef of var * int_expr
+  | StitchListDef of var * stitch_list_item list
+  | Row of int_expr * stitch_list_item list
+  | LetCallDef of var * var * argument list (* var name, func name, args *)
+
+type func_def =
+  | FuncDef of var * var list * statement list (* func name, args *)
+
+type pattern_item = 
+  | FuncItem of func_def
+  | StmtItem of statement
 
 type pattern = 
-  | Pattern of row list
+  | Pattern of pattern_item list
+
+(* string conversions for debugging *)
 
 let string_of_stitch = function
   | CH -> "CH"

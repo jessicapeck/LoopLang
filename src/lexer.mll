@@ -11,6 +11,7 @@
 }
 
 
+(* TODO: make the scope of the function body be defined by indentation *)
 rule token = parse
     | [' ' '\t']                                { token lexbuf }
     | '\n'                                      { next_line lexbuf; NEWLINE }
@@ -20,8 +21,8 @@ rule token = parse
     | "dec"                                     { DEC }
     | 'r' | 'R' | "row" | "ROW"                 { ROW }
     | 'x' (['0'-'9']+ as num)                   { MULINT (int_of_string num)}
-    | "def"                                     { DEF }
     | "let"                                     { LET }
+    | "def"                                     { DEF }
     | "for"                                     { FOR }
     | "to"                                      { TO }
     | ['0'-'9']+ as num                         { INT (int_of_string num) }
@@ -31,6 +32,8 @@ rule token = parse
     | ')'                                       { RPAREN }
     | '['                                       { LBRACKET }
     | ']'                                       { RBRACKET }
+    | '{'                                       { LBRACE }
+    | '}'                                       { RBRACE }
     | ':'                                       { COLON }
     | ','                                       { COMMA }
     | eof                                       { EOF }
