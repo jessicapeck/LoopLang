@@ -6,7 +6,7 @@ let () =
   let channel = open_in filename in
   let lexbuf = Lexing.from_channel channel in
   try
-    let ast = Parser.pattern Lexer.token lexbuf in
+    let ast = Parser.pattern Lexer.next_token lexbuf in
     print_endline (Ast.string_of_pattern ast)
   with
   | Parser.Error ->
