@@ -10,9 +10,10 @@
         }
 }
 
+let id_regex = ['a'-'z' 'A'-'Z' '0'-'9']+
+let num_regex = ['0'-'9']+
 
 (* TODO: make the scope of the function body be defined by indentation *)
-(* TODO: extend to include MULINT with a NumVar *)
 rule token = parse
     | [' ' '\t']                                { token lexbuf }
     | '\n'                                      { next_line lexbuf; NEWLINE }
@@ -22,13 +23,14 @@ rule token = parse
     | "inc"                                     { INC }
     | "dec"                                     { DEC }
     | 'r' | 'R' | "row" | "ROW"                 { ROW }
-    | 'x' (['0'-'9']+ as num)                   { MULINT (int_of_string num)}
+    | 'x' (num_regex as num)                    { MULINT (int_of_string num)}
+    | "x(" (id_regex as id) ")"                 { MULINTVAR id }
     | "let"                                     { LET }
     | "def"                                     { DEF }
     | "for"                                     { FOR }
     | "to"                                      { TO }
-    | ['0'-'9']+ as num                         { INT (int_of_string num) }
-    | ['a'-'z' 'A'-'Z' '0'-'9']+ as id          { ID id }
+    | num_regex as num                          { INT (int_of_string num) }
+    | id_regex as id                            { ID id }
     | '='                                       { EQ }
     | '('                                       { LPAREN }
     | ')'                                       { RPAREN }

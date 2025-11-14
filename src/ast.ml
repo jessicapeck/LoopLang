@@ -4,11 +4,11 @@ type stitch = CH | SC | DC | INC | DEC
 
 type int_expr = 
   | Lit of int (* Lit(5) *)
-  | NumVar of var (* NumVar("i") *)
+  | IntVar of var (* IntVar("i") *)
 
 (* TODO: decide whether users should be allowed to define their own stitch abbreviations *)
 type mult_expr = 
-  | StitchMultExpr of stitch * int_expr (* StitchMulExpr(SC, Lit(5)) or StitchMulExpr(SC, NumVar("i")) *)
+  | StitchMultExpr of stitch * int_expr (* StitchMulExpr(SC, Lit(5)) or StitchMulExpr(SC, IntVar("i")) *)
   | StitchSeqMultExpr of stitch_seq_item list * int_expr (* StitchSeqMultExpr([StitchMulExpr(SC, Lit(5)), StitchMulExpr(INC, Lit(2))]), Lit(5) *)
 and stitch_seq_item =
   | StitchSeqItem of mult_expr
@@ -44,7 +44,7 @@ let string_of_stitch = function
 
 let string_of_int_expr = function
   | Lit(n) -> Printf.sprintf "Lit(%d)" n
-  | NumVar(v) -> Printf.sprintf "NumVar(%s)" v
+  | IntVar(v) -> Printf.sprintf "IntVar(%s)" v
 
 let rec string_of_mult_expr = function
   | StitchMultExpr(s, n) -> Printf.sprintf "StitchMultExpr(%s, %s)" (string_of_stitch s) (string_of_int_expr n)

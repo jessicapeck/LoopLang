@@ -3,7 +3,7 @@
 %}
 
 %token<int> INT MULINT
-%token<string> ID
+%token<string> ID MULINTVAR
 %token CH SC DC INC DEC
 %token ROW
 %token EQ
@@ -59,21 +59,26 @@ stitch_seq_item:
     | mult_expr                                                                     { StitchSeqItem($1) }
     | ID                                                                            { StitchSeqItemVar($1) }
 
-(* TODO: work out how to distinguish between ID, and MULINT with a NumVar *)
 mult_expr:
     | CH MULINT                                                                     { StitchMultExpr(CH, Lit($2)) }
+    | CH MULINTVAR                                                                  { StitchMultExpr(CH, IntVar($2)) }
     | CH                                                                            { StitchMultExpr(CH, Lit(1)) }
     | SC MULINT                                                                     { StitchMultExpr(SC, Lit($2)) }
+    | SC MULINTVAR                                                                  { StitchMultExpr(SC, IntVar($2)) }
     | SC                                                                            { StitchMultExpr(SC, Lit(1)) }
     | DC MULINT                                                                     { StitchMultExpr(DC, Lit($2)) }
+    | DC MULINTVAR                                                                  { StitchMultExpr(DC, IntVar($2)) }
     | DC                                                                            { StitchMultExpr(DC, Lit(1)) }
     | INC MULINT                                                                    { StitchMultExpr(INC, Lit($2)) }
+    | INC MULINTVAR                                                                 { StitchMultExpr(INC, IntVar($2)) }
     | INC                                                                           { StitchMultExpr(INC, Lit(1)) }
     | DEC MULINT                                                                    { StitchMultExpr(DEC, Lit($2)) }
+    | DEC MULINTVAR                                                                 { StitchMultExpr(DEC, IntVar($2)) }
     | DEC                                                                           { StitchMultExpr(DEC, Lit(1)) }
     | LBRACKET stitch_list RBRACKET MULINT                                          { StitchSeqMultExpr($2, Lit($4)) }
+    | LBRACKET stitch_list RBRACKET MULINTVAR                                       { StitchSeqMultExpr($2, IntVar($4)) }
 
 int_expr:
     | INT                                                                           { Lit($1) }
-    | ID                                                                            { NumVar($1) }
+    | ID                                                                            { IntVar($1) }
 
