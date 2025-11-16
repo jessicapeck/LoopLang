@@ -25,8 +25,7 @@ pattern_item_list:
     | NEWLINE pattern_item_list                                                     { $2 }
 
 pattern_item:
-    (* TODO: make the scope of the function body be defined by indentation *)
-    | DEF ID LPAREN param_list RPAREN COLON NEWLINE LBRACE statement_list RBRACE    { FuncDef($2, $4, $9) }
+    | DEF ID LPAREN param_list RPAREN COLON NEWLINE INDENT statement_list DEDENT    { FuncDef($2, $4, $9) }
     | statement                                                                     { Stmt($1) }
 
 param_list:
