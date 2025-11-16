@@ -9,6 +9,7 @@
 %token LET DEF FOR TO
 %token LPAREN RPAREN LBRACKET RBRACKET LBRACE RBRACE COMMA COLON
 %token NEWLINE
+%token INDENT DEDENT
 %token EOF
 
 %start <Ast.pattern> pattern
