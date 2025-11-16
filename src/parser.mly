@@ -2,10 +2,9 @@
     open Ast
 %}
 
-%token<int> INT MULINT
-%token<string> ID MULINTVAR
+%token<int> INT MULINT ROWINT
+%token<string> ID MULINTVAR ROWINTVAR
 %token CH SC DC INC DEC
-%token ROW
 %token EQ
 %token LET DEF FOR TO
 %token LPAREN RPAREN LBRACKET RBRACKET LBRACE RBRACE COMMA COLON
@@ -40,7 +39,8 @@ statement_list:
 statement:
     | LET ID EQ stitch_list                                                         { StitchSeqDef($2, $4) }
     | LET ID EQ int_expr                                                            { IntDef($2, $4) }
-    | ROW int_expr COLON stitch_list                                                { Row($2, $4) }
+    | ROWINT COLON stitch_list                                                      { Row(Lit($1), $3) }
+    | ROWINTVAR COLON stitch_list                                                   { Row(IntVar($1), $3) }
     | LET ID EQ ID LPAREN arg_list RPAREN                                           { LetCallDef($2, $4, $6) }
 
 arg_list:
@@ -60,20 +60,20 @@ stitch_seq_item:
     | ID                                                                            { StitchSeqItemVar($1) }
 
 mult_expr:
-    | CH MULINT                                                                     { StitchMultExpr(CH, Lit($2)) }
-    | CH MULINTVAR                                                                  { StitchMultExpr(CH, IntVar($2)) }
+    | CH int_expr                                                                   { StitchMultExpr(CH, $2) }
+    | int_expr CH                                                                   { StitchMultExpr(CH, $1) }
     | CH                                                                            { StitchMultExpr(CH, Lit(1)) }
-    | SC MULINT                                                                     { StitchMultExpr(SC, Lit($2)) }
-    | SC MULINTVAR                                                                  { StitchMultExpr(SC, IntVar($2)) }
+    | SC int_expr                                                                   { StitchMultExpr(SC, $2) }
+    | int_expr SC                                                                   { StitchMultExpr(SC, $1) }
     | SC                                                                            { StitchMultExpr(SC, Lit(1)) }
-    | DC MULINT                                                                     { StitchMultExpr(DC, Lit($2)) }
-    | DC MULINTVAR                                                                  { StitchMultExpr(DC, IntVar($2)) }
+    | DC int_expr                                                                   { StitchMultExpr(DC, $2) }
+    | int_expr DC                                                                   { StitchMultExpr(DC, $1) }
     | DC                                                                            { StitchMultExpr(DC, Lit(1)) }
-    | INC MULINT                                                                    { StitchMultExpr(INC, Lit($2)) }
-    | INC MULINTVAR                                                                 { StitchMultExpr(INC, IntVar($2)) }
+    | INC int_expr                                                                  { StitchMultExpr(INC, $2) }
+    | int_expr INC                                                                  { StitchMultExpr(INC, $1) }
     | INC                                                                           { StitchMultExpr(INC, Lit(1)) }
-    | DEC MULINT                                                                    { StitchMultExpr(DEC, Lit($2)) }
-    | DEC MULINTVAR                                                                 { StitchMultExpr(DEC, IntVar($2)) }
+    | DEC int_expr                                                                  { StitchMultExpr(DEC, $2) }
+    | int_expr DEC                                                                  { StitchMultExpr(DEC, $1) }
     | DEC                                                                           { StitchMultExpr(DEC, Lit(1)) }
     | LBRACKET stitch_list RBRACKET MULINT                                          { StitchSeqMultExpr($2, Lit($4)) }
     | LBRACKET stitch_list RBRACKET MULINTVAR                                       { StitchSeqMultExpr($2, IntVar($4)) }

@@ -47,43 +47,46 @@
 
 let id_regex = ['a'-'z' 'A'-'Z' '0'-'9']+
 let num_regex = ['0'-'9']+
+let row_identifiers = ('r' | 'R' | "row" | "ROW")
 
 rule token = parse
-    | ' '+ as seq                   { process_indentation indent_seq lexbuf }
-    | '\t'+ as seq                  { process_indentation indent_seq lexbuf }
-    | '\n'                          { next_line lexbuf; NEWLINE}
-    | "ch"                          { CH }
-    | "sc"                          { SC }
-    | "dc"                          { DC }
-    | "inc"                         { INC }
-    | "dec"                         { DEC }
-    | 'r' | 'R' | "row" | "ROW"     { ROW }
-    | 'x' (num_regex as num)        { MULINT (int_of_string num)}
-    | "x(" (id_regex as id) ")"     { MULINTVAR id }
-    | "let"                         { LET }
-    | "def"                         { DEF }
-    | "for"                         { FOR }
-    | "to"                          { TO }
-    | num_regex as num              { INT (int_of_string num) }
-    | id_regex as id                { ID id }
-    | '='                           { EQ }
-    | '('                           { LPAREN }
-    | ')'                           { RPAREN }
-    | '['                           { LBRACKET }
-    | ']'                           { RBRACKET }
-    | '{'                           { LBRACE }
-    | '}'                           { RBRACE }
-    | ':'                           { COLON }
-    | ','                           { COMMA }
-    | eof                           {
-                                        while not (Stack.is_empty indent_stack) do
-                                            Stack.pop indent_stack
-                                            Queue.add DEDENT pending_tokens
-                                        done
-                                        Queue.add EOF pending_tokens;
-                                        Queue.take pending_tokens
-                                    }
-    | _                             { failwith ("Unexpected character: " ^ Lexing.lexeme lexbuf) }
+    | ' '+ as seq                                       { process_indentation indent_seq lexbuf }
+    | '\t'+ as seq                                      { process_indentation indent_seq lexbuf }
+    | '\n'                                              { next_line lexbuf; NEWLINE}
+    | "ch"                                              { CH }
+    | "sc"                                              { SC }
+    | "dc"                                              { DC }
+    | "inc"                                             { INC }
+    | "dec"                                             { DEC }
+    | row_identifiers ' '? num_regex                    { ROWINT }
+    | row_identifiers ' ' (id_regex as id)              { ROWINTVAR id }
+    | row_identifiers ' '? "(" (id_regex as id) ")"     { ROWINTVAR id }
+    | 'x' (num_regex as num)                            { MULINT (int_of_string num)}
+    | "x(" (id_regex as id) ")"                         { MULINTVAR id }
+    | "let"                                             { LET }
+    | "def"                                             { DEF }
+    | "for"                                             { FOR }
+    | "to"                                              { TO }
+    | num_regex as num                                  { INT (int_of_string num) }
+    | id_regex as id                                    { ID id }
+    | '='                                               { EQ }
+    | '('                                               { LPAREN }
+    | ')'                                               { RPAREN }
+    | '['                                               { LBRACKET }
+    | ']'                                               { RBRACKET }
+    | '{'                                               { LBRACE }
+    | '}'                                               { RBRACE }
+    | ':'                                               { COLON }
+    | ','                                               { COMMA }
+    | eof                                               {
+                                                            while not (Stack.is_empty indent_stack) do
+                                                                Stack.pop indent_stack
+                                                                Queue.add DEDENT pending_tokens
+                                                            done
+                                                            Queue.add EOF pending_tokens;
+                                                            Queue.take pending_tokens
+                                                        }
+    | _                                                 { failwith ("Unexpected character: " ^ Lexing.lexeme lexbuf) }
 
 let next_token lexbuf =
     if not (Queue.is_empty pending_tokens) then
