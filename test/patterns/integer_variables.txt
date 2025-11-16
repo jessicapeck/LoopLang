@@ -1,0 +1,4 @@
+let i = 2
+
+R1: ch 30
+R(i): (sc 13, dc i) x(i)

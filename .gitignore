@@ -4,7 +4,4 @@ lexer.ml
 parser.ml
 parser.mli
 
-test
-test/*
-
 questions.txt
