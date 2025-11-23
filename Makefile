@@ -1,9 +1,13 @@
-OCAMLC = ocamlc
+OCAMLC = ocamlfind ocamlc
 OCAMLLEX = ocamllex
 MENHIR = menhir
 
 SRC = src
 TARGET = llcompiler
+TEST_DIR = test
+TEST_EXEC = $(TEST_DIR)/unit_tests
+
+LIBS = alcotest
 
 ML_FILES = $(SRC)/ast.ml $(SRC)/parser.ml $(SRC)/lexer.ml $(SRC)/looplang.ml
 CMO_FILES = $(ML_FILES:.ml=.cmo)
@@ -34,8 +38,13 @@ $(SRC)/parser.cmo: $(SRC)/parser.cmi
 ${SRC}/lexer.ml: ${SRC}/lexer.mll
 	$(OCAMLLEX) -o $@ $<
 
+test: $(TEST_EXEC)
+
+$(TEST_EXEC): $(TEST_DIR)/unit_tests.ml $(CMO_FILES)
+	$(OCAMLC) -o $@ -package $(LIBS) -I $(SRC) $^
+
 # remove all generated files
 clean:
-	rm -f $(SRC)/*.cmi $(SRC)/*.cmo $(SRC)/*.cmx $(SRC)/lexer.ml $(SRC)/parser.ml $(SRC)/parser.mli $(TARGET)
+	rm -f $(SRC)/*.cmi $(SRC)/*.cmo $(SRC)/*.cmx $(SRC)/lexer.ml $(SRC)/parser.ml $(SRC)/parser.mli $(TARGET) $(TEST_DIR)/*.cmi $(TEST_DIR)/*.cmo $(TEST_EXEC)
 
 .PHONY: all clean
