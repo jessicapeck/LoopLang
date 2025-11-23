@@ -75,8 +75,8 @@ mult_expr:
     | DEC int_expr                                                                  { StitchMultExpr(DEC, $2) }
     | int_expr DEC                                                                  { StitchMultExpr(DEC, $1) }
     | DEC                                                                           { StitchMultExpr(DEC, Lit(1)) }
-    | LBRACKET stitch_list RBRACKET MULINT                                          { StitchSeqMultExpr($2, Lit($4)) }
-    | LBRACKET stitch_list RBRACKET MULINTVAR                                       { StitchSeqMultExpr($2, IntVar($4)) }
+    | LPAREN stitch_list RPAREN MULINT                                              { StitchSeqMultExpr($2, Lit($4)) }
+    | LPAREN stitch_list RPAREN MULINTVAR                                           { StitchSeqMultExpr($2, IntVar($4)) }
 
 int_expr:
     | INT                                                                           { Lit($1) }
