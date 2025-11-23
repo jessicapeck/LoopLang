@@ -100,7 +100,7 @@ rule token = parse
     | ','                                               { COMMA }
     | eof                                               {
                                                             begin
-                                                                while not (Stack.is_empty indent_stack) do
+                                                                while (Stack.length indent_stack > 1) do
                                                                     let _ = Stack.pop indent_stack in
                                                                     Queue.add DEDENT pending_tokens
                                                                 done;
@@ -116,4 +116,35 @@ rule token = parse
             Queue.take pending_tokens
         else
             token lexbuf
+
+
+    let string_of_token = function
+    | INDENT -> "INDENT"
+    | DEDENT -> "DEDENT"
+    | NEWLINE -> "NEWLINE"
+    | CH -> "CH"
+    | SC -> "SC"
+    | DC -> "DC"
+    | INC -> "INC"
+    | DEC -> "DEC"
+    | ROWINT num -> Printf.sprintf "ROWINT(%d)" num
+    | ROWINTVAR id -> Printf.sprintf "ROWINTVAR(%s)" id
+    | MULINT num -> Printf.sprintf "MULINT(%d)" num
+    | MULINTVAR id -> Printf.sprintf "MULINTVAR(%s)" id
+    | LET -> "LET"
+    | DEF -> "DEF"
+    | FOR -> "FOR"
+    | TO -> "TO"
+    | INT num -> Printf.sprintf "INT(%d)" num
+    | ID id -> Printf.sprintf "ID(%s)" id
+    | EQ -> "EQ"
+    | LPAREN -> "LPAREN"
+    | RPAREN -> "RPAREN"
+    | LBRACKET -> "LBRACKET"
+    | RBRACKET -> "RBRACKET"
+    | LBRACE -> "LBRACE"
+    | RBRACE -> "RBRACE"
+    | COLON -> "COLON"
+    | COMMA -> "COMMA"
+    | EOF -> "EOF"
 }
