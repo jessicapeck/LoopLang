@@ -50,7 +50,7 @@ ${SRC}/lexer.ml: ${SRC}/lexer.mll
 test: $(TEST_EXEC)
 
 $(TEST_EXEC): $(CMO_FILES) $(TEST_CMO_FILES) 
-	opam exec -- $(OCAMLC) -g -o $@ -package $(LIBS) -I $(SRC) $^
+	opam exec -- $(OCAMLC) -g -linkpkg -o $@ -package $(LIBS) -I $(SRC) $^
 
 # Compile test/unit_tests.ml into an object file
 $(TEST_DIR)/unit_tests.cmo: $(TEST_DIR)/unit_tests.ml
