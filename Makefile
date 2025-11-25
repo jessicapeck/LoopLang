@@ -3,14 +3,20 @@ OCAMLLEX = ocamllex
 MENHIR = menhir
 
 SRC = src
-TARGET = llcompiler
 TEST_DIR = test
+
+TARGET = llcompiler
 TEST_EXEC = $(TEST_DIR)/unit_tests
 
 LIBS = alcotest
 
 ML_FILES = $(SRC)/ast.ml $(SRC)/parser.ml $(SRC)/lexer.ml $(SRC)/looplang.ml
 CMO_FILES = $(ML_FILES:.ml=.cmo)
+
+TEST_ML_FILES = $(TEST_DIR)/unit_tests.ml
+TEST_CMO_FILES = $(TEST_ML_FILES:.ml=.cmo)
+
+OPAM_ENV_CMD = eval $(opam env)
 
 # generate all files needed to create TARGET upon `make` command
 all: $(TARGET)
@@ -40,8 +46,12 @@ ${SRC}/lexer.ml: ${SRC}/lexer.mll
 
 test: $(TEST_EXEC)
 
-$(TEST_EXEC): $(TEST_DIR)/unit_tests.ml $(CMO_FILES)
-	$(OCAMLC) -o $@ -package $(LIBS) -I $(SRC) $^
+$(TEST_EXEC): $(CMO_FILES)  $(TEST_CMO_FILES)
+	opam exec -- $(OCAMLC) -o $@ -package $(LIBS) -I $(SRC) $^
+
+# Compile test/unit_tests.ml into an object file
+$(TEST_DIR)/unit_tests.cmo: $(TEST_DIR)/unit_tests.ml $(CMO_FILES)
+	opam exec -- $(OCAMLC) -I $(SRC) -package $(LIBS) -c -o $@ $<
 
 # remove all generated files
 clean:
