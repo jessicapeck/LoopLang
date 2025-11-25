@@ -10,8 +10,11 @@ TEST_EXEC = $(TEST_DIR)/unit_tests
 
 LIBS = alcotest
 
-ML_FILES = $(SRC)/ast.ml $(SRC)/parser.ml $(SRC)/lexer.ml $(SRC)/looplang.ml
+ML_FILES = $(SRC)/ast.ml $(SRC)/parser.ml $(SRC)/lexer.ml
 CMO_FILES = $(ML_FILES:.ml=.cmo)
+
+MAIN_FILE = $(SRC)/looplang.ml
+MAIN_CMO_FILE = $(MAIN_FILE:.ml=.cmo)
 
 TEST_ML_FILES = $(TEST_DIR)/unit_tests.ml
 TEST_CMO_FILES = $(TEST_ML_FILES:.ml=.cmo)
@@ -22,12 +25,12 @@ OPAM_ENV_CMD = eval $(opam env)
 all: $(TARGET)
 
 # link everything together to create the final executable
-$(TARGET): $(CMO_FILES)
-	$(OCAMLC) -o $@ $^
+$(TARGET): $(CMO_FILES) $(MAIN_CMO_FILE)
+	$(OCAMLC) -g -o $@ $^
 
 # compile .ml files to .cmo files
 $(SRC)/%.cmo: $(SRC)/%.ml
-	$(OCAMLC) -I $(SRC) -c -o $@ $<
+	$(OCAMLC) -g -I $(SRC) -c -o $@ $<
 
 # compile .mli files to .cmi files
 $(SRC)/%.cmi: $(SRC)/%.mli
@@ -46,12 +49,12 @@ ${SRC}/lexer.ml: ${SRC}/lexer.mll
 
 test: $(TEST_EXEC)
 
-$(TEST_EXEC): $(CMO_FILES)  $(TEST_CMO_FILES)
-	opam exec -- $(OCAMLC) -o $@ -package $(LIBS) -I $(SRC) $^
+$(TEST_EXEC): $(CMO_FILES) $(TEST_CMO_FILES) 
+	opam exec -- $(OCAMLC) -g -o $@ -package $(LIBS) -I $(SRC) $^
 
 # Compile test/unit_tests.ml into an object file
-$(TEST_DIR)/unit_tests.cmo: $(TEST_DIR)/unit_tests.ml $(CMO_FILES)
-	opam exec -- $(OCAMLC) -I $(SRC) -package $(LIBS) -c -o $@ $<
+$(TEST_DIR)/unit_tests.cmo: $(TEST_DIR)/unit_tests.ml
+	opam exec -- $(OCAMLC) -g -I $(SRC) -package $(LIBS) -c -o $@ $<
 
 # remove all generated files
 clean:
