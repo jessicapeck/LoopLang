@@ -4,4 +4,7 @@ lexer.ml
 parser.ml
 parser.mli
 
+_build
+_build/*
+
 questions.txt
