@@ -26,6 +26,7 @@ pattern_item_list:
 
 pattern_item:
     | DEF ID LPAREN param_list RPAREN COLON NEWLINE INDENT statement_list DEDENT    { FuncDef($2, $4, $9) }
+    | DEF ID LPAREN RPAREN COLON NEWLINE INDENT statement_list DEDENT               { FuncDef($2, [], $8) }
     | statement                                                                     { Stmt($1) }
 
 param_list:
@@ -35,6 +36,7 @@ param_list:
 statement_list:
     | statement NEWLINE statement_list                                              { $1 :: $3 }
     | statement                                                                     { [$1] }
+    | NEWLINE statement_list                                                        { $2 }
 
 statement:
     | LET ID EQ stitch_list                                                         { StitchSeqDef($2, $4) }
@@ -42,6 +44,7 @@ statement:
     | ROWINT COLON stitch_list                                                      { Row(Lit($1), $3) }
     | ROWINTVAR COLON stitch_list                                                   { Row(IntVar($1), $3) }
     | LET ID EQ ID LPAREN arg_list RPAREN                                           { LetCallDef($2, $4, $6) }
+    | ID LPAREN arg_list RPAREN                                                     { FuncCall($1, $3) }
 
 arg_list:
     | arg COMMA arg_list                                                            { $1 :: $3 }

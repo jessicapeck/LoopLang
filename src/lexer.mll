@@ -23,64 +23,69 @@
         ) 0 seq
 
     type indent_action = 
-    | IndentToken
-    | DedentToken
+    | Indent
+    | Dedent
     | Skip
 
-    let process_indentation seq lexbuf = 
-        (* only consider whitespace sequence as indentation if at the start of a line *)
-        if lexbuf.lex_start_p.pos_cnum = lexbuf.lex_start_p.pos_bol then
-            begin
-                let current_indent_width = calc_indent_width seq in
-                if Stack.is_empty indent_stack then
-                    begin
-                        Stack.push current_indent_width indent_stack; 
+    let process_indentation seq = 
+        begin
+            (* calculate width of the indent *)
+            let current_indent_width = calc_indent_width seq in
+
+            (* add calculated indent width to the stack if the stack is empty*)
+            if Stack.is_empty indent_stack then
+                begin
+                    Stack.push current_indent_width indent_stack;
+                    Skip;
+                end
+            else
+                begin
+                    let prev_indent_count = Stack.top indent_stack in
+
+                    (* add INDENT token to pending token queue if width increases *)
+                    if current_indent_width > prev_indent_count then
+                        begin
+                            Stack.push current_indent_width indent_stack;
+                            Queue.add INDENT pending_tokens;
+                            Indent
+                        end
+                    (* add DEDENT tokens to pending token queue if width decreases*)
+                    else if current_indent_width < prev_indent_count then
+                        begin
+                            while not (Stack.is_empty indent_stack) && (current_indent_width < Stack.top indent_stack) do
+                                let _ = Stack.pop indent_stack in
+                                Queue.add DEDENT pending_tokens
+                            done;
+                            Dedent
+                        end
+                    else
                         Skip
-                    end
-                else
-                    begin
-                        let prev_indent_count = Stack.top indent_stack in
-                        if current_indent_width > prev_indent_count then
-                            begin
-                                Stack.push current_indent_width indent_stack;
-                                IndentToken
-                            end
-                        else if current_indent_width < prev_indent_count then
-                            begin
-                                let temp_token_queue = Queue.create () in
-                                while not (Stack.is_empty indent_stack) && (current_indent_width < Stack.top indent_stack) do
-                                    let _ = Stack.pop indent_stack in
-                                    Queue.add DEDENT temp_token_queue
-                                done;
-                                Queue.iter (fun t -> Queue.add t pending_tokens) temp_token_queue;
-                                let _ = Queue.take pending_tokens in
-                                DedentToken
-                            end
-                        else Skip
-                    end
-            end
-        else Skip
+                end
+        end
 }
 
 let id_regex = ['a'-'z' 'A'-'Z' '0'-'9']+
 let num_regex = ['0'-'9']+
-let row_identifiers = ('r' | 'R' | "row" | "ROW")
+let row_ident_regex = ('r' | 'R' | "row" | "ROW")
+
 
 rule token = parse
-    | (' '+) | ('\t'+) as seq                           { match process_indentation seq lexbuf with
-                                                            | IndentToken -> INDENT
-                                                            | DedentToken -> DEDENT
-                                                            | Skip -> token lexbuf
+    | '\n' ((' '*) | ('\t'*) as seq)                    { 
+                                                          next_line lexbuf; 
+                                                          match process_indentation seq with
+                                                          | Indent -> NEWLINE
+                                                          | Dedent -> Queue.add NEWLINE pending_tokens; Queue.take pending_tokens
+                                                          | Skip -> NEWLINE
                                                         }
-    | '\n'                                              { next_line lexbuf; NEWLINE}
+    | ' '                                               { token lexbuf }
     | "ch"                                              { CH }
     | "sc"                                              { SC }
     | "dc"                                              { DC }
     | "inc"                                             { INC }
     | "dec"                                             { DEC }
-    | row_identifiers ' '? (num_regex as num)           { ROWINT (int_of_string num) }
-    | row_identifiers ' ' (id_regex as id)              { ROWINTVAR id }
-    | row_identifiers ' '? "(" (id_regex as id) ")"     { ROWINTVAR id }
+    | row_ident_regex ' '? (num_regex as num)           { ROWINT (int_of_string num) }
+    | row_ident_regex ' ' (id_regex as id)              { ROWINTVAR id }
+    | row_ident_regex ' '? "(" (id_regex as id) ")"     { ROWINTVAR id }
     | 'x' (num_regex as num)                            { MULINT (int_of_string num)}
     | "x(" (id_regex as id) ")"                         { MULINTVAR id }
     | "let"                                             { LET }

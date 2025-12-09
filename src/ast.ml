@@ -24,6 +24,7 @@ type statement =
   | IntDef of var * int_expr
   | Row of int_expr * stitch_seq_item list
   | LetCallDef of var * var * argument list (* var name, func name, args *)
+  | FuncCall of var * argument list (* func name, args *)
 
 type pattern_item = 
   | FuncDef of var * var list * statement list (* func name, args *)
@@ -62,6 +63,7 @@ let string_of_statement = function
   | StitchSeqDef(v, seq) -> Printf.sprintf "StitchSeqDef(%s, [%s])" v (String.concat ", " (List.map string_of_stitch_seq_item seq))
   | Row(n, expr_list) -> Printf.sprintf "Row(%s, [%s])" (string_of_int_expr n) (String.concat ", " (List.map string_of_stitch_seq_item expr_list))
   | LetCallDef(v, f, args) -> Printf.sprintf "LetCallDef(%s, %s, [%s])" v f (String.concat ", " (List.map string_of_argument args))
+  | FuncCall(f, args) -> Printf.sprintf "FuncCall(%s, [%s])" f (String.concat ", " (List.map string_of_argument args))
 
 let string_of_pattern_item = function
   | FuncDef(f, params, stmts) -> Printf.sprintf "FuncDef(%s, [%s], [%s])" f (String.concat ", " params) (String.concat ", " (List.map string_of_statement stmts))
