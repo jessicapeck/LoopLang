@@ -1,0 +1,7 @@
+def foo(i):
+    ROW i: sc 30
+    ROW i: sc 31
+
+ROW 1: ch 30
+foo(2)
+foo(3)
