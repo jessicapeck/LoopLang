@@ -1,5 +1,14 @@
 # LoopLang Syntax
 
+## Stitch types
+Implemented stitch types include:
+- chain: `ch`
+- single crochet: `sc`
+- double crochet: `dc`
+- increase stitch: `inc`
+- decrease stitch: `dec`
+
+## Row identifiers
 `r1: ...`
 `R1: ...`
 `row 1: ...`
@@ -8,6 +17,7 @@
 - a space between the row identifier and the row number is optional for all forms when the row number is a literal
 - when the row number is a variable, if the variable is in parentheses then the space is optional, otherwise the space is mandatory
 
+## Multipliers
 `R1: sc 3, inc, sc 3` 
 `R1: 3 sc, inc, 3 sc` 
 - multiple consecutive stitches can be denoted by specifying the stitch type and then the number of consecutive stitches of that type or vice versa
@@ -18,15 +28,17 @@
 - parentheses are used to define a local stitch sequence
 - the `x<INT>` form is used to specify that the sequence in the preceeding parentheses should be repeated
 
+## Row count
 `R21: sc 30 [30]`
 - the row count can optionally be specified at the end of the line using square brackets
 
+## Variables
 ```
-let SEQ = dec 2, sc 5, dec 2
+let seq = dec 2, sc 5, dec 2
 
 ...
-R10: sc 10, SEQ, sc 10
-R11: sc 8, SEQ, sc 8
+R10: sc 10, seq, sc 10
+R11: sc 8, seq, sc 8
 ...
 ```
 
@@ -38,6 +50,7 @@ R4: (sc i, inc, sc i) x(i)
 - where a variable is used is a stitch sequence multiplier, it must be contained within parentheses and placed after the `x` symbol
 - identify end of assignment with newline
 
+## For-loops
 ```
 ...
 R2: ...
@@ -48,9 +61,33 @@ for i = 1 to 5:
 -  a `for`-loop can be used to represent multiple rows with a numerical pattern
 - identify body of loop with newline and indentation
 
+## If-else statements
+TODO
+
+## Functions
 ```
-def foo():
-    ...
+def foo(i):
+    return (sc i, inc, sc i) 
+
+foo(3)
 ```
 - functions can be defined using `def`
+- functions can be called using the function name
+- the function body is defined by indentation
+- `return` is used to specify what is returned from the function
+- the function return is specified by the contents of the parentheses
+- integer expressions, stitch sequences, and statement expression lists can be returned from a function
+
+```
+def foo(i):
+    return (
+        row i: sc 2, inc, sc 2
+        row (i+1): dc 6
+    ) 
+
+foo(5)
+```
+
+- to return multiple lines, they must be indented within the parentheses, starting on a new line
+
 
