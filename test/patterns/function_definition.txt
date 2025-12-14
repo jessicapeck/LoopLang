@@ -1,6 +1,5 @@
 def foo(i):
-    ROW i: sc 30
-    ROW i: sc 31
+    return(ROW i: sc 30)
 
 ROW 1: ch 30
 foo(2)

@@ -1,1 +1,1 @@
-Pattern([Stmt(Row(Lit(1), [StitchMultExpr(CH, Lit(30))])), Stmt(Row(Lit(2), [StitchMultExpr(SC, Lit(30))])), Stmt(Row(Lit(3), [StitchSeqMultExpr([StitchMultExpr(DC, Lit(13)), StitchMultExpr(INC, Lit(2))], Lit(2))]))])
+Pattern([Stmt(StmtExpr(Row(Lit(1), [StitchMultExpr(CH, Lit(30))]))), Stmt(StmtExpr(Row(Lit(2), [StitchMultExpr(SC, Lit(30))]))), Stmt(StmtExpr(Row(Lit(3), [StitchSeqMultExpr([StitchMultExpr(DC, Lit(13)), StitchMultExpr(INC, Lit(2))], Lit(2))])))])

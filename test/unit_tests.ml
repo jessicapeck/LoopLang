@@ -39,7 +39,8 @@ let tests = [
   ("Row indicators", "row_indicators");
   ("Stitch multipliers", "stitch_multipliers");
   ("Integer variables", "integer_variables");
-  ("Function definition", "function_definition")
+  ("Function definition", "function_definition");
+  ("Multiple line function return", "multiple_line_function_return")
 ]
 
 

@@ -90,6 +90,7 @@ rule token = parse
     | "x(" (id_regex as id) ")"                         { MULINTVAR id }
     | "let"                                             { LET }
     | "def"                                             { DEF }
+    | "return"                                          { RETURN } 
     | "for"                                             { FOR }
     | "to"                                              { TO }
     | num_regex as num                                  { INT (int_of_string num) }
@@ -138,6 +139,7 @@ rule token = parse
     | MULINTVAR id -> Printf.sprintf "MULINTVAR(%s)" id
     | LET -> "LET"
     | DEF -> "DEF"
+    | RETURN -> "RETURN"
     | FOR -> "FOR"
     | TO -> "TO"
     | INT num -> Printf.sprintf "INT(%d)" num
