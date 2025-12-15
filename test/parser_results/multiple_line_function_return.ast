@@ -1,1 +1,1 @@
-Pattern([FuncDef(foo, [], [Return(ReturnStmtExprList([Row(Lit(1), [StitchMultExpr(SC, Lit(30))]), Row(Lit(2), [StitchMultExpr(DC, Lit(14)), StitchMultExpr(INC, Lit(2)), StitchMultExpr(DC, Lit(14))])]))]), Stmt(StmtExpr(FuncCall(foo, [])))])
+Pattern([FuncDef(foo, [], [Return(ReturnStmtExprList([Row(Int(1), [StitchMultExpr(SC, Int(30))]), Row(Int(2), [StitchMultExpr(DC, Int(14)), StitchMultExpr(INC, Int(2)), StitchMultExpr(DC, Int(14))])]))]), Stmt(StmtExpr(FuncCall(foo, [])))])

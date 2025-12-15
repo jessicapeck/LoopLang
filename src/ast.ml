@@ -2,49 +2,39 @@ type var = string
 
 type stitch = CH | SC | DC | INC | DEC
 
-type int_bin_op = Add | Sub | Mul | Div
-type int_unary_op = Neg
+type bin_op = ADD | SUB | MUL | DIV | LT | GT | EQ | AND | OR
+type unary_op = NEG | NOT
 
-type int_bool_bin_op = LessThan | GreaterThan | EqualTo
-type bool_bool_bin_op = And | Or
-type bool_unary_op = Not
-
-type int_expr = 
-  | Lit of int
-  | IntVar of var
-  | IntBinOp of int_expr * int_bin_op * int_expr
-  | IntUnaryOp of int_unary_op * int_expr
-
-type bool_expr =
+type expr = 
+  | Int of int
   | Bool of bool
-  | BoolVar of var
-  | IntToBoolBinOp of int_expr * int_bool_bin_op * int_expr
-  | BoolToBoolBinOp of bool_expr * bool_bool_bin_op * bool_expr
-  | BoolUnaryOp of bool_unary_op * bool_expr
+  | Var of var
+  | BinOp of expr * bin_op * expr
+  | UnaryOp of unary_op * expr
 
 (* TODO: decide whether users should be allowed to define their own stitch abbreviations *)
 type mult_expr = 
-  | StitchMultExpr of stitch * int_expr
-  | StitchSeqMultExpr of stitch_seq_item list * int_expr
+  | StitchMultExpr of stitch * expr
+  | StitchSeqMultExpr of stitch_seq_item list * expr
 and stitch_seq_item =
   | StitchSeqItem of mult_expr
   | StitchSeqItemVar of var
 
 type argument = 
-  | NumArg of int_expr
+  | ExprArg of expr
   | StitchSeqArg of stitch_seq_item list
 
 type definition =
+  | ExprDef of var * expr
   | StitchSeqDef of var * stitch_seq_item list
-  | IntDef of var * int_expr
   | FuncCallDef of var * var * argument list (* var name, func name, args *)
   
 type stmt_expr =
-  | Row of int_expr * stitch_seq_item list (* row number, stitch list*)
+  | Row of expr * stitch_seq_item list (* row number, stitch list*)
   | FuncCall of var * argument list (* func name, args *)
   
 type return_expr = 
-  | ReturnIntExpr of int_expr
+  | ReturnExpr of expr
   | ReturnStitchSeq of stitch_seq_item list
   | ReturnStmtExprList of stmt_expr list
 
@@ -71,32 +61,50 @@ let string_of_stitch = function
   | INC -> "INC"
   | DEC -> "DEC"
 
-let string_of_int_expr = function
-  | Lit(n) -> Printf.sprintf "Lit(%d)" n
-  | IntVar(v) -> Printf.sprintf "IntVar(%s)" v
+let string_of_bin_op = function
+  | ADD -> "ADD"
+  | SUB -> "SUB"
+  | MUL -> "MUL"
+  | DIV -> "DIV"
+  | LT -> "LT"
+  | GT -> "GT"
+  | EQ -> "EQ"
+  | AND -> "AND"
+  | OR -> "OR"
+
+let string_of_unary_op = function
+  | NEG -> "NEG"
+  | NOT -> "NOT"
+
+let rec string_of_expr = function
+  | Int(n) -> Printf.sprintf "Int(%d)" n
+  | Bool(b) -> Printf.sprintf "Bool(%b)" b
+  | Var(v) -> Printf.sprintf "Var(%s)" v
+  | BinOp(left, op, right) -> Printf.sprintf "BinOp(%s, %s, %s)" (string_of_expr left) (string_of_bin_op op) (string_of_expr right)
+  | UnaryOp(op, e) -> Printf.sprintf "UnaryOp(%s, %s)" (string_of_unary_op op) (string_of_expr e)
 
 let rec string_of_mult_expr = function
-  | StitchMultExpr(s, n) -> Printf.sprintf "StitchMultExpr(%s, %s)" (string_of_stitch s) (string_of_int_expr n)
-  | StitchSeqMultExpr(seq, n) -> Printf.sprintf "StitchSeqMultExpr([%s], %s)" (String.concat ", " (List.map string_of_stitch_seq_item seq)) (string_of_int_expr n)
+  | StitchMultExpr(s, n) -> Printf.sprintf "StitchMultExpr(%s, %s)" (string_of_stitch s) (string_of_expr n)
+  | StitchSeqMultExpr(seq, n) -> Printf.sprintf "StitchSeqMultExpr([%s], %s)" (String.concat ", " (List.map string_of_stitch_seq_item seq)) (string_of_expr n)
 and string_of_stitch_seq_item = function
   | StitchSeqItem(m) -> string_of_mult_expr m
   | StitchSeqItemVar(v) -> Printf.sprintf "StitchSeqItemVar(%s)" v
 
 let string_of_argument = function
-  | NumArg(n) -> Printf.sprintf "NumArg(%s)" (string_of_int_expr n)
+  | ExprArg(n) -> Printf.sprintf "ExprArg(%s)" (string_of_expr n)
   | StitchSeqArg(seq) -> Printf.sprintf "StitchSeqArg([%s])" (String.concat ", " (List.map string_of_stitch_seq_item seq))
 
 let string_of_definition = function
-  | IntDef(v, n) -> Printf.sprintf "IntDef(%s, %s)" v (string_of_int_expr n)
+  | ExprDef(v, n) -> Printf.sprintf "ExprDef(%s, %s)" v (string_of_expr n)
   | StitchSeqDef(v, seq) -> Printf.sprintf "StitchSeqDef(%s, [%s])" v (String.concat ", " (List.map string_of_stitch_seq_item seq))
   | FuncCallDef(v, f, args) -> Printf.sprintf "FuncCallDef(%s, %s, [%s])" v f (String.concat ", " (List.map string_of_argument args))
 
 let string_of_stmt_expr = function
-  | Row(n, expr_list) -> Printf.sprintf "Row(%s, [%s])" (string_of_int_expr n) (String.concat ", " (List.map string_of_stitch_seq_item expr_list))
+  | Row(n, expr_list) -> Printf.sprintf "Row(%s, [%s])" (string_of_expr n) (String.concat ", " (List.map string_of_stitch_seq_item expr_list))
   | FuncCall(f, args) -> Printf.sprintf "FuncCall(%s, [%s])" f (String.concat ", " (List.map string_of_argument args))
 
 let string_of_return_expr = function
-  | ReturnIntExpr(n) -> Printf.sprintf "ReturnIntExpr(%s)" (string_of_int_expr n)
+  | ReturnExpr(n) -> Printf.sprintf "ReturnExpr(%s)" (string_of_expr n)
   | ReturnStitchSeq(seq) -> Printf.sprintf "ReturnStitchSeq([%s])" (String.concat ", " (List.map string_of_stitch_seq_item seq))
   | ReturnStmtExprList(e) -> Printf.sprintf "ReturnStmtExprList([%s])" (String.concat ", " (List.map string_of_stmt_expr e))
 

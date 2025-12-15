@@ -66,6 +66,7 @@
 
 let id_regex = ['a'-'z' 'A'-'Z' '0'-'9']+
 let num_regex = ['0'-'9']+
+let bool_regex = ("true" | "True" | "TRUE" | "false" | "False" | "FALSE")
 let row_ident_regex = ('r' | 'R' | "row" | "ROW")
 
 
@@ -97,6 +98,7 @@ rule token = parse
     | "or"                                              { OR }
     | "not"                                             { NOT }
     | num_regex as num                                  { INT (int_of_string num) }
+    | bool_regex as b                                   { BOOL (b = "true" || b = "True" || b = "TRUE") }
     | id_regex as id                                    { ID id }
     | '+'                                               { ADD }
     | '-'                                               { SUB }
@@ -153,6 +155,7 @@ rule token = parse
     | NOT -> "NOT"
     | INT num -> Printf.sprintf "INT(%d)" num
     | ID id -> Printf.sprintf "ID(%s)" id
+    | BOOL b -> Printf.sprintf "BOOL(%b)" b
     | ADD -> "ADD"
     | SUB -> "SUB"
     | MUL -> "MUL"

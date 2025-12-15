@@ -3,6 +3,7 @@
 %}
 
 %token<int> INT MULINT ROWINT
+%token<bool> BOOL
 %token<string> ID MULINTVAR ROWINTVAR
 %token CH SC DC INC DEC
 %token ADD SUB MUL DIV
@@ -46,7 +47,7 @@ func_statement:
     | RETURN LPAREN return_expr RPAREN                                                  { Return($3) }
 
 return_expr:
-    | int_expr                                                                          { ReturnIntExpr($1) }
+    | expr                                                                              { ReturnExpr($1) }
     | stitch_list                                                                       { ReturnStitchSeq($1) }
     | statement_expression_list                                                         { ReturnStmtExprList($1) }
 
@@ -60,13 +61,13 @@ statement:
     | statement_expression                                                              { StmtExpr($1) }
 
 definition:
-    | LET ID ASSIGN stitch_list                                                             { StitchSeqDef($2, $4) }
-    | LET ID ASSIGN int_expr                                                                { IntDef($2, $4) }
-    | LET ID ASSIGN ID LPAREN arg_list RPAREN                                               { FuncCallDef($2, $4, $6) }
+    | LET ID ASSIGN stitch_list                                                         { StitchSeqDef($2, $4) }
+    | LET ID ASSIGN expr                                                                { ExprDef($2, $4) }
+    | LET ID ASSIGN ID LPAREN arg_list RPAREN                                           { FuncCallDef($2, $4, $6) }
 
 statement_expression:
-    | ROWINT COLON stitch_list                                                          { Row(Lit($1), $3) }
-    | ROWINTVAR COLON stitch_list                                                       { Row(IntVar($1), $3) }
+    | ROWINT COLON stitch_list                                                          { Row(Int($1), $3) }
+    | ROWINTVAR COLON stitch_list                                                       { Row(Var($1), $3) }
     | ID LPAREN arg_list RPAREN                                                         { FuncCall($1, $3) }
     | ID LPAREN RPAREN                                                                  { FuncCall($1, []) }
 
@@ -75,7 +76,7 @@ arg_list:
     | arg                                                                               { [$1] }
 
 arg:
-    | int_expr                                                                          { NumArg($1) }
+    | expr                                                                              { ExprArg($1) }
     | stitch_list                                                                       { StitchSeqArg($1) }
 
 stitch_list:
@@ -87,25 +88,37 @@ stitch_seq_item:
     | ID                                                                                { StitchSeqItemVar($1) }
 
 mult_expr:
-    | CH int_expr                                                                       { StitchMultExpr(CH, $2) }
-    | int_expr CH                                                                       { StitchMultExpr(CH, $1) }
-    | CH                                                                                { StitchMultExpr(CH, Lit(1)) }
-    | SC int_expr                                                                       { StitchMultExpr(SC, $2) }
-    | int_expr SC                                                                       { StitchMultExpr(SC, $1) }
-    | SC                                                                                { StitchMultExpr(SC, Lit(1)) }
-    | DC int_expr                                                                       { StitchMultExpr(DC, $2) }
-    | int_expr DC                                                                       { StitchMultExpr(DC, $1) }
-    | DC                                                                                { StitchMultExpr(DC, Lit(1)) }
-    | INC int_expr                                                                      { StitchMultExpr(INC, $2) }
-    | int_expr INC                                                                      { StitchMultExpr(INC, $1) }
-    | INC                                                                               { StitchMultExpr(INC, Lit(1)) }
-    | DEC int_expr                                                                      { StitchMultExpr(DEC, $2) }
-    | int_expr DEC                                                                      { StitchMultExpr(DEC, $1) }
-    | DEC                                                                               { StitchMultExpr(DEC, Lit(1)) }
-    | LPAREN stitch_list RPAREN MULINT                                                  { StitchSeqMultExpr($2, Lit($4)) }
-    | LPAREN stitch_list RPAREN MULINTVAR                                               { StitchSeqMultExpr($2, IntVar($4)) }
+    | CH expr                                                                           { StitchMultExpr(CH, $2) }
+    | expr CH                                                                           { StitchMultExpr(CH, $1) }
+    | CH                                                                                { StitchMultExpr(CH, Int(1)) }
+    | SC expr                                                                           { StitchMultExpr(SC, $2) }
+    | expr SC                                                                           { StitchMultExpr(SC, $1) }
+    | SC                                                                                { StitchMultExpr(SC, Int(1)) }
+    | DC expr                                                                           { StitchMultExpr(DC, $2) }
+    | expr DC                                                                           { StitchMultExpr(DC, $1) }
+    | DC                                                                                { StitchMultExpr(DC, Int(1)) }
+    | INC expr                                                                          { StitchMultExpr(INC, $2) }
+    | expr INC                                                                          { StitchMultExpr(INC, $1) }
+    | INC                                                                               { StitchMultExpr(INC, Int(1)) }
+    | DEC expr                                                                          { StitchMultExpr(DEC, $2) }
+    | expr DEC                                                                          { StitchMultExpr(DEC, $1) }
+    | DEC                                                                               { StitchMultExpr(DEC, Int(1)) }
+    | LPAREN stitch_list RPAREN MULINT                                                  { StitchSeqMultExpr($2, Int($4)) }
+    | LPAREN stitch_list RPAREN MULINTVAR                                               { StitchSeqMultExpr($2, Var($4)) }
 
-int_expr:
-    | INT                                                                               { Lit($1) }
-    | ID                                                                                { IntVar($1) }
+expr:
+    | INT                                                                               { Int($1) }
+    | BOOL                                                                              { Bool($1) }
+    | ID                                                                                { Var($1) }
+    | expr ADD expr                                                                     { BinOp($1, ADD, $3) }
+    | expr SUB expr                                                                     { BinOp($1, SUB, $3) }
+    | expr MUL expr                                                                     { BinOp($1, MUL, $3) }
+    | expr DIV expr                                                                     { BinOp($1, DIV, $3) }
+    | expr LT expr                                                                      { BinOp($1, LT, $3) }
+    | expr GT expr                                                                      { BinOp($1, GT, $3) }
+    | expr EQ expr                                                                      { BinOp($1, EQ, $3) }
+    | expr AND expr                                                                     { BinOp($1, AND, $3) }
+    | expr OR expr                                                                      { BinOp($1, OR, $3) }
+    | SUB expr                                                                          { UnaryOp(NEG, $2) }
+    | NOT expr                                                                          { UnaryOp(NOT, $2) }
 
