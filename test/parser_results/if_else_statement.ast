@@ -1,0 +1,1 @@
+Pattern([Stmt(If(BinOp(Var(i), GT, Int(2)), [StmtExpr(Row(Int(1), [StitchMultExpr(SC, Int(30))]))], [StmtExpr(Row(Int(1), [StitchMultExpr(DC, Int(30))]))]))])

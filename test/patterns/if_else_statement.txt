@@ -1,0 +1,4 @@
+if i > 2:
+    ROW 1: sc 30
+else:
+    ROW 1: dc 30

@@ -43,6 +43,7 @@ type statement =
   | LetDef of definition
   | StmtExpr of stmt_expr
   | Return of return_expr
+  | If of expr * statement list * statement list  (* condition, then branch, else branch *)
 
 type pattern_item = 
   | FuncDef of var * var list * statement list (* func name, args, body *)
@@ -108,10 +109,11 @@ let string_of_return_expr = function
   | ReturnStitchSeq(seq) -> Printf.sprintf "ReturnStitchSeq([%s])" (String.concat ", " (List.map string_of_stitch_seq_item seq))
   | ReturnStmtExprList(e) -> Printf.sprintf "ReturnStmtExprList([%s])" (String.concat ", " (List.map string_of_stmt_expr e))
 
-let string_of_statement = function
+let rec string_of_statement = function
   | LetDef(d) -> Printf.sprintf "LetDef(%s)" (string_of_definition d)
   | StmtExpr(e) -> Printf.sprintf "StmtExpr(%s)" (string_of_stmt_expr e)
   | Return(r) -> Printf.sprintf "Return(%s)" (string_of_return_expr r)
+  | If(cond, if_branch, else_branch) -> Printf.sprintf "If(%s, [%s], [%s])" (string_of_expr cond) (String.concat ", " (List.map string_of_statement if_branch)) (String.concat ", " (List.map string_of_statement else_branch))
 
 let string_of_pattern_item = function
   | FuncDef(f, params, stmts) -> Printf.sprintf "FuncDef(%s, [%s], [%s])" f (String.concat ", " params) (String.concat ", " (List.map string_of_statement stmts))

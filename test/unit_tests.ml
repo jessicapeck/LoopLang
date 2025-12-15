@@ -40,7 +40,9 @@ let tests = [
   ("Stitch multipliers", "stitch_multipliers");
   ("Integer variables", "integer_variables");
   ("Function definition", "function_definition");
-  ("Multiple line function return", "multiple_line_function_return")
+  ("Multiple line function return", "multiple_line_function_return");
+  ("If-else statement", "if_else_statement");
+  ("If statement (no else)", "if_statement")
 ]
 
 

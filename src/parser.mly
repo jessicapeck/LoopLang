@@ -9,7 +9,7 @@
 %token ADD SUB MUL DIV
 %token LT GT EQ
 %token AND OR NOT
-%token LET DEF RETURN FOR TO ASSIGN
+%token IF ELSE LET DEF RETURN FOR TO ASSIGN
 %token LPAREN RPAREN COMMA COLON
 %token NEWLINE
 %token INDENT DEDENT
@@ -59,6 +59,8 @@ statement_expression_list:
 statement:
     | definition                                                                        { LetDef($1) }
     | statement_expression                                                              { StmtExpr($1) }
+    | IF expr COLON NEWLINE INDENT func_statement_list DEDENT                           { If($2, $6, []) }
+    | IF expr COLON NEWLINE INDENT func_statement_list DEDENT NEWLINE ELSE COLON NEWLINE INDENT func_statement_list DEDENT { If($2, $6, $13) }
 
 definition:
     | LET ID ASSIGN stitch_list                                                         { StitchSeqDef($2, $4) }
