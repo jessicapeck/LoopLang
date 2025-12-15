@@ -1,3 +1,6 @@
+type t = TInt | TBool
+type env = (string * t) list
+
 type var = string
 
 type stitch = CH | SC | DC | INC | DEC
