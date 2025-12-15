@@ -5,9 +5,11 @@
 %token<int> INT MULINT ROWINT
 %token<string> ID MULINTVAR ROWINTVAR
 %token CH SC DC INC DEC
-%token EQ
-%token LET DEF RETURN FOR TO
-%token LPAREN RPAREN LBRACKET RBRACKET LBRACE RBRACE COMMA COLON
+%token ADD SUB MUL DIV
+%token LT GT EQ
+%token AND OR NOT
+%token LET DEF RETURN FOR TO ASSIGN
+%token LPAREN RPAREN COMMA COLON
 %token NEWLINE
 %token INDENT DEDENT
 %token EOF
@@ -58,9 +60,9 @@ statement:
     | statement_expression                                                              { StmtExpr($1) }
 
 definition:
-    | LET ID EQ stitch_list                                                             { StitchSeqDef($2, $4) }
-    | LET ID EQ int_expr                                                                { IntDef($2, $4) }
-    | LET ID EQ ID LPAREN arg_list RPAREN                                               { FuncCallDef($2, $4, $6) }
+    | LET ID ASSIGN stitch_list                                                             { StitchSeqDef($2, $4) }
+    | LET ID ASSIGN int_expr                                                                { IntDef($2, $4) }
+    | LET ID ASSIGN ID LPAREN arg_list RPAREN                                               { FuncCallDef($2, $4, $6) }
 
 statement_expression:
     | ROWINT COLON stitch_list                                                          { Row(Lit($1), $3) }

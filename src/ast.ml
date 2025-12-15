@@ -2,9 +2,25 @@ type var = string
 
 type stitch = CH | SC | DC | INC | DEC
 
+type int_bin_op = Add | Sub | Mul | Div
+type int_unary_op = Neg
+
+type int_bool_bin_op = LessThan | GreaterThan | EqualTo
+type bool_bool_bin_op = And | Or
+type bool_unary_op = Not
+
 type int_expr = 
   | Lit of int
   | IntVar of var
+  | IntBinOp of int_expr * int_bin_op * int_expr
+  | IntUnaryOp of int_unary_op * int_expr
+
+type bool_expr =
+  | Bool of bool
+  | BoolVar of var
+  | IntToBoolBinOp of int_expr * int_bool_bin_op * int_expr
+  | BoolToBoolBinOp of bool_expr * bool_bool_bin_op * bool_expr
+  | BoolUnaryOp of bool_unary_op * bool_expr
 
 (* TODO: decide whether users should be allowed to define their own stitch abbreviations *)
 type mult_expr = 

@@ -93,15 +93,21 @@ rule token = parse
     | "return"                                          { RETURN } 
     | "for"                                             { FOR }
     | "to"                                              { TO }
+    | "and"                                             { AND }
+    | "or"                                              { OR }
+    | "not"                                             { NOT }
     | num_regex as num                                  { INT (int_of_string num) }
     | id_regex as id                                    { ID id }
-    | '='                                               { EQ }
+    | '+'                                               { ADD }
+    | '-'                                               { SUB }
+    | '*'                                               { MUL }
+    | '/'                                               { DIV }
+    | '<'                                               { LT }
+    | '>'                                               { GT }
+    | "=="                                              { EQ }
+    | '='                                               { ASSIGN }
     | '('                                               { LPAREN }
     | ')'                                               { RPAREN }
-    | '['                                               { LBRACKET }
-    | ']'                                               { RBRACKET }
-    | '{'                                               { LBRACE }
-    | '}'                                               { RBRACE }
     | ':'                                               { COLON }
     | ','                                               { COMMA }
     | eof                                               {
@@ -142,15 +148,21 @@ rule token = parse
     | RETURN -> "RETURN"
     | FOR -> "FOR"
     | TO -> "TO"
+    | AND -> "AND"
+    | OR -> "OR"
+    | NOT -> "NOT"
     | INT num -> Printf.sprintf "INT(%d)" num
     | ID id -> Printf.sprintf "ID(%s)" id
+    | ADD -> "ADD"
+    | SUB -> "SUB"
+    | MUL -> "MUL"
+    | DIV -> "DIV"
+    | LT -> "LT"
+    | GT -> "GT"
     | EQ -> "EQ"
+    | ASSIGN -> "ASSIGN"
     | LPAREN -> "LPAREN"
     | RPAREN -> "RPAREN"
-    | LBRACKET -> "LBRACKET"
-    | RBRACKET -> "RBRACKET"
-    | LBRACE -> "LBRACE"
-    | RBRACE -> "RBRACE"
     | COLON -> "COLON"
     | COMMA -> "COMMA"
     | EOF -> "EOF"
