@@ -62,7 +62,14 @@ for i = 1 to 5:
 - identify body of loop with newline and indentation
 
 ## If-else statements
-TODO
+```
+...
+if <BOOL>:
+    ROW 3: sc 30
+else:
+    ROW 3: dc 30
+...
+```
 
 ## Functions
 ```

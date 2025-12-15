@@ -89,6 +89,8 @@ rule token = parse
     | row_ident_regex ' '? "(" (id_regex as id) ")"     { ROWINTVAR id }
     | 'x' (num_regex as num)                            { MULINT (int_of_string num)}
     | "x(" (id_regex as id) ")"                         { MULINTVAR id }
+    | "if"                                              { IF }
+    | "else"                                            { ELSE }
     | "let"                                             { LET }
     | "def"                                             { DEF }
     | "return"                                          { RETURN } 
@@ -145,6 +147,8 @@ rule token = parse
     | ROWINTVAR id -> Printf.sprintf "ROWINTVAR(%s)" id
     | MULINT num -> Printf.sprintf "MULINT(%d)" num
     | MULINTVAR id -> Printf.sprintf "MULINTVAR(%s)" id
+    | IF -> "IF"
+    | ELSE -> "ELSE"
     | LET -> "LET"
     | DEF -> "DEF"
     | RETURN -> "RETURN"
