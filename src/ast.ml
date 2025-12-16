@@ -4,6 +4,7 @@ type t =
   | TStitch
   | TStitchSeqItem
   | TStitchSeq
+  | TFunc of t list * t
 
 type env = (string * t) list
 
@@ -58,7 +59,7 @@ type statement =
   | If of expr * statement list * statement list  (* condition, then branch, else branch *)
 
 type pattern_item = 
-  | FuncDef of var * var list * statement list (* func name, args, body *)
+  | FuncDef of var * var list * statement list (* func name, params, body *)
   | Stmt of statement
 
 type pattern = 

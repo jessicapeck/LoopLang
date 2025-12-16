@@ -1,4 +1,5 @@
 exception TypeError of string
+exception ArgError of string
 
 let rec check_stitch env st =
     match st with
@@ -83,4 +84,36 @@ and check_stitch_seq env stitch_seq =
         else raise(TypeError "TODO")
     )
 
+let check_argument env arg =
+    match arg with
+    | ExprArg(e) -> check_expr env e
+    | StitchSeqArg(seq) -> check_stitch_seq env seq
+
+let check_definition env def =
+    match def with
+    | ExprDef(v, e) -> 
+        let t = check_expr env e in
+        (v, t) :: env
+    | StitchSeqDef(v, seq) -> 
+        let t = check_stitch_seq env seq in (* TODO: is this part necessary, or does ast.ml enforce it as TStitchSeq *)
+        (v, t) :: env
+    | FuncCallDef(v, f, args) ->
+        (* TODO: do lookup based on function name and arg num / arg types ??? *)
+        let func_type =
+            try List.assoc f env
+            with Not_found -> raise(TypeError ("Undefined function: " ^ f))
+        in
+        let (param_types, return_type) = 
+            match func_type with
+            | TFunc(p, r) -> (p, r)
+            | _ -> raise(TypeError "Type error: '" ^ f ^"' is not a function type")
+        in
+        (* check types of args match *)
+        try
+            List.iter2(fun param_type arg ->
+                let t = check_argument env arg in
+                if t <> param_type then raise(TypeError "Type error: ")
+            ) param_types args;
+        with Invalid_argument -> raise(ArgError "ArgError: number of arguments passed and number of parameters expected do not match");
+        (v, return_type) :: env
 
