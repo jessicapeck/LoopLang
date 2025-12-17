@@ -106,8 +106,8 @@ mult_expr:
     | DEC expr                                                                                                      { StitchMultExpr(DEC, $2) }
     | expr DEC                                                                                                      { StitchMultExpr(DEC, $1) }
     | DEC                                                                                                           { StitchMultExpr(DEC, Int(1)) }
-    | LPAREN stitch_seq RPAREN MULINT                                                                               { StitchSeqMultExpr($2, Int($4)) }
-    | LPAREN stitch_seq RPAREN MULINTVAR                                                                            { StitchSeqMultExpr($2, Var($4)) }
+    | LPAREN stitch_seq_item_list RPAREN MULINT                                                                               { StitchSeqMultExpr($2, Int($4)) }
+    | LPAREN stitch_seq_item_list RPAREN MULINTVAR                                                                            { StitchSeqMultExpr($2, Var($4)) }
 
 expr:
     | INT                                                                                                           { Int($1) }

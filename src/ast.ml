@@ -25,11 +25,12 @@ type expr =
 (* TODO: decide whether I want to allow stitch to be a variable within StitchMultExpr *)
 type mult_expr = 
   | StitchMultExpr of stitch * expr (* TStitchSeqItem *)
-  | StitchSeqMultExpr of stitch_seq * expr (* TStitchSeqItem *)
+  | StitchSeqMultExpr of stitch_seq_item list * expr (* TStitchSeqItem *) (* TODO: do I want this to reference stitch_seq ??? *)
 and stitch_seq_item =
   | StitchSeqItem of mult_expr
   | StitchSeqItemVar of var
-and stitch_seq =
+
+type stitch_seq =
   | StitchSeq of stitch_seq_item list (* TStitchSeq *)
   | StitchSeqVar of var
 
@@ -99,11 +100,12 @@ let rec string_of_expr = function
 
 let rec string_of_mult_expr = function
   | StitchMultExpr(s, n) -> Printf.sprintf "StitchMultExpr(%s, %s)" (string_of_stitch s) (string_of_expr n)
-  | StitchSeqMultExpr(seq, n) -> Printf.sprintf "StitchSeqMultExpr(%s, %s)" (string_of_stitch_seq seq) (string_of_expr n)
+  | StitchSeqMultExpr(seq, n) -> Printf.sprintf "StitchSeqMultExpr(%s, %s)" (String.concat ", " (List.map string_of_stitch_seq_item seq)) (string_of_expr n)
 and string_of_stitch_seq_item = function
   | StitchSeqItem(m) -> string_of_mult_expr m
   | StitchSeqItemVar(v) -> Printf.sprintf "StitchSeqItemVar(%s)" v
-and string_of_stitch_seq = function
+
+let string_of_stitch_seq = function
   | StitchSeq(seq) -> Printf.sprintf "StitchSeq([%s])" (String.concat ", " (List.map string_of_stitch_seq_item seq))
   | StitchSeqVar(v) -> Printf.sprintf "StitchSeqVar(%s)" v
 
