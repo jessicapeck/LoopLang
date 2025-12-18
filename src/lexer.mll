@@ -112,6 +112,8 @@ rule token = parse
     | '='                                               { ASSIGN }
     | '('                                               { LPAREN }
     | ')'                                               { RPAREN }
+    | '['                                               { LBRACKET }
+    | ']'                                               { RBRACKET }
     | ':'                                               { COLON }
     | ','                                               { COMMA }
     | eof                                               {
@@ -170,6 +172,8 @@ rule token = parse
     | ASSIGN -> "ASSIGN"
     | LPAREN -> "LPAREN"
     | RPAREN -> "RPAREN"
+    | LBRACKET -> "LBRACKET"
+    | RBRACKET -> "RBRACKET"
     | COLON -> "COLON"
     | COMMA -> "COMMA"
     | EOF -> "EOF"
