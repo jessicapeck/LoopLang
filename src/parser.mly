@@ -57,18 +57,24 @@ return_expr:
 definition:
     | LET ID ASSIGN stitch_seq                                                                                      { StitchSeqDef($2, $4) }
     | LET ID ASSIGN expr                                                                                            { ExprDef($2, $4) }
-    | LET ID ASSIGN ID LPAREN arg_list RPAREN                                                                       { FuncCallDef($2, $4, $6) }
+    | LET ID ASSIGN statement_expression                                                                            { StmtExprListDef($2, StmtExprList([$4])) }
+    | LET ID ASSIGN LPAREN NEWLINE INDENT statement_expression_list DEDENT NEWLINE RPAREN                           { StmtExprListDef($2, $7) }
 
 statement_expression_list:
-    | statement_expression NEWLINE statement_expression_list                                                        { $1 :: $3 }
+    | statement_expression_list_aux                                                                                 { StmtExprList($1) }
+    | ID                                                                                                            { StmtExprListVar($1) }
+
+statement_expression_list_aux:
+    | statement_expression NEWLINE statement_expression_list_aux                                                    { $1 :: $3 }
     | statement_expression                                                                                          { [$1] }
-    | NEWLINE statement_expression_list                                                                             { $2 }
+    | NEWLINE statement_expression_list_aux                                                                         { $2 }
 
 statement_expression:
     | ROWINT COLON stitch_seq                                                                                       { Row(Int($1), $3) }
     | ROWINTVAR COLON stitch_seq                                                                                    { Row(Var($1), $3) }
     | ID LPAREN arg_list RPAREN                                                                                     { FuncCall($1, $3) }
     | ID LPAREN RPAREN                                                                                              { FuncCall($1, []) }
+    | ID                                                                                                            { StmtExprVar($1) }
 
 arg_list:
     | arg COMMA arg_list                                                                                            { $1 :: $3 }
@@ -106,8 +112,8 @@ mult_expr:
     | DEC expr                                                                                                      { StitchMultExpr(DEC, $2) }
     | expr DEC                                                                                                      { StitchMultExpr(DEC, $1) }
     | DEC                                                                                                           { StitchMultExpr(DEC, Int(1)) }
-    | LPAREN stitch_seq_item_list RPAREN MULINT                                                                               { StitchSeqMultExpr($2, Int($4)) }
-    | LPAREN stitch_seq_item_list RPAREN MULINTVAR                                                                            { StitchSeqMultExpr($2, Var($4)) }
+    | LPAREN stitch_seq_item_list RPAREN MULINT                                                                     { StitchSeqMultExpr($2, Int($4)) }
+    | LPAREN stitch_seq_item_list RPAREN MULINTVAR                                                                  { StitchSeqMultExpr($2, Var($4)) }
 
 expr:
     | INT                                                                                                           { Int($1) }

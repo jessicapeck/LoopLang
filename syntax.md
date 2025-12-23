@@ -32,6 +32,15 @@ Implemented stitch types include:
 `R21: sc 30 [30]`
 - the row count can optionally be specified at the end of the line using square brackets
 
+## Comments
+```
+<<Starting with red yarn>>
+row 1: ch 10
+row 2: sc 10
+row 3: sc 5 <<changing to green yarn in the last st>>, sc 5
+row 4: sc 10 <<FO the green yarn>>
+```
+- comments can be written within double angled brackets
 ## Variables
 ```
 let seq = dec 2, sc 5, dec 2
@@ -49,6 +58,34 @@ R4: (sc i, inc, sc i) x(i)
 - `let` can be used to define a variable (e.g. a sequence of stitches or an integer) that can be used throughout the pattern as shown
 - where a variable is used is a stitch sequence multiplier, it must be contained within parentheses and placed after the `x` symbol
 - identify end of assignment with newline
+
+Here are examples of the types that can be stored in variables:
+```
+let a = 3
+let b = true
+let c = ch 10
+let d = (sc 2, inc) x6
+let e = sc 5, dc 2, sc 5
+let f = foo()
+let g = goo(1, e)
+let h = row 1: ch 30
+let i = (
+    row 2: sc 30
+    row 3: (sc 13, inc 2) x2
+)
+```
+In `ast.ml` we have:
+```
+type t = 
+  | TInt 
+  | TBool 
+  | TStitch
+  | TStitchSeqItem
+  | TStitchSeq
+  | TFunc of t list * t
+  | TStmtExpr
+  | TStmtExprList
+```
 
 ## For-loops
 ```
@@ -83,7 +120,7 @@ foo(3)
 - the function body is defined by indentation
 - `return` is used to specify what is returned from the function
 - the function return is specified by the contents of the parentheses
-- integer expressions, stitch sequences, and statement expression lists can be returned from a function
+- the types that can be returned from functions are the same as the types that can be stored in variables
 
 ```
 def foo(i):

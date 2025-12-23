@@ -5,6 +5,8 @@ type t =
   | TStitchSeqItem
   | TStitchSeq
   | TFunc of t list * t
+  | TStmtExpr
+  | TStmtExprList
 
 type env = (string * t) list
 
@@ -38,19 +40,24 @@ type argument =
   | ExprArg of expr
   | StitchSeqArg of stitch_seq
 
+type stmt_expr =
+  | Row of expr * stitch_seq (* row number, stitch list*) (* TStmtExpr *)
+  | FuncCall of var * argument list (* func name, args *) (* TStmtExpr *)
+  | StmtExprVar of var
+
+ type stmt_expr_list =
+    | StmtExprList of stmt_expr list (* TStmtExprList *)
+    | StmtExprListVar of var
+
 type definition =
   | ExprDef of var * expr
   | StitchSeqDef of var * stitch_seq
-  | FuncCallDef of var * var * argument list (* var name, func name, args *)
-  
-type stmt_expr =
-  | Row of expr * stitch_seq (* row number, stitch list*)
-  | FuncCall of var * argument list (* func name, args *)
-  
+  | StmtExprListDef of var * stmt_expr_list
+
 type return_expr = 
   | ReturnExpr of expr
   | ReturnStitchSeq of stitch_seq
-  | ReturnStmtExprList of stmt_expr list
+  | ReturnStmtExprList of stmt_expr_list
 
 (* TODO: extend function call implementation to allow inlining *)
 type statement =
@@ -100,9 +107,9 @@ let rec string_of_expr = function
 
 let rec string_of_mult_expr = function
   | StitchMultExpr(s, n) -> Printf.sprintf "StitchMultExpr(%s, %s)" (string_of_stitch s) (string_of_expr n)
-  | StitchSeqMultExpr(seq, n) -> Printf.sprintf "StitchSeqMultExpr(%s, %s)" (String.concat ", " (List.map string_of_stitch_seq_item seq)) (string_of_expr n)
+  | StitchSeqMultExpr(seq, n) -> Printf.sprintf "StitchSeqMultExpr([%s], %s)" (String.concat ", " (List.map string_of_stitch_seq_item seq)) (string_of_expr n)
 and string_of_stitch_seq_item = function
-  | StitchSeqItem(m) -> string_of_mult_expr m
+  | StitchSeqItem(m) -> Printf.sprintf "StitchSeqItem(%s)" (string_of_mult_expr m)
   | StitchSeqItemVar(v) -> Printf.sprintf "StitchSeqItemVar(%s)" v
 
 let string_of_stitch_seq = function
@@ -113,19 +120,24 @@ let string_of_argument = function
   | ExprArg(n) -> Printf.sprintf "ExprArg(%s)" (string_of_expr n)
   | StitchSeqArg(seq) -> Printf.sprintf "StitchSeqArg(%s)" (string_of_stitch_seq seq)
 
-let string_of_definition = function
-  | ExprDef(v, n) -> Printf.sprintf "ExprDef(%s, %s)" v (string_of_expr n)
-  | StitchSeqDef(v, seq) -> Printf.sprintf "StitchSeqDef(%s, %s)" v (string_of_stitch_seq seq)
-  | FuncCallDef(v, f, args) -> Printf.sprintf "FuncCallDef(%s, %s, [%s])" v f (String.concat ", " (List.map string_of_argument args))
-
 let string_of_stmt_expr = function
   | Row(n, seq) -> Printf.sprintf "Row(%s, %s)" (string_of_expr n) (string_of_stitch_seq seq)
   | FuncCall(f, args) -> Printf.sprintf "FuncCall(%s, [%s])" f (String.concat ", " (List.map string_of_argument args))
+  | StmtExprVar(v) -> Printf.sprintf "StmtExprVar(%s)" v
+
+let string_of_stmt_expr_list = function
+  | StmtExprList(e) -> Printf.sprintf "StmtExprList([%s])" (String.concat ", " (List.map string_of_stmt_expr e))
+  | StmtExprListVar(v) -> Printf.sprintf "StmtExprListVar(%s)" v
+
+let string_of_definition = function
+  | ExprDef(v, n) -> Printf.sprintf "ExprDef(%s, %s)" v (string_of_expr n)
+  | StitchSeqDef(v, seq) -> Printf.sprintf "StitchSeqDef(%s, %s)" v (string_of_stitch_seq seq)
+  | StmtExprListDef(v, e) -> Printf.sprintf "StmtExprListDef(%s, %s)" v (string_of_stmt_expr_list e)
 
 let string_of_return_expr = function
   | ReturnExpr(n) -> Printf.sprintf "ReturnExpr(%s)" (string_of_expr n)
   | ReturnStitchSeq(seq) -> Printf.sprintf "ReturnStitchSeq(%s)" (string_of_stitch_seq seq)
-  | ReturnStmtExprList(e) -> Printf.sprintf "ReturnStmtExprList([%s])" (String.concat ", " (List.map string_of_stmt_expr e))
+  | ReturnStmtExprList(e) -> Printf.sprintf "ReturnStmtExprList(%s)" (string_of_stmt_expr_list e)
 
 let rec string_of_statement = function
   | LetDef(d) -> Printf.sprintf "LetDef(%s)" (string_of_definition d)

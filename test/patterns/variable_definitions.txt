@@ -1,0 +1,12 @@
+let a = 3
+let b = true
+let c = ch 10
+let d = (sc 2, inc) x6
+let e = sc 5, dc 2, sc 5
+let f = foo()
+let g = goo(1, e)
+let h = row 1: ch 30
+let i = (
+    row 2: sc 30
+    row 3: (sc 13, inc 2) x2
+)

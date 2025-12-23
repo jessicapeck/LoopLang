@@ -42,7 +42,8 @@ let tests = [
   ("Function definition", "function_definition");
   ("Multiple line function return", "multiple_line_function_return");
   ("If-else statement", "if_else_statement");
-  ("If statement (no else)", "if_statement")
+  ("If statement (no else)", "if_statement");
+  ("Defining variables (all types)", "variable_definitions")
 ]
 
 
