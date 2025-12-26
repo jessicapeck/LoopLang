@@ -35,6 +35,8 @@ let convert_to_token_stream filename =
 
 (* list of (test_name, filename) pairs *)
 let tests = [
+  ("Empty pattern", "empty_pattern");
+  ("Empty pattern (with newlines)", "empty_pattern_with_newlines");
   ("Single row", "single_row");
   ("Row indicators", "row_indicators");
   ("Stitch multipliers", "stitch_multipliers");
