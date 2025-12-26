@@ -38,30 +38,29 @@ and argument =
   | ExprArg of expr
   | StitchSeqArg of stitch_seq
 
-type row_expr =
-  | RowExpr of expr * stitch_seq (* row number, stitch list*) (* TRow *)
-  | RowExprVar of var
+type row_lit =
+  | RowLit of expr * stitch_seq (* row number, stitch list*) (* TRow *)
 
- type row_expr_list =
-  | RowExprList of row_expr list (* TRowList *)
-  | RowExprListVar of var
-  | RowExprListFuncCall of var * argument list (* func name, args *) (* for functions that return: TRowList *)
+type row_list_item =
+  | RowLitItem of row_lit
+  | RowVar of var
+  | RowFuncCall of var * argument list (* func name, args *) (* for functions that return: TRow list *)
 
 type definition =
   | ExprDef of var * expr
   | StitchSeqDef of var * stitch_seq
-  | RowExprListDef of var * row_expr_list
+  | RowListDef of var * row_list_item list
   | FuncCallDef of var * var * argument list  (* variable name, func name, args *)
 
 type return_expr = 
   | ReturnExpr of expr
   | ReturnStitchSeq of stitch_seq
-  | ReturnRowExprList of row_expr_list
+  | ReturnRowList of row_list_item list
 
-(* TODO: I don't want both Row and RowList, but I want a way for a function call / variable to be a statement *)
 type statement =
   | LetDef of definition
-  | Row of row_expr
+  | Row of row_lit
+  | RowList of row_list_item list
   | Return of return_expr
   | If of expr * statement list * statement list  (* condition, then branch, else branch *)
 
@@ -118,30 +117,29 @@ and string_of_argument = function
   | ExprArg(n) -> Printf.sprintf "ExprArg(%s)" (string_of_expr n)
   | StitchSeqArg(seq) -> Printf.sprintf "StitchSeqArg(%s)" (string_of_stitch_seq seq)
 
-let string_of_row_expr = function
-  | RowExpr(n, seq) -> Printf.sprintf "RowExpr(%s, %s)" (string_of_expr n) (string_of_stitch_seq seq)
-  | RowExprVar(v) -> Printf.sprintf "RowExprVar(%s)" v
+let string_of_row_lit = function
+  | RowLit(n, seq) -> Printf.sprintf "RowLit(%s, %s)" (string_of_expr n) (string_of_stitch_seq seq)
 
-let string_of_row_expr_list = function
-  | RowExprList(e) -> Printf.sprintf "RowExprList([%s])" (String.concat ", " (List.map string_of_row_expr e))
-  | RowExprListVar(v) -> Printf.sprintf "RowExprListVar(%s)" v
-  | RowExprListFuncCall(f, args) -> Printf.sprintf "RowExprListFuncCall(%s, [%s])" f (String.concat ", " (List.map string_of_argument args))
+let string_of_row_list_item = function
+  | RowLitItem(r) -> Printf.sprintf "RowLitItem(%s)" (string_of_row_lit r)
+  | RowVar(v) -> Printf.sprintf "RowVar(%s)" v
+  | RowFuncCall(f, args) -> Printf.sprintf "RowFuncCall(%s, [%s])" f (String.concat ", " (List.map string_of_argument args))
 
 let string_of_definition = function
   | ExprDef(v, n) -> Printf.sprintf "ExprDef(%s, %s)" v (string_of_expr n)
   | StitchSeqDef(v, seq) -> Printf.sprintf "StitchSeqDef(%s, %s)" v (string_of_stitch_seq seq)
-  | RowExprListDef(v, e) -> Printf.sprintf "RowExprListDef(%s, %s)" v (string_of_row_expr_list e)
+  | RowListDef(v, e) -> Printf.sprintf "RowListDef(%s, [%s])" v (String.concat ", " (List.map string_of_row_list_item e))
   | FuncCallDef(v, f, args) -> Printf.sprintf "FuncCallDef(%s, %s, [%s])" v f (String.concat ", " (List.map string_of_argument args))
 
 let string_of_return_expr = function
   | ReturnExpr(n) -> Printf.sprintf "ReturnExpr(%s)" (string_of_expr n)
   | ReturnStitchSeq(seq) -> Printf.sprintf "ReturnStitchSeq(%s)" (string_of_stitch_seq seq)
-  | ReturnRowExprList(e) -> Printf.sprintf "ReturnRowExprList(%s)" (string_of_row_expr_list e)
+  | ReturnRowList(e) -> Printf.sprintf "ReturnRowList([%s])" (String.concat ", " (List.map string_of_row_list_item e))
 
 let rec string_of_statement = function
   | LetDef(d) -> Printf.sprintf "LetDef(%s)" (string_of_definition d)
-  | Row(e) -> Printf.sprintf "Row(%s)" (string_of_row_expr e)
-  | RowList(e) -> Printf.sprintf "RowList(%s)" (string_of_row_expr_list e)
+  | Row(e) -> Printf.sprintf "Row(%s)" (string_of_row_lit e)
+  | RowList(e) -> Printf.sprintf "RowList([%s])" (String.concat ", " (List.map string_of_row_list_item e))
   | Return(r) -> Printf.sprintf "Return(%s)" (string_of_return_expr r)
   | If(cond, if_branch, else_branch) -> Printf.sprintf "If(%s, [%s], [%s])" (string_of_expr cond) (String.concat ", " (List.map string_of_statement if_branch)) (String.concat ", " (List.map string_of_statement else_branch))
 

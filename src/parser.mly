@@ -48,8 +48,8 @@ statement_list:
 
 statement:
     | definition                                                                                                    { LetDef($1) }
-    | row_expr                                                                                                      { Row($1) }
-(*  | row_expr_list                                                                                                 { RowList($1) } *)
+    | row_lit                                                                                                       { Row($1) }
+    | row_list                                                                                                      { RowList($1) }
     | RETURN LPAREN NEWLINE INDENT return_expr DEDENT NEWLINE RPAREN                                                { Return($5) }
     | RETURN LPAREN return_expr RPAREN                                                                              { Return($3) }
     | IF expr COLON NEWLINE INDENT statement_list DEDENT                                                            { If($2, $6, []) }
@@ -58,31 +58,30 @@ statement:
 return_expr:
     | expr                                                                                                          { ReturnExpr($1) }
     | stitch_seq                                                                                                    { ReturnStitchSeq($1) }
-    | row_expr_list                                                                                                 { ReturnRowExprList($1) }
+    | row_list                                                                                                      { ReturnRowList($1) }
 
 definition:
     | LET ID ASSIGN expr                                                                                            { ExprDef($2, $4) }
     | LET ID ASSIGN stitch_seq                                                                                      { StitchSeqDef($2, $4) }
-    | LET ID ASSIGN row_expr                                                                                        { RowExprListDef($2, RowExprList([$4])) }
-    | LET ID ASSIGN LPAREN NEWLINE INDENT row_expr_list DEDENT NEWLINE RPAREN                                       { RowExprListDef($2, $7) }
+    | LET ID ASSIGN row_list_item                                                                                   { RowListDef($2, [$4]) }
+    | LET ID ASSIGN LPAREN NEWLINE INDENT row_list DEDENT NEWLINE RPAREN                                            { RowListDef($2, $7) }
     | LET ID ASSIGN ID LPAREN arg_list RPAREN                                                                       { FuncCallDef($2, $4, $6) }
     | LET ID ASSIGN ID LPAREN RPAREN                                                                                { FuncCallDef($2, $4, []) }
 
-row_expr_list:
-    | row_expr_list_aux                                                                                             { RowExprList($1) }
-    | ID LPAREN arg_list RPAREN                                                                                     { RowExprListFuncCall($1, $3) }
-    | ID LPAREN RPAREN                                                                                              { RowExprListFuncCall($1, []) }
-    | ID                                                                                                            { RowExprListVar($1) }
+row_list:
+    | row_list_item NEWLINE row_list                                                                                { $1 :: $3 }
+    | row_list_item                                                                                                 { [$1] }
+    | NEWLINE row_list                                                                                              { $2 }
 
-row_expr_list_aux:
-    | row_expr NEWLINE row_expr_list_aux                                                                            { $1 :: $3 }
-    | row_expr                                                                                                      { [$1] }
-    | NEWLINE row_expr_list_aux                                                                                     { $2 }
+row_list_item:
+    | row_lit                                                                                                       { RowLitItem($1) }
+    | ID                                                                                                            { RowVar($1) }
+    | ID LPAREN arg_list RPAREN                                                                                     { RowFuncCall($1, $3) }
+    | ID LPAREN RPAREN                                                                                              { RowFuncCall($1, []) }
 
-row_expr:
-    | ROWINT COLON stitch_seq                                                                                       { RowExpr(Int($1), $3) }
-    | ROWINTVAR COLON stitch_seq                                                                                    { RowExpr(Var($1), $3) }
-(*  | ID                                                                                                            { RowExprVar($1) } *)
+row_lit:
+    | ROWINT COLON stitch_seq                                                                                       { RowLit(Int($1), $3) }
+    | ROWINTVAR COLON stitch_seq                                                                                    { RowLit(Var($1), $3) }
 
 arg_list:
     | arg COMMA arg_list                                                                                            { $1 :: $3 }
