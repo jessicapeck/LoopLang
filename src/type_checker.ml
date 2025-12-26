@@ -48,7 +48,6 @@ let check_mult_expr env mexpr =
         if t = TInt then TStitchSeqItem
         else raise(TypeError "Type error: stitch multiplier must be an integer")
     | StitchSeqMultExpr(seq, e) ->
-        (* TODO: update seq checking to be for stitch_seq_item list *)
         List.iter(fun item ->
             let t_item = check_stitch_seq_item env item in
             if t_item <> TStitchSeqItem then
@@ -92,6 +91,60 @@ let check_argument env arg =
     | ExprArg(e) -> check_expr env e
     | StitchSeqArg(seq) -> check_stitch_seq env seq
 
+let check_stmt_expr env stmt_expr =
+    match stmt_expr with
+    | Row(e, seq) ->
+        let t_e = check_expr env e in
+        let t_seq = check_stitch_seq seq in
+        if t_e = TInt then
+            if t_seq = TStitchSeq then TStmtExpr
+            else raise(TypeError "Type error: row content must be a stitch sequence")
+        else raise(TypeError "Type error: row number must be an integer")
+    | FuncCall(f, args) ->
+        let func_type =
+            try List.assoc f env
+            with Not_found -> raise(TypeError ("Undefined function: " ^ f))
+        in
+        let (param_types, return_type) = 
+            match func_type with
+            | TFunc(p, r) -> (p, r)
+            | _ -> raise(TypeError "Type error: '" ^ f ^"' is not a function type")
+        in
+        (* check types of args match *)
+        try
+            List.iter2(fun param_type arg ->
+                let t = check_argument env arg in
+                if t <> param_type then raise(TypeError "Type error: argument type and expected parameter type do not match")
+            ) param_types args;
+            TStmtExpr
+        with Invalid_argument -> raise(ArgError "ArgError: number of arguments passed and number of parameters expected do not match")
+    | StmtExprVar(v) -> (
+        let t =
+            try List.assoc v env
+            with Not_found -> raise (TypeError ("Undefined variable: " ^ v))
+        in
+        if t = TStmtExpr then TStmtExpr
+        else raise(TypeError "Type error: variable has incorrect type, it is expected to be a row or a function call")
+      )
+
+let check_stmt_expr_list env stmt_expr_list =
+    match stmt_expr_list with
+    | StmtExprList(lst) ->
+        List.iter(fun stmt_expr ->
+            let t_stmt = check_stmt_expr env stmt_expr in
+            if t_stmt <> TStmtExpr then
+                raise(TypeError "Type error: statement expression list must contain statement expressions")
+        ) lst;
+        TStmtExprList
+    | StmtExprListVar(v) -> (
+        let t =
+            try List.assoc v env
+            with Not_found -> raise (TypeError ("Undefined variable: " ^ v))
+        in
+        if t = TStmtExprList then TStmtExprList
+        else raise(TypeError "Type error: statement expression list variable has incorrect type")
+      )
+
 let check_definition env def =
     match def with
     | ExprDef(v, e) -> 
@@ -119,31 +172,3 @@ let check_definition env def =
             ) param_types args;
         with Invalid_argument -> raise(ArgError "ArgError: number of arguments passed and number of parameters expected do not match");
         (v, return_type) :: env
-
-let check_stmt_expr env stmt_expr =
-    match stmt_expr with
-    | Row(e, seq) ->
-        let t_e = check_expr env e in
-        let t_seq = check_stitch_seq seq in
-        if t_e = TInt then
-            if t_seq = TStitchSeq then env
-            else raise(TypeError "Type error: row content must be a stitch sequence")
-        else raise(TypeError "Type error: row number must be an integer")
-    | FuncCall(f, args) ->
-        let func_type =
-            try List.assoc f env
-            with Not_found -> raise(TypeError ("Undefined function: " ^ f))
-        in
-        let (param_types, return_type) = 
-            match func_type with
-            | TFunc(p, r) -> (p, r)
-            | _ -> raise(TypeError "Type error: '" ^ f ^"' is not a function type")
-        in
-        (* check types of args match *)
-        try
-            List.iter2(fun param_type arg ->
-                let t = check_argument env arg in
-                if t <> param_type then raise(TypeError "Type error: argument type and expected parameter type do not match")
-            ) param_types args;
-            env
-        with Invalid_argument -> raise(ArgError "ArgError: number of arguments passed and number of parameters expected do not match")

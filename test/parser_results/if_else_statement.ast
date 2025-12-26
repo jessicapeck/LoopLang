@@ -1,1 +1,1 @@
-Pattern([Stmt(If(BinOp(Var(i), GT, Int(2)), [StmtExpr(Row(Int(1), StitchSeq([StitchSeqItem(StitchMultExpr(SC, Int(30)))])))], [StmtExpr(Row(Int(1), StitchSeq([StitchSeqItem(StitchMultExpr(DC, Int(30)))])))]))])
+Pattern([Stmt(If(BinOp(Var(i), GT, Int(2)), [Row(RowExpr(Int(1), StitchSeq([StitchSeqItem(StitchMultExpr(SC, Int(30)))])))], [Row(RowExpr(Int(1), StitchSeq([StitchSeqItem(StitchMultExpr(DC, Int(30)))])))]))])
