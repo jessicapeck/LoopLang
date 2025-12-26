@@ -21,6 +21,11 @@
 (* TODO: handle case of empty pattern *)
 pattern:
     | pattern_item_list EOF                                                             { Pattern $1 }
+    | empty_pattern                                                                     { Pattern [] }
+
+empty_pattern:
+    | NEWLINE empty_pattern                                                             { () }
+    | EOF                                                                               { () }
 
 pattern_item_list:
     | pattern_item NEWLINE pattern_item_list                                            { $1 :: $3 }
