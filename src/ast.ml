@@ -26,7 +26,7 @@ type expr =
   | ExprFuncCall of var * argument list (* func name, args *) (* for functions that return: TInt, TBool, TStitch *)
 and mult_expr = 
   | StitchMultExpr of stitch * expr (* TStitchSeqItem *)
-  | StitchSeqMultExpr of stitch_seq_item list * expr (* TStitchSeqItem *) (* TODO: do I want this to reference stitch_seq ??? *)
+  | StitchSeqMultExpr of stitch_seq_item list * expr (* TStitchSeqItem *)
 and stitch_seq_item =
   | StitchSeqItem of mult_expr
   | StitchSeqItemVar of var
