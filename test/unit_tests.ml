@@ -45,7 +45,9 @@ let tests = [
   ("Multiple line function return", "multiple_line_function_return");
   ("If-else statement", "if_else_statement");
   ("If statement (no else)", "if_statement");
-  ("Defining variables (all types)", "variable_definitions")
+  ("Defining variables (all types)", "variable_definitions");
+  ("Passing a stitch sequence argument", "stitch_seq_arg");
+  ("Function call within a stitch sequence", "function_call_seq_item")
 ]
 
 

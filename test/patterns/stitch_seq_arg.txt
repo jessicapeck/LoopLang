@@ -1,0 +1,4 @@
+foo(5, sc 2)
+foo(3, (dc 5, inc 2))
+
+goo((sc 3, dc))

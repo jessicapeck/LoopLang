@@ -26,10 +26,11 @@ type expr =
   | ExprFuncCall of var * argument list (* func name, args *) (* for functions that return: TInt, TBool, TStitch *)
 and mult_expr = 
   | StitchMultExpr of stitch * expr (* TStitchSeqItem *)
-  | StitchSeqMultExpr of stitch_seq_item list * expr (* TStitchSeqItem *)
+  | StitchSeqMultExpr of stitch_seq * expr (* TStitchSeqItem *)
 and stitch_seq_item =
   | StitchSeqItem of mult_expr
   | StitchSeqItemVar of var
+  | StitchSeqItemFuncCall of var * argument list (* func name, args *) (* for functions that return: TStitchSeq, but are used within another stitch seq *)
 and stitch_seq =
   | StitchSeq of stitch_seq_item list (* TStitchSeq *)
   | StitchSeqVar of var
@@ -41,10 +42,13 @@ and argument =
 type row_lit =
   | RowLit of expr * stitch_seq (* row number, stitch list*) (* TRow *)
 
+type row_expr =
+  | RowVar of var (* TRowList *)
+  | RowFuncCall of var * argument list (* func name, args *) (* for functions that return: TRowList *)
+
 type row_list_item =
   | RowLitItem of row_lit
-  | RowVar of var
-  | RowFuncCall of var * argument list (* func name, args *) (* for functions that return: TRow list *)
+  | RowExpr of row_expr
 
 type definition =
   | ExprDef of var * expr
@@ -60,7 +64,7 @@ type return_expr =
 type statement =
   | LetDef of definition
   | Row of row_lit
-  | RowList of row_list_item list
+  | RowList of row_expr
   | Return of return_expr
   | If of expr * statement list * statement list  (* condition, then branch, else branch *)
 
@@ -105,10 +109,11 @@ let rec string_of_expr = function
   | ExprFuncCall(f, args) -> Printf.sprintf "ExprFuncCall(%s, [%s])" f (String.concat ", " (List.map string_of_argument args))
 and string_of_mult_expr = function
   | StitchMultExpr(s, n) -> Printf.sprintf "StitchMultExpr(%s, %s)" (string_of_stitch s) (string_of_expr n)
-  | StitchSeqMultExpr(seq, n) -> Printf.sprintf "StitchSeqMultExpr([%s], %s)" (String.concat ", " (List.map string_of_stitch_seq_item seq)) (string_of_expr n)
+  | StitchSeqMultExpr(seq, n) -> Printf.sprintf "StitchSeqMultExpr(%s, %s)" (string_of_stitch_seq seq) (string_of_expr n)
 and string_of_stitch_seq_item = function
   | StitchSeqItem(m) -> Printf.sprintf "StitchSeqItem(%s)" (string_of_mult_expr m)
   | StitchSeqItemVar(v) -> Printf.sprintf "StitchSeqItemVar(%s)" v
+  | StitchSeqItemFuncCall(f, args) -> Printf.sprintf "StitchSeqItemFuncCall(%s, [%s])" f (String.concat ", " (List.map string_of_argument args))
 and string_of_stitch_seq = function
   | StitchSeq(seq) -> Printf.sprintf "StitchSeq([%s])" (String.concat ", " (List.map string_of_stitch_seq_item seq))
   | StitchSeqVar(v) -> Printf.sprintf "StitchSeqVar(%s)" v
@@ -120,10 +125,13 @@ and string_of_argument = function
 let string_of_row_lit = function
   | RowLit(n, seq) -> Printf.sprintf "RowLit(%s, %s)" (string_of_expr n) (string_of_stitch_seq seq)
 
-let string_of_row_list_item = function
-  | RowLitItem(r) -> Printf.sprintf "RowLitItem(%s)" (string_of_row_lit r)
+let string_of_row_expr = function
   | RowVar(v) -> Printf.sprintf "RowVar(%s)" v
   | RowFuncCall(f, args) -> Printf.sprintf "RowFuncCall(%s, [%s])" f (String.concat ", " (List.map string_of_argument args))
+
+let string_of_row_list_item = function
+  | RowLitItem(r) -> Printf.sprintf "RowLitItem(%s)" (string_of_row_lit r)
+  | RowExpr(e) -> Printf.sprintf "RowExpr(%s)" (string_of_row_expr e)
 
 let string_of_definition = function
   | ExprDef(v, n) -> Printf.sprintf "ExprDef(%s, %s)" v (string_of_expr n)
@@ -139,7 +147,7 @@ let string_of_return_expr = function
 let rec string_of_statement = function
   | LetDef(d) -> Printf.sprintf "LetDef(%s)" (string_of_definition d)
   | Row(e) -> Printf.sprintf "Row(%s)" (string_of_row_lit e)
-  | RowList(e) -> Printf.sprintf "RowList([%s])" (String.concat ", " (List.map string_of_row_list_item e))
+  | RowList(e) -> Printf.sprintf "RowList(%s)" (string_of_row_expr e)
   | Return(r) -> Printf.sprintf "Return(%s)" (string_of_return_expr r)
   | If(cond, if_branch, else_branch) -> Printf.sprintf "If(%s, [%s], [%s])" (string_of_expr cond) (String.concat ", " (List.map string_of_statement if_branch)) (String.concat ", " (List.map string_of_statement else_branch))
 

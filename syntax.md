@@ -134,4 +134,21 @@ foo(5)
 
 - to return multiple lines, they must be indented within the parentheses, starting on a new line
 
+```
+def foo(i, seq):
+    ...
+
+def goo(x):
+    ...
+
+
+foo(5, sc 2)
+foo(3, (dc 5, inc 2, dc 5))
+
+goo((sc 3, dc))
+```
+
+- if a raw stitch sequence (i.e. not a variable of a stitch sequence) of more than one stitch sequence item is being passed as an argument, it should be surrounded in paretheses so that it is not confused with multiple arguments due to the commas
+- if the stitch sequence is only one stitch sequence item, then parentheses are not required
+
 
