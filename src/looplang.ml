@@ -31,10 +31,10 @@ let () =
         Printf.eprintf "%s\n" (Lexer.string_of_token token)
       ) (List.rev !tokens);
       exit 1
-  | TypeError msg ->
+  | Type_checker.TypeError msg ->
       Printf.eprintf "Type error: %s\n" msg;
       exit 1
-  | ArgError msg ->
+  | Type_checker.ArgError msg ->
       Printf.eprintf "Argument error: %s\n" msg;
       exit 1
   | Failure msg ->

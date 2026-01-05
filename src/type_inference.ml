@@ -1,5 +1,12 @@
 open Ast
 
+let update_ctx ctx name expected_type =
+  match Hashtbl.find_opt ctx name with
+  | Some(None) -> Hashtbl.replace ctx name (Some expected_type)
+  | Some(Some(t)) -> if t <> expected_type then raise(TypeError "inconsistent type inference for parameter '" ^ name ^ "'")
+  | None -> ()
+
+
 let infer_statement env ctx stmt =
   match stmt with
   | LetDef(def) -> (* TODO *)
@@ -7,8 +14,6 @@ let infer_statement env ctx stmt =
   | RowList(rows) -> (* TODO *)
   | Return(ret_expr) -> (* TODO *)
   | If(cond, then_branch, else_branch) -> (* TODO *)
-
-
 
 
 let infer_func_type f params body =
