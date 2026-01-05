@@ -1,3 +1,6 @@
+exception TypeError of string
+exception ArgError of string
+
 type t = 
   | TInt 
   | TBool 

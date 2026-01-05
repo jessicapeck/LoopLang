@@ -1,5 +1,4 @@
-exception TypeError of string
-exception ArgError of string
+open Ast
 
 (* string of type function for error messages *)
 let rec string_of_type = function
@@ -20,12 +19,12 @@ let rec string_of_type = function
 let get_func_types env f =
     let func_type =
         try List.assoc f env
-        with Not_found -> raise(TypeError ("Undefined function: " ^ f))
+        with Not_found -> raise(TypeError ("undefined function: '" ^ f ^ "'"))
     in
     let (param_types, return_type) = 
         match func_type with
         | TFunc(p, r) -> (p, r)
-        | _ -> raise(TypeError "Type error: '" ^ f ^"' is of type TFunc")
+        | _ -> raise(TypeError "'" ^ f ^"' is of type TFunc")
     in
     (param_types, return_type)
 
@@ -36,14 +35,14 @@ let check_arg_types env param_types args =
             if t <> param_type then false
         ) param_types args;
         true
-    with Invalid_argument -> raise(ArgError "ArgError: number of arguments passed and number of parameters expected do not match")
+    with Invalid_argument -> raise(ArgError "number of arguments passed and number of parameters expected do not match")
 
 let get_func_return_type env f args =
     let param_types, return_type = get_func_types env f in
         if check_arg_types env param_types args then
             return_type
         else
-            raise(TypeError "Type error: argument types do not match expected parameter types")
+            raise(TypeError "argument types do not match expected parameter types")
 
 
 (* helper function to get the intersection of two environments for conditional branching *)
@@ -65,7 +64,7 @@ let rec check_expr env = function
     | BoolLit(_) -> TBool
     | Var(v) -> (
         try List.assoc v env
-        with Not_found -> raise (TypeError ("Undefined variable: " ^ v))
+        with Not_found -> raise (TypeError ("undefined variable: '" ^ v ^ "'"))
       )
     | BinOp(e1, op, e2) ->
         let t1 = check_expr env e1 in
@@ -74,13 +73,13 @@ let rec check_expr env = function
             match op with
             | ADD | SUB | MUL | DIV ->
                 if t1 = TInt && t2 = TInt then TInt
-                else raise(TypeError "Type error: binary arithmetic operations expect TInt operands")
+                else raise(TypeError "binary arithmetic operations expect TInt operands")
             | LT | GT | EQ ->
                 if t1 = TInt && t2 = TInt then TBool
-                else raise(TypeError "Type error: binary comparison operations expect TInt operands")
+                else raise(TypeError "binary comparison operations expect TInt operands")
             | AND | OR ->
                 if t1 = TBool && t2 = TBool then TBool
-                else raise(TypeError "Type error: binary logical operations expect TBool operands")
+                else raise(TypeError "binary logical operations expect TBool operands")
         )
     | UnaryOp(op, e) ->
         let t = check_expr env e in
@@ -88,10 +87,10 @@ let rec check_expr env = function
             match op with
             | NEG ->
                 if t = TInt then TInt
-                else raise(TypeError "Type error: unary arithmetic operations expect a TInt operand")
+                else raise(TypeError "unary arithmetic operations expect a TInt operand")
             | NOT ->
                 if t = TBool then TBool
-                else raise(TypeError "Type error: unary logical operations expect a TBool operand")
+                else raise(TypeError "unary logical operations expect a TBool operand")
         )
     | ExprFuncCall(f, args) -> get_func_return_type env f args
 
@@ -99,41 +98,41 @@ let check_mult_expr env =function
     | StitchMultExpr(st, e) ->
         let t = check_expr env e in
         if t = TInt then TStitchSeqItem
-        else raise(TypeError "Type error: stitch multiplier expression expects TInt")
+        else raise(TypeError "stitch multiplier expression expects TInt")
     | StitchSeqMultExpr(seq, e) ->
         List.iter(fun item ->
             let t_item = check_stitch_seq_item env item in
             if t_item <> TStitchSeqItem then
-                raise(TypeError "Type error: stitch sequence multiplier expression expects TStitchSeqItem values within parentheses")
+                raise(TypeError "stitch sequence multiplier expression expects TStitchSeqItem values within parentheses")
         ) seq;
         let t_e = check_expr env e in
         if t_e = TInt then TStitchSeqItem
-        else raise(TypeError "Type error: stitch sequence multiplier expression expects TInt")
+        else raise(TypeError "stitch sequence multiplier expression expects TInt")
 and check_stitch_seq_item env = function
     | StitchSeqItem(mexpr) -> check_mult_expr env mexpr
     | StitchSeqItemVar(v) -> (
         let t =
             try List.assoc v env
-            with Not_found -> raise (TypeError ("Undefined variable: " ^ v))
+            with Not_found -> raise (TypeError ("undefined variable: '" ^ v ^ "'"))
         in
         if t = TStitchSeqItem then TStitchSeqItem
-        else raise(TypeError "Type error: variable '%s' expected TStitchSeqItem, but found '%s'" v (string_of_type t))
+        else raise(TypeError "variable '%s' expected TStitchSeqItem, but found '%s'" v (string_of_type t))
       )
 and check_stitch_seq env = function
     | StitchSeq(seq) ->
         List.iter(fun item ->
             let t_item = check_stitch_seq_item env item in
             if t_item <> TStitchSeqItem then
-                raise(TypeError "Type error: stitch sequence expects TSStitchSeqItem values")
+                raise(TypeError "stitch sequence expects TSStitchSeqItem values")
         ) seq;
         TStitchSeq
     | StitchSeqVar(v) -> (
         let t =
             try List.assoc v env
-            with Not_found -> raise (TypeError ("Undefined variable: " ^ v))
+            with Not_found -> raise (TypeError ("undefined variable: '" ^ v ^ "'"))
         in
         if t = TStitchSeq then TStitchSeq
-        else raise(TypeError "Type error: variable '%s' expected TStitchSeq, but found '%s'" v (string_of_type t))
+        else raise(TypeError "variable '%s' expected TStitchSeq, but found '%s'" v (string_of_type t))
     )
     | StitchSeqFuncCall(f, args) ->  get_func_return_type env f args
 and check_argument env = function
@@ -146,18 +145,18 @@ let check_row_lit env = function
         let t_seq = check_stitch_seq env seq in
         if t_e = TInt then
             if t_seq = TStitchSeq then TRow
-            else raise(TypeError "Type error: row content expects TStitchSeq")
-        else raise(TypeError "Type error: row number expects TInt")
+            else raise(TypeError "row content expects TStitchSeq")
+        else raise(TypeError "row number expects TInt")
 
 let check_row_list_item env = function
     | RowLitItem(row) -> check_row_lit env row
     | RowVar(v) -> (
         let t =
             try List.assoc v env
-            with Not_found -> raise (TypeError ("Undefined variable: " ^ v))
+            with Not_found -> raise (TypeError ("undefined variable: '" ^ v ^ "'"))
         in
         if t = TRow then TRow
-        else raise(TypeError "Type error: variable '%s' expected TRow, but found '%s'" v (string_of_type t))
+        else raise(TypeError "variable '%s' expected TRow, but found '%s'" v (string_of_type t))
       )
     | RowFuncCall(f, args) -> get_func_return_type env f args
 
@@ -172,7 +171,7 @@ let check_definition env = function
         List.iter(fun item ->
             let t_item = check_row_list_item env item in
             if t_item <> TRow then
-                raise(TypeError "Type error: row list definition expects TRow values")
+                raise(TypeError "row list definition expects TRow values")
         ) items;
         (v, TRowList) :: env
     | FuncCallDef(v, f, args) ->
@@ -186,7 +185,7 @@ let check_return_expr env = function
         List.iter(fun item ->
             let t_item = check_row_list_item env item in
             if t_item <> TRow then
-                raise(TypeError "Type error: row list return expression expects TRow values")
+                raise(TypeError "row list return expression expects TRow values")
         ) items;
         TRowList
 
@@ -199,7 +198,7 @@ let rec check_statement env = function
         List.iter(fun item ->
             let t_item = check_row_list_item env item in
             if t_item <> TRow then
-                raise(TypeError "Type error: row list statement expects TRow values")
+                raise(TypeError "row list statement expects TRow values")
         ) items;
         env
     | Return(ret_expr) ->
@@ -212,7 +211,7 @@ let rec check_statement env = function
             let env_after_else = List.fold_left check_statement env else_branch in
             get_env_intersection env_after_then env_after_else
         else
-            raise(TypeError "Type error: if-else statement condition expects TBool")
+            raise(TypeError "if-else statement condition expects TBool")
 
 let check_pattern_item env = function
     | FuncDef(f, params, body) -> 
@@ -220,4 +219,9 @@ let check_pattern_item env = function
         (* TODO: add function to main env *)
         (* TODO: create new environment for function env scope *)
         (* TODO: return back to original env scope after function returns *)
+        let func_type = Type_inference.infer_func_type f params body in
+        (f, func_type) :: env
     | Stmt(stmt) -> (* TODO *)
+
+let check_pattern env = function
+    | Pattern(items) -> (* TODO *)

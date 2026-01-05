@@ -15,9 +15,11 @@ let () =
 
   let debug_lexer = log_lexer Lexer.next_token in
   try
-    (*let ast = Parser.pattern Lexer.next_token lexbuf in*)
     let ast = Parser.pattern debug_lexer lexbuf in
-    print_endline (Ast.string_of_pattern ast)
+    (* print_endline (Ast.string_of_pattern ast) *)
+
+    let initial_env = [] in
+    let _ = TypeChecker.check_pattern initial_env ast in
   with
   | Parser.Error ->
       let pos = lexbuf.lex_curr_p in
@@ -28,6 +30,12 @@ let () =
       List.iter (fun token ->
         Printf.eprintf "%s\n" (Lexer.string_of_token token)
       ) (List.rev !tokens);
+      exit 1
+  | TypeError msg ->
+      Printf.eprintf "Type error: %s\n" msg;
+      exit 1
+  | ArgError msg ->
+      Printf.eprintf "Argument error: %s\n" msg;
       exit 1
   | Failure msg ->
       Printf.eprintf "Error: %s\n" msg;
