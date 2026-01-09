@@ -1,7 +1,7 @@
 exception TypeError of string
 exception ArgError of string
 
-type inference_ctx = (string, t option) Hashtbl.t
+type inference_ctx = (string, t option ref) Hashtbl.t
 
 (* string of type function for error messages *)
 let rec string_of_type = function
@@ -22,12 +22,14 @@ let rec string_of_type = function
 (* type inference helper function to safely update context *)
 let update_ctx ctx name expected_type =
   match Hashtbl.find_opt ctx name with
-  | Some(None) -> 
-        Hashtbl.replace ctx name (Some expected_type);
-        expected_type
-  | Some(Some(t)) -> 
-        if t <> expected_type then raise (TypeError "inconsistent type inference for parameter '" ^ name ^ "'")
-        else expected_type
+  | Some(t_ref) -> 
+        match !t_ref with
+        | None -> 
+            t_ref := Some expected_type;
+            expected_type
+        | Some(t) ->
+            if t <> expected_type then raise (TypeError "inconsistent type inference for parameter '" ^ name ^ "'")
+            else expected_type
   | None -> raise (TypeError "undefined variable: '" ^ name ^ "'")
 
 
@@ -44,18 +46,18 @@ let get_func_types env f =
     in
     (param_types, return_type)
 
-let check_arg_types env param_types args =
+let check_arg_types env ctx param_types args =
     try
         List.iter2(fun param_type arg ->
-            let t = check_argument env arg in
+            let t = check_argument env ctx param_type arg in
             if t <> param_type then false
         ) param_types args;
         true
     with Invalid_argument -> raise (ArgError "number of arguments passed and number of parameters expected do not match")
 
-let get_func_return_type env f args =
+let get_func_return_type env ctx f args =
     let param_types, return_type = get_func_types env f in
-        if check_arg_types env param_types args then
+        if check_arg_types env ctx param_types args then
             return_type
         else
             raise (TypeError "argument types do not match expected parameter types")
@@ -75,46 +77,56 @@ let rec get_env_intersection env1 env2 =
 let rec check_stitch env ctx = function
     | CH | SC | DC | INC | DEC -> TStitch
 
-let rec check_expr env ctx expected_t = function
+let rec check_expr env ctx expected_t_opt = function
     | IntLit(_) -> TInt
     | BoolLit(_) -> TBool
     | Var(v) -> (
         match List.assoc_opt v env with
         | Some(t) -> t
-        | None -> update_ctx ctx v expected_t
+        | None -> 
+            match expected_t_opt with
+            | Some(expected_t) -> update_ctx ctx v expected_t
+            | None -> 
+                (* check if previously inferred *)
+                match Hashtbl.find_opt ctx v with
+                | Some(t_ref) ->
+                    match !t_ref with
+                    | Some(t) -> t
+                    | None -> raise (TypeError "unable to infer type of variable '" ^ v ^ "'")
+                | None -> raise (TypeError "undefined variable: '" ^ v ^ "'")
       )
     | BinOp(e1, op, e2) ->
         match op with
         | ADD | SUB | MUL | DIV ->
-            let t1 = check_expr env ctx TInt e1 in
-            let t2 = check_expr env ctx TInt e2 in
+            let t1 = check_expr env ctx (Some TInt) e1 in
+            let t2 = check_expr env ctx (Some TInt) e2 in
             if t1 = TInt && t2 = TInt then TInt
             else raise (TypeError "binary arithmetic operations expect TInt operands")
         | LT | GT | EQ ->
-            let t1 = check_expr env ctx TInt e1 in
-            let t2 = check_expr env ctx TInt e2 in
+            let t1 = check_expr env ctx (Some TInt) e1 in
+            let t2 = check_expr env ctx (Some TInt) e2 in
             if t1 = TInt && t2 = TInt then TBool
             else raise (TypeError "binary comparison operations expect TInt operands")
         | AND | OR ->
-            let t1 = check_expr env ctx TBool e1 in
-            let t2 = check_expr env ctx TBool e2 in
+            let t1 = check_expr env ctx (Some TBool) e1 in
+            let t2 = check_expr env ctx (Some TBool) e2 in
             if t1 = TBool && t2 = TBool then TBool
             else raise (TypeError "binary logical operations expect TBool operands")
     | UnaryOp(op, e) ->
         match op with
         | NEG ->
-            let t = check_expr env ctx TInt e in
+            let t = check_expr env ctx (Some TInt) e in
             if t = TInt then TInt
             else raise (TypeError "unary arithmetic operations expect a TInt operand")
         | NOT ->
-            let t = check_expr env ctx TBool e in
+            let t = check_expr env ctx (Some TBool) e in
             if t = TBool then TBool
             else raise (TypeError "unary logical operations expect a TBool operand")
-    | ExprFuncCall(f, args) -> get_func_return_type env f args
+    | ExprFuncCall(f, args) -> get_func_return_type env ctx f args
 
 let check_mult_expr env ctx = function
     | StitchMultExpr(st, e) ->
-        let t = check_expr env ctx TInt e in
+        let t = check_expr env ctx (Some TInt) e in
         if t = TInt then TStitchSeqItem
         else raise (TypeError "stitch multiplier expression expects TInt")
     | StitchSeqMultExpr(seq, e) ->
@@ -123,7 +135,7 @@ let check_mult_expr env ctx = function
             if t_item <> TStitchSeqItem then
                 raise (TypeError "stitch sequence multiplier expression expects TStitchSeqItem values within parentheses")
         ) seq;
-        let t_e = check_expr env ctx TInt e in
+        let t_e = check_expr env ctx (Some TInt) e in
         if t_e = TInt then TStitchSeqItem
         else raise (TypeError "stitch sequence multiplier expression expects TInt")
 and check_stitch_seq_item env ctx = function
@@ -153,14 +165,14 @@ and check_stitch_seq env ctx expected_t = function
         if t_v = TStitchSeq then TStitchSeq
         else raise (TypeError "variable '%s' expected TStitchSeq, but found '%s'" v (string_of_type t))
     )
-    | StitchSeqFuncCall(f, args) ->  get_func_return_type env f args
-and check_argument env ctx = function
-    | ExprArg(e) -> check_expr env ctx (* TODO *) e in (* TODO: what do I put here for expected_t *)
+    | StitchSeqFuncCall(f, args) ->  get_func_return_type env ctx f args
+and check_argument env ctx expected_t = function
+    | ExprArg(e) -> check_expr env ctx (Some expected_t) e
     | StitchSeqArg(seq) -> check_stitch_seq env ctx TStitchSeq seq
 
 let check_row_lit env ctx = function
     | RowLit(e, seq) ->
-        let t_e = check_expr env ctx TInt e in
+        let t_e = check_expr env ctx (Some TInt) e in
         let t_seq = check_stitch_seq env ctx TStitchSeq seq in
         if t_e = TInt then
             if t_seq = TStitchSeq then TRow
@@ -177,14 +189,24 @@ let check_row_list_item env ctx = function
         if t = TRow then TRow
         else raise (TypeError "variable '%s' expected TRow, but found '%s'" v (string_of_type t))
       )
-    | RowFuncCall(f, args) -> get_func_return_type env f args
+    | RowFuncCall(f, args) -> get_func_return_type env ctx f args
 
 let check_definition env ctx = function
     | ExprDef(v, e) -> 
-        let t = check_expr env ctx (* TODO *) e in (* TODO: what do I put here for expected_t *)
-        (v, t) :: env
+        match e with
+        | Var(name) ->
+            match Hashtbl.find_opt ctx name with
+                | Some(t_ref) -> 
+                    Hashtbl.add ctx v t_ref;
+                    env
+                | None ->
+                    let t = check_expr env ctx None e in
+                    (v, t) :: env
+        | _ ->
+            let t = check_expr env ctx None e in
+            (v, t) :: env
     | StitchSeqDef(v, seq) -> 
-        let t = check_stitch_seq env ctx TStitchSeq seq in (* TODO: is this part necessary, or does ast.ml enforce it as TStitchSeq *)
+        let t = check_stitch_seq env ctx TStitchSeq seq in
         (v, t) :: env
     | RowListDef(v, items) ->
         List.iter(fun item ->
@@ -194,12 +216,12 @@ let check_definition env ctx = function
         ) items;
         (v, TRowList) :: env
     | FuncCallDef(v, f, args) ->
-        let return_type = get_func_return_type env f args in
+        let return_type = get_func_return_type env ctx f args in
         (v, return_type) :: env
 
 let check_return_expr env ctx = function
-    | ReturnExpr(e) -> check_expr env ctx e
-    | ReturnStitchSeq(seq) -> check_stitch_seq env ctx seq
+    | ReturnExpr(e) -> check_expr env ctx None e
+    | ReturnStitchSeq(seq) -> check_stitch_seq env ctx TStitchSeq seq
     | ReturnRowList(items) ->
         List.iter(fun item ->
             let t_item = check_row_list_item env ctx item in
@@ -224,10 +246,20 @@ let rec check_statement env ctx = function
         let t = check_return_expr env ctx ret_expr in
         (env, [t])
     | If(cond, then_branch, else_branch) ->
-        let t_cond = check_expr env ctx cond in
+        let t_cond = check_expr env ctx (Some TBool) cond in
         if t_cond = TBool then
-            let (env_after_then, ret_exprs_in_then) = List.fold_left check_statement env ctx then_branch in
-            let (env_after_else, ret_exprs_in_else) = List.fold_left check_statement env ctx else_branch in
+            let (env_after_then, ret_exprs_in_then) = 
+                List.fold_left (fun (env_acc, ret_exprs_acc) stmt ->
+                    let (new_env, new_ret_exprs) = check_statement env_acc ctx stmt in
+                    (new_env, ret_exprs_acc @ new_ret_exprs)
+                ) (env, []) then_branch
+            in
+            let (env_after_else, ret_exprs_in_else) = 
+                List.fold_left (fun (env_acc, ret_exprs_acc) stmt ->
+                    let (new_env, new_ret_exprs) = check_statement env_acc ctx stmt in
+                    (new_env, ret_exprs_acc @ new_ret_exprs)
+                ) (env, []) else_branch
+            in
             (get_env_intersection env_after_then env_after_else, ret_exprs_in_then @ ret_exprs_in_else)
         else
             raise (TypeError "if-else statement condition expects TBool")
@@ -235,7 +267,7 @@ let rec check_statement env ctx = function
 let check_pattern_item env = function
     | FuncDef(f, params, body) -> 
         let ctx = Hashtbl.create 10 in
-        List.iter (fun param -> Hashtbl.add ctx param None) params;
+        List.iter (fun param -> Hashtbl.add ctx param (ref None)) params;
 
         let rec analyse_body local_env return_types body =
             match body with
@@ -262,14 +294,22 @@ let check_pattern_item env = function
         (* get parameter types from context *)
         let param_types = List.map(fun param ->
             match Hashtbl.find ctx param with
-            | Some t -> t
+            | Some(t_ref) ->
+                match !t_ref with
+                | Some(t) -> t
+                | None -> raise (TypeError "unable to infer type of parameter '" ^ param ^ "' in function '" ^ f ^ "'")
             | None -> raise (TypeError "unable to infer type of parameter '" ^ param ^ "' in function '" ^ f ^ "'")
         ) params in
 
         (* update environment with function type *)
         (f, TFunc(param_types, return_type)) :: env
-
-    | Stmt(stmt) -> (* TODO *)
+    | Stmt(stmt) -> 
+        let dummy_ctx = Hashtbl.create 0 in
+        let new_env, _ = check_statement env dummy_ctx stmt in
+        new_env
 
 let check_pattern env = function
-    | Pattern(items) -> (* TODO *)
+    | Pattern(items) ->
+        List.fold_left(fun env_acc item ->
+            check_pattern_item env_acc item
+        ) env items
