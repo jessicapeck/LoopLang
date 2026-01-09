@@ -1,3 +1,5 @@
+open Ast
+
 exception TypeError of string
 exception ArgError of string
 
@@ -10,8 +12,6 @@ let rec string_of_type = function
     | TStitch -> "TStitch"
     | TStitchSeqItem -> "TStitchSeqItem"
     | TStitchSeq -> "TStitchSeq"
-    | TStmtExpr -> "TStmtExpr"
-    | TStmtExprList -> "TStmtExprList"
     | TRow -> "TRow"
     | TRowList -> "TRowList"
     | TFunc(param_types, return_type) ->
@@ -28,21 +28,21 @@ let update_ctx ctx name expected_type =
             t_ref := Some expected_type;
             expected_type
         | Some(t) ->
-            if t <> expected_type then raise (TypeError "inconsistent type inference for parameter '" ^ name ^ "'")
+            if t <> expected_type then raise (TypeError ("inconsistent type inference for parameter '" ^ name ^ "'"))
             else expected_type
-  | None -> raise (TypeError "undefined variable: '" ^ name ^ "'")
+  | None -> raise (TypeError ("undefined variable: '" ^ name ^ "'"))
 
 
 (* set of functions to check and get function types *)
 let get_func_types env f =
     let func_type =
         try List.assoc f env
-        with Not_found -> raise (TypeError "undefined function: '" ^ f ^ "'")
+        with Not_found -> raise (TypeError ("undefined function: '" ^ f ^ "'"))
     in
     let (param_types, return_type) = 
         match func_type with
         | TFunc(p, r) -> (p, r)
-        | _ -> raise (TypeError "'" ^ f ^"' is of type TFunc")
+        | _ -> raise (TypeError ("'" ^ f ^"' is of type TFunc"))
     in
     (param_types, return_type)
 
@@ -92,8 +92,8 @@ let rec check_expr env ctx expected_t_opt = function
                 | Some(t_ref) ->
                     match !t_ref with
                     | Some(t) -> t
-                    | None -> raise (TypeError "unable to infer type of variable '" ^ v ^ "'")
-                | None -> raise (TypeError "undefined variable: '" ^ v ^ "'")
+                    | None -> raise (TypeError ("unable to infer type of variable '" ^ v ^ "'"))
+                | None -> raise (TypeError ("undefined variable: '" ^ v ^ "'"))
       )
     | BinOp(e1, op, e2) ->
         match op with
@@ -143,10 +143,10 @@ and check_stitch_seq_item env ctx = function
     | StitchSeqItemVar(v) -> (
         let t =
             try List.assoc v env
-            with Not_found -> raise (TypeError "undefined variable: '" ^ v ^ "'")
+            with Not_found -> raise (TypeError ("undefined variable: '" ^ v ^ "'"))
         in
         if t = TStitchSeqItem then TStitchSeqItem
-        else raise (TypeError "variable '%s' expected TStitchSeqItem, but found '%s'" v (string_of_type t))
+        else raise (TypeError (Printf.sprintf "variable '%s' expected TStitchSeqItem, but found '%s'" v (string_of_type t)))
       )
 and check_stitch_seq env ctx expected_t = function
     | StitchSeq(seq) ->
@@ -163,7 +163,7 @@ and check_stitch_seq env ctx expected_t = function
             | None -> update_ctx ctx v expected_t
         in
         if t_v = TStitchSeq then TStitchSeq
-        else raise (TypeError "variable '%s' expected TStitchSeq, but found '%s'" v (string_of_type t))
+        else raise (TypeError (Printf.sprintf "variable '%s' expected TStitchSeq, but found '%s'" v (string_of_type t)))
     )
     | StitchSeqFuncCall(f, args) ->  get_func_return_type env ctx f args
 and check_argument env ctx expected_t = function
@@ -184,10 +184,10 @@ let check_row_list_item env ctx = function
     | RowVar(v) -> (
         let t =
             try List.assoc v env
-            with Not_found -> raise (TypeError "undefined variable: '" ^ v ^ "'")
+            with Not_found -> raise (TypeError ("undefined variable: '" ^ v ^ "'"))
         in
         if t = TRow then TRow
-        else raise (TypeError "variable '%s' expected TRow, but found '%s'" v (string_of_type t))
+        else raise (TypeError (Printf.sprintf "variable '%s' expected TRow, but found '%s'" v (string_of_type t)))
       )
     | RowFuncCall(f, args) -> get_func_return_type env ctx f args
 
@@ -275,6 +275,7 @@ let check_pattern_item env = function
             | stmt :: stmts ->
                 let new_local_env, new_return_types = check_statement local_env ctx stmt
                 in analyse_body new_local_env (return_types @new_return_types) stmts
+        in
 
         (* analyse body to determine return types *)
         let all_return_types = analyse_body [] [] body in
@@ -282,11 +283,11 @@ let check_pattern_item env = function
         (* check return types are consistent to find overall return type *)
         let return_type = 
             match all_return_types with
-            | [] -> raise (TypeError "function '" ^ f ^ "' does not return a value")
+            | [] -> raise (TypeError ("function '" ^ f ^ "' does not return a value"))
             | t :: ts ->
                 List.iter (fun t' ->
                 if t' <> t then
-                    raise (TypeError "function '" ^ f ^ "' has inconsistent return types")
+                    raise (TypeError ("function '" ^ f ^ "' has inconsistent return types"))
                 ) ts;
                 t
         in
@@ -297,8 +298,8 @@ let check_pattern_item env = function
             | Some(t_ref) ->
                 match !t_ref with
                 | Some(t) -> t
-                | None -> raise (TypeError "unable to infer type of parameter '" ^ param ^ "' in function '" ^ f ^ "'")
-            | None -> raise (TypeError "unable to infer type of parameter '" ^ param ^ "' in function '" ^ f ^ "'")
+                | None -> raise (TypeError ("unable to infer type of parameter '" ^ param ^ "' in function '" ^ f ^ "'"))
+            | None -> raise (TypeError ("unable to infer type of parameter '" ^ param ^ "' in function '" ^ f ^ "'"))
         ) params in
 
         (* update environment with function type *)
