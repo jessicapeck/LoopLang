@@ -33,6 +33,17 @@ let convert_to_ast filename =
     Ast.string_of_pattern ast
 
 
+let run_type_checker filename =
+    let channel = open_in filename in
+    let lexbuf = Lexing.from_channel channel in
+    let ast = Parser.pattern Lexer.next_token lexbuf in
+    close_in channel;
+    let initial_env = [] in
+    let _ = Type_checker.check_pattern initial_env ast in
+    true
+
+
+
 (* list of (test_name, filename) pairs *)
 let tests = [
     ("Empty pattern", "empty_pattern");
@@ -75,10 +86,23 @@ let ast_test_suite =
     List.map create_ast_test tests
 
 
+let create_type_checker_test (test_name, filename) =
+    let test_fn () =
+        let expected_type_checker_result = true in
+        let actual_type_checker_result = run_type_checker ("./test/patterns/" ^ filename ^ ".txt") in
+        Alcotest.(check bool) test_name expected_type_checker_result actual_type_checker_result
+    in
+    Alcotest.test_case test_name `Quick test_fn
+
+let type_checker_test_suite =
+    List.map create_ast_test tests
+
+
 let () =
     let test_suites = [
-        ("Pattern -> Token Stream Conversion Test", token_stream_test_suite)
+        ("Pattern -> Token Stream Conversion Test", token_stream_test_suite);
         ("Pattern -> AST Conversion Test", ast_test_suite);
+        ("Pattern -> Type Checker Test", type_checker_test_suite)
     ] in
     run "LoopLang Compiler" test_suites
 

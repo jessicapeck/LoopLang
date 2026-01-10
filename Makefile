@@ -19,7 +19,6 @@ MAIN_CMO_FILE = $(MAIN_FILE:.ml=.cmo)
 TEST_ML_FILES = $(TEST_DIR)/unit_tests.ml
 TEST_CMO_FILES = $(TEST_ML_FILES:.ml=.cmo)
 
-OPAM_ENV_CMD = eval $(opam env)
 
 # generate all files needed to create TARGET upon `make` command
 all: $(TARGET)
