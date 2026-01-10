@@ -84,11 +84,10 @@ rule token = parse
     | "dc"                                              { DC }
     | "inc"                                             { INC }
     | "dec"                                             { DEC }
+    | row_ident_regex                                   { ROW }
     | row_ident_regex ' '? (num_regex as num)           { ROWINT (int_of_string num) }
-    | row_ident_regex ' ' (id_regex as id)              { ROWINTVAR id }
-    | row_ident_regex ' '? "(" (id_regex as id) ")"     { ROWINTVAR id }
     | 'x' (num_regex as num)                            { MULINT (int_of_string num)}
-    | "x(" (id_regex as id) ")"                         { MULINTVAR id }
+    | "x("                                              { MULEXPR }
     | "if"                                              { IF }
     | "else"                                            { ELSE }
     | "let"                                             { LET }
@@ -145,10 +144,10 @@ rule token = parse
     | DC -> "DC"
     | INC -> "INC"
     | DEC -> "DEC"
+    | ROW -> "ROW"
     | ROWINT num -> Printf.sprintf "ROWINT(%d)" num
-    | ROWINTVAR id -> Printf.sprintf "ROWINTVAR(%s)" id
     | MULINT num -> Printf.sprintf "MULINT(%d)" num
-    | MULINTVAR id -> Printf.sprintf "MULINTVAR(%s)" id
+    | MULEXPR -> "MULEXPR"
     | IF -> "IF"
     | ELSE -> "ELSE"
     | LET -> "LET"

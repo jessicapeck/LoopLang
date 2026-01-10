@@ -4,7 +4,8 @@
 
 %token<int> INT MULINT ROWINT
 %token<bool> BOOL
-%token<string> ID MULINTVAR ROWINTVAR
+%token<string> ID
+%token ROW MULEXPR
 %token CH SC DC INC DEC
 %token ADD SUB MUL DIV
 %token LT GT EQ
@@ -78,8 +79,8 @@ row_list_item:
     | row_expr                                                                                                      { RowExpr($1) }
 
 row_lit:
-    | ROWINT COLON stitch_seq                                                                                       { RowLit(Int($1), $3) }
-    | ROWINTVAR COLON stitch_seq                                                                                    { RowLit(Var($1), $3) }
+    | ROW expr COLON stitch_seq                                                                                     { RowLit($2, $4) }
+    | ROWINT COLON stitch_seq                                                                                       { RowLit(Int($1), $3)}
 
 row_expr:
     | ID                                                                                                            { RowVar($1) }
@@ -128,7 +129,7 @@ mult_expr:
     | expr DEC                                                                                                      { StitchMultExpr(DEC, $1) }
     | DEC                                                                                                           { StitchMultExpr(DEC, Int(1)) }
     | LPAREN stitch_seq RPAREN MULINT                                                                               { StitchSeqMultExpr($2, Int($4)) }
-    | LPAREN stitch_seq RPAREN MULINTVAR                                                                            { StitchSeqMultExpr($2, Var($4)) }
+    | LPAREN stitch_seq RPAREN MULEXPR expr RPAREN                                                                  { StitchSeqMultExpr($2, $5) }
 
 expr:
     | INT                                                                                                           { Int($1) }
@@ -147,3 +148,4 @@ expr:
     | NOT expr                                                                                                      { UnaryOp(NOT, $2) }
     | ID LPAREN arg_list RPAREN                                                                                     { ExprFuncCall($1, $3) }
     | ID LPAREN RPAREN                                                                                              { ExprFuncCall($1, []) }
+    | LPAREN expr RPAREN                                                                                            { $2 }

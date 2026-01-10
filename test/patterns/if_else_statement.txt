@@ -1,3 +1,5 @@
+let i = 1
+
 if i > 2:
     ROW 1: sc 30
 else:

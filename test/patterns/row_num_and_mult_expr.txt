@@ -1,0 +1,4 @@
+let i = 1
+
+r(i): ch 30
+r(i+1): (sc 4, inc) x(7-i)

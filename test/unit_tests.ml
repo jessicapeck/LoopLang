@@ -58,7 +58,9 @@ let tests = [
     ("If statement (no else)", "if_statement");
     ("Defining variables (all types)", "variable_definitions");
     ("Passing a stitch sequence argument", "stitch_seq_arg");
-    ("Function call within a stitch sequence", "function_call_seq_item")
+    ("Function call within a stitch sequence", "function_call_seq_item");
+    ("Expressions as row numbers and multipliers", "row_num_and_mult_expr");
+    ("Parentheses around expressions", "paren_around_expr")
 ]
 
 
@@ -95,7 +97,7 @@ let create_type_checker_test (test_name, filename) =
     Alcotest.test_case test_name `Quick test_fn
 
 let type_checker_test_suite =
-    List.map create_ast_test tests
+    List.map create_type_checker_test tests
 
 
 let () =

@@ -1,1 +1,1 @@
-Pattern([Stmt(If(BinOp(Var(i), EQ, Int(5)), [LetDef(StitchSeqDef(seq, StitchSeq([StitchSeqItem(StitchMultExpr(SC, Int(1))), StitchSeqItem(StitchMultExpr(INC, Int(1))), StitchSeqItem(StitchMultExpr(SC, Int(1)))])))], []))])
+Pattern([Stmt(LetDef(ExprDef(i, Int(5)))), Stmt(If(BinOp(Var(i), EQ, Int(5)), [LetDef(StitchSeqDef(seq, StitchSeq([StitchSeqItem(StitchMultExpr(SC, Int(1))), StitchSeqItem(StitchMultExpr(INC, Int(1))), StitchSeqItem(StitchMultExpr(SC, Int(1)))])))], []))])

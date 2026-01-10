@@ -1,4 +1,10 @@
-foo(5, sc 2)
-foo(3, (dc 5, inc 2))
+def foo(i, seq):
+    return(row i: seq)
 
-goo((sc 3, dc))
+def goo(x):
+    return(row 3: x)
+
+foo(1, ch 7)
+foo(2, (dc 5, inc 2))
+
+goo((sc 8, dc))

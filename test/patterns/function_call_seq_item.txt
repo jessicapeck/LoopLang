@@ -1,1 +1,4 @@
+def foo():
+    return(inc)
+
 r1: ch 2, foo(), ch 2
