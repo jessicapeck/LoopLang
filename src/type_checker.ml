@@ -168,7 +168,10 @@ and check_stitch_seq env ctx expected_t = function
         if t_v = TStitchSeq then TStitchSeq
         else raise (TypeError (Printf.sprintf "variable '%s' expected TStitchSeq, but found '%s'" v (string_of_type t_v)))
     )
-    | StitchSeqFuncCall(f, args) ->  get_func_return_type env ctx f args
+    | StitchSeqFuncCall(f, args) ->  
+        let t = get_func_return_type env ctx f args in
+        if t = TStitchSeq then TStitchSeq
+        else raise (TypeError (Printf.sprintf "function '%s' expected to return TStitchSeq, but found '%s'" f (string_of_type t)))
 and check_argument env ctx expected_t = function
     | ExprArg(e) -> check_expr env ctx (Some expected_t) e
     | StitchSeqArg(seq) -> check_stitch_seq env ctx TStitchSeq seq
@@ -182,32 +185,40 @@ let check_row_lit env ctx = function
             else raise (TypeError "row content expects TStitchSeq")
         else raise (TypeError "row number expects TInt")
 
-let check_row_list_item env ctx = function
-    | RowLitItem(row) -> check_row_lit env ctx row
+let check_row_expr env ctx = function
     | RowVar(v) -> (
         let t =
             try List.assoc v env
             with Not_found -> raise (TypeError ("undefined variable: '" ^ v ^ "'"))
         in
-        if t = TRow then TRow
-        else raise (TypeError (Printf.sprintf "variable '%s' expected TRow, but found '%s'" v (string_of_type t)))
+        if t = TRowList then TRowList
+        else raise (TypeError (Printf.sprintf "variable '%s' expected TRowList, but found '%s'" v (string_of_type t)))
       )
-    | RowFuncCall(f, args) -> get_func_return_type env ctx f args
+    | RowFuncCall(f, args) -> 
+        let t = get_func_return_type env ctx f args in
+        if t = TRowList then TRowList
+        else raise (TypeError (Printf.sprintf "function '%s' expected to return TRowList, but found '%s'" f (string_of_type t)))
+
+let check_row_list_item env ctx = function
+    | RowLitItem(row) -> check_row_lit env ctx row
+    | RowExpr(row_expr) -> check_row_expr env ctx row_expr
 
 let check_definition env ctx = function
     | ExprDef(v, e) -> 
-        match e with
-        | Var(name) ->
-            match Hashtbl.find_opt ctx name with
-                | Some(t_ref) -> 
-                    Hashtbl.add ctx v t_ref;
-                    env
-                | None ->
-                    let t = check_expr env ctx None e in
-                    (v, t) :: env
-        | _ ->
-            let t = check_expr env ctx None e in
-            (v, t) :: env
+        (
+            match e with
+            | Var(name) ->
+                match Hashtbl.find_opt ctx name with
+                    | Some(t_ref) -> 
+                        Hashtbl.add ctx v t_ref;
+                        env
+                    | None ->
+                        let t = check_expr env ctx None e in
+                        (v, t) :: env
+            | _ ->
+                let t = check_expr env ctx None e in
+                (v, t) :: env
+        )
     | StitchSeqDef(v, seq) -> 
         let t = check_stitch_seq env ctx TStitchSeq seq in
         (v, t) :: env
@@ -237,13 +248,9 @@ let rec check_statement env ctx = function
     | LetDef(def) -> (check_definition env ctx def, [])
     | Row(row) -> 
         let _ = check_row_lit env ctx row in
-        (env, [])
-    | RowList(items) ->
-        List.iter(fun item ->
-            let t_item = check_row_list_item env ctx item in
-            if t_item <> TRow then
-                raise (TypeError "row list statement expects TRow values")
-        ) items;
+        (env, []) 
+    | RowList(row_expr) ->
+        let _ = check_row_expr env ctx row_expr in
         (env, [])
     | Return(ret_expr) ->
         let t = check_return_expr env ctx ret_expr in
