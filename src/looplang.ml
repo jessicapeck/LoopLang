@@ -19,7 +19,8 @@ let () =
     (* print_endline (Ast.string_of_pattern ast) *)
 
     let initial_env = [] in
-    let _ = TypeChecker.check_pattern initial_env ast in
+    let _ = Type_checker.check_pattern initial_env ast in
+    Printf.printf("Type checking: SUCCESS")
   with
   | Parser.Error ->
       let pos = lexbuf.lex_curr_p in
