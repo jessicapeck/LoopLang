@@ -10,7 +10,7 @@ TEST_EXEC = $(TEST_DIR)/unit_tests
 
 LIBS = alcotest
 
-ML_FILES = $(SRC)/ast.ml $(SRC)/parser.ml $(SRC)/lexer.ml
+ML_FILES = $(SRC)/ast.ml $(SRC)/parser.ml $(SRC)/lexer.ml $(SRC)/type_checker.ml
 CMO_FILES = $(ML_FILES:.ml=.cmo)
 
 MAIN_FILE = $(SRC)/looplang.ml

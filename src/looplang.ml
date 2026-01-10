@@ -20,7 +20,7 @@ let () =
 
     let initial_env = [] in
     let _ = Type_checker.check_pattern initial_env ast in
-    Printf.printf("Type checking: SUCCESS")
+    Printf.printf("Type checking: SUCCESS\n")
   with
   | Parser.Error ->
       let pos = lexbuf.lex_curr_p in
