@@ -304,7 +304,7 @@ let check_pattern_item env = function
 
         (* get parameter types from context *)
         let param_types = List.map(fun param ->
-            match Hashtbl.find ctx param with
+            match Hashtbl.find_opt ctx param with
             | Some(t_ref) ->
                 match !t_ref with
                 | Some(t) -> t
