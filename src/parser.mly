@@ -19,7 +19,7 @@
 %start <Ast.pattern> pattern
 %%
 
-(* TODO: handle case of empty pattern *)
+
 pattern:
     | pattern_item_list EOF                                                                                         { Pattern $1 }
     | empty_pattern                                                                                                 { Pattern [] }
@@ -32,6 +32,7 @@ pattern_item_list:
     | pattern_item NEWLINE pattern_item_list                                                                        { $1 :: $3 }
     | NEWLINE pattern_item_list                                                                                     { $2 }
     | pattern_item                                                                                                  { [$1] }
+    | (* empty *)                                                                                                   { [] }
 
 pattern_item:
     | DEF ID LPAREN param_list RPAREN COLON NEWLINE INDENT statement_list DEDENT                                    { FuncDef($2, $4, $9) }
@@ -46,6 +47,7 @@ statement_list:
     | statement NEWLINE statement_list                                                                              { $1 :: $3 }
     | NEWLINE statement_list                                                                                        { $2 }
     | statement                                                                                                     { [$1] }
+    | (* empty *)                                                                                                   { [] }
 
 statement:
     | definition                                                                                                    { LetDef($1) }
@@ -73,6 +75,7 @@ row_list:
     | row_list_item NEWLINE row_list                                                                                { $1 :: $3 }
     | NEWLINE row_list                                                                                              { $2 }
     | row_list_item                                                                                                 { [$1] }
+    | (* empty *)                                                                                                   { [] }
 
 row_list_item:
     | row_lit                                                                                                       { RowLitItem($1) }

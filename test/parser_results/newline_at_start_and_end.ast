@@ -1,0 +1,1 @@
+Pattern([FuncDef(foo, [], [Return(ReturnExpr(Int(1)))]), Stmt(Row(RowLit(ExprFuncCall(foo, []), StitchSeq([StitchSeqItem(StitchMultExpr(CH, Int(8)))]))))])

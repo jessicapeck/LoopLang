@@ -71,7 +71,7 @@ let row_ident_regex = ('r' | 'R' | "row" | "ROW")
 
 
 rule token = parse
-    | '\n' ((' '*) | ('\t'*) as seq)                    { 
+    | '\n'+ ((' '*) | ('\t'*) as seq)     { 
                                                           next_line lexbuf; 
                                                           match process_indentation seq with
                                                           | Indent -> NEWLINE

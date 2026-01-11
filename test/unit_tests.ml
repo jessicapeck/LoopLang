@@ -60,7 +60,8 @@ let tests = [
     ("Passing a stitch sequence argument", "stitch_seq_arg");
     ("Function call within a stitch sequence", "function_call_seq_item");
     ("Expressions as row numbers and multipliers", "row_num_and_mult_expr");
-    ("Parentheses around expressions", "paren_around_expr")
+    ("Parentheses around expressions", "paren_around_expr");
+    ("Newlines at the start and end of constructs", "newline_at_start_and_end")
 ]
 
 
