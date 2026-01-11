@@ -1,7 +1,6 @@
 open Ast
 
 exception TypeError of string
-exception ArgError of string
 
 type inference_ctx = (string, t option ref) Hashtbl.t
 
@@ -66,7 +65,7 @@ let rec get_func_return_type env ctx f args =
                 if t <> param_type then correct_arg_types := false
             ) param_types args;
             !correct_arg_types
-        with Invalid_argument _ -> raise (ArgError "number of arguments passed and number of parameters expected do not match")
+        with Invalid_argument _ -> raise (TypeError "number of arguments passed and number of parameters expected do not match")
     in
     let param_types, return_type = get_func_types env f in
         if check_arg_types env ctx param_types args then

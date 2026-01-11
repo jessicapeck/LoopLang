@@ -35,9 +35,6 @@ let () =
     | Type_checker.TypeError msg ->
         Printf.eprintf "Type error: %s\n" msg;
         exit 1
-    | Type_checker.ArgError msg ->
-        Printf.eprintf "Argument error: %s\n" msg;
-        exit 1
     | Failure msg ->
         Printf.eprintf "Error: %s\n" msg;
         exit 1
