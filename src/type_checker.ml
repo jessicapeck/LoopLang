@@ -141,7 +141,7 @@ and check_mult_expr env ctx = function
             let t_e = check_expr env ctx (Some TInt) e in
             if t_e = TInt then TStitchSeqItem
             else raise (TypeError "stitch sequence multiplier expression expects TInt")
-        else raise (TypeError "stitch sequence multiplier expression expects TStitchSeq within parentheses") (* TODO: this error would never come up because it is enforced by parser, should I still include it? *)
+        else raise (TypeError "stitch sequence multiplier expression expects TStitchSeq within parentheses")
 and check_stitch_seq_item env ctx = function
     | StitchSeqItem(mexpr) -> check_mult_expr env ctx mexpr
     | StitchSeqItemVar(v) ->
@@ -160,7 +160,7 @@ and check_stitch_seq env ctx expected_t = function
         List.iter(fun item ->
             let t_item = check_stitch_seq_item env ctx item in
             if t_item <> TStitchSeqItem then
-                raise (TypeError "stitch sequence expects TSStitchSeqItem values")
+                raise (TypeError "stitch sequence expects TStitchSeqItem values")
         ) seq;
         TStitchSeq
     | StitchSeqVar(v) ->
