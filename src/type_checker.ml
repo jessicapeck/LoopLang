@@ -52,7 +52,7 @@ let get_func_types env f =
     let (param_types, return_type) = 
         match func_type with
         | TFunc(p, r) -> (p, r)
-        | _ -> raise (TypeError ("'" ^ f ^"' is of type TFunc"))
+        | _ -> raise (TypeError ("'" ^ f ^"' must be of type TFunc"))
     in
     (param_types, return_type)
 
@@ -141,7 +141,7 @@ and check_mult_expr env ctx = function
             let t_e = check_expr env ctx (Some TInt) e in
             if t_e = TInt then TStitchSeqItem
             else raise (TypeError "stitch sequence multiplier expression expects TInt")
-        else raise (TypeError "stitch sequence multiplier expression expects TStitchSeq within parentheses")
+        else raise (TypeError "stitch sequence multiplier expression expects TStitchSeq within parentheses") (* TODO: this error would never come up because it is enforced by parser, should I still include it? *)
 and check_stitch_seq_item env ctx = function
     | StitchSeqItem(mexpr) -> check_mult_expr env ctx mexpr
     | StitchSeqItemVar(v) ->
@@ -149,12 +149,12 @@ and check_stitch_seq_item env ctx = function
             try List.assoc v env
             with Not_found -> raise (TypeError ("undefined variable: '" ^ v ^ "'"))
         in
-        if t = TStitchSeqItem then TStitchSeqItem
-        else raise (TypeError (Printf.sprintf "variable '%s' expected TStitchSeqItem, but found '%s'" v (string_of_type t)))
+        if t = TStitchSeq then TStitchSeqItem
+        else raise (TypeError (Printf.sprintf "variable '%s' expected TStitchSeq, but found %s" v (string_of_type t)))
     | StitchSeqItemFuncCall(f, args) ->
         let t = get_func_return_type env ctx f args in
         if t = TStitchSeq then TStitchSeqItem 
-        else raise (TypeError (Printf.sprintf "function '%s' expected to return TStitchSeq, but found '%s'" f (string_of_type t)))
+        else raise (TypeError (Printf.sprintf "function '%s' expected to return TStitchSeq, but found %s" f (string_of_type t)))
 and check_stitch_seq env ctx expected_t = function
     | StitchSeq(seq) ->
         List.iter(fun item ->
@@ -170,11 +170,11 @@ and check_stitch_seq env ctx expected_t = function
             | None -> update_ctx ctx v expected_t
         in
         if t_v = TStitchSeq then TStitchSeq
-        else raise (TypeError (Printf.sprintf "variable '%s' expected TStitchSeq, but found '%s'" v (string_of_type t_v)))
+        else raise (TypeError (Printf.sprintf "variable '%s' expected TStitchSeq, but found %s" v (string_of_type t_v)))
     | StitchSeqFuncCall(f, args) ->  
         let t = get_func_return_type env ctx f args in
         if t = TStitchSeq then TStitchSeq
-        else raise (TypeError (Printf.sprintf "function '%s' expected to return TStitchSeq, but found '%s'" f (string_of_type t)))
+        else raise (TypeError (Printf.sprintf "function '%s' expected to return TStitchSeq, but found %s" f (string_of_type t)))
 and check_argument env ctx expected_t = function
     | ExprArg(e) -> check_expr env ctx (Some expected_t) e
     | StitchSeqArg(seq) -> check_stitch_seq env ctx TStitchSeq seq
@@ -195,11 +195,11 @@ let check_row_expr env ctx = function
             with Not_found -> raise (TypeError ("undefined variable: '" ^ v ^ "'"))
         in
         if t = TRowList then TRowList
-        else raise (TypeError (Printf.sprintf "variable '%s' expected TRowList, but found '%s'" v (string_of_type t)))
+        else raise (TypeError (Printf.sprintf "variable '%s' expected TRowList, but found %s" v (string_of_type t)))
     | RowFuncCall(f, args) -> 
         let t = get_func_return_type env ctx f args in
         if t = TRowList then TRowList
-        else raise (TypeError (Printf.sprintf "function '%s' expected to return TRowList, but found '%s'" f (string_of_type t)))
+        else raise (TypeError (Printf.sprintf "function '%s' expected to return TRowList, but found %s" f (string_of_type t)))
 
 let check_row_list_item env ctx = function
     | RowLitItem(row) -> check_row_lit env ctx row
