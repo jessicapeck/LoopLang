@@ -30,6 +30,28 @@ let tests = [
 ]
 
 
+(* list of (test_name, filename, expected_error) *)
+let error_tests = [
+    ("Inconsistent type inference", "inconsistent_type_inference", Type_checker.TypeError "inconsistent type inference for parameter 'x'");
+    ("Undefined function", "undefined_function", Type_checker.TypeError "undefined function: 'foo'");
+    ("Incorrect number of arguments", "incorrect_number_of_arguments", Type_checker.TypeError "number of arguments passed and number of parameters expected do not match");
+    ("Incorrect argument types", "incorrect_argument_types", Type_checker.TypeError "argument types do not match expected parameter types");
+    ("Undefined variable", "undefined_variable", Type_checker.TypeError "undefined variable: 'seq'");
+    ("Binary arithmetic operations", "binary_arithmetic_operations", Type_checker.TypeError "binary arithmetic operations expect TInt operands");
+    ("Binary comparison operations", "binary_comparison_operations", Type_checker.TypeError "binary comparison operations expect TInt operands");
+    ("Binary logial operations", "binary_logical_operations", Type_checker.TypeError "binary logical operations expect TBool operands");
+    ("Unary arithmetic operations", "unary_arithmetic_operations", Type_checker.TypeError "unary arithmetic operations expect a TInt operand");
+    ("Unary logical operations", "unary_logical_operations", Type_checker.TypeError "unary logical operations expect a TBool operand");
+    ("Stitch multiplier", "stitch_multiplier", Type_checker.TypeError "stitch multiplier expression expects TInt");
+    ("Stitch sequence multiplier (number)", "stitch_sequence_multiplier_number", Type_checker.TypeError "stitch sequence multiplier expression expects TInt");
+    ("Stitch sequence multiplier (sequence)", "stitch_sequence_multiplier_seq", Type_checker.TypeError "variable 'myrow' expected TStitchSeq, but found TRowList");
+    ("Stitch sequence item", "stitch_seq_item", Type_checker.TypeError "function 'foo' expected to return TStitchSeq, but found TBool");
+    ("Row number", "row_number", Type_checker.TypeError "row number expects TInt");
+    ("Row content", "row_content", Type_checker.TypeError "variable 'z' expected TStitchSeq, but found TInt");
+    ("If-else statement condition", "if_else_condition", Type_checker.TypeError "if-else statement condition expects TBool")
+]
+
+
 let create_token_stream_test (test_name, filename) = 
     let test_fn () =
         let expected_token_stream = String.split_on_char '\n' (read_file ("./test/lexer_results/" ^ filename ^ ".tokens")) in
@@ -56,9 +78,11 @@ let ast_test_suite =
 
 let create_type_checker_test (test_name, filename) =
     let test_fn () =
-        let expected_type_checker_result = true in
-        let actual_type_checker_result = Test_utils.run_type_checker ("./test/patterns/" ^ filename ^ ".txt") in
-        Alcotest.(check bool) test_name expected_type_checker_result actual_type_checker_result
+        try
+            let _ = Test_utils.run_type_checker ("./test/patterns/" ^ filename ^ ".txt") in
+            Alcotest.(check unit) test_name () ()
+        with
+        | Type_checker.TypeError msg -> Alcotest.fail ("Unexpected TypeError: " ^ msg ^ "\n")
     in
     Alcotest.test_case test_name `Quick test_fn
 
@@ -66,10 +90,20 @@ let type_checker_test_suite =
     List.map create_type_checker_test tests
 
 
+let create_type_checker_error_test (test_name, filename, expected_error) =
+    let test_fn () =
+        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_type_checker ("./test/error_patterns/" ^ filename ^ ".txt"))
+    in
+    Alcotest.test_case test_name `Quick test_fn
+
+let type_checker_error_test_suite =
+    List.map create_type_checker_error_test error_tests
+
 let () =
     let test_suites = [
         ("Pattern -> Token Stream Conversion Test", token_stream_test_suite);
         ("Pattern -> AST Conversion Test", ast_test_suite);
-        ("Pattern -> Type Checker Test", type_checker_test_suite)
+        ("Pattern -> Type Checker Test", type_checker_test_suite);
+        ("Pattern -> Type Checker Error Test", type_checker_error_test_suite)
     ] in
     run "LoopLang Compiler" test_suites

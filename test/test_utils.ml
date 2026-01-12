@@ -31,4 +31,4 @@ let run_type_checker filename =
     close_in channel;
     let initial_env = [] in
     let _ = Type_checker.check_pattern initial_env ast in
-    true
+    ()

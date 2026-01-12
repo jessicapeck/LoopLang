@@ -1,0 +1,6 @@
+let x = 4
+
+if not x:
+    let seq = sc 2
+else:
+    let seq = dc 2

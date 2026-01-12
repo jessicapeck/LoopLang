@@ -1,0 +1,4 @@
+def foo():
+    return(false)
+
+row 1: dc 2, foo(), dc 2
