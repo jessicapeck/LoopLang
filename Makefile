@@ -16,7 +16,7 @@ CMO_FILES = $(ML_FILES:.ml=.cmo)
 MAIN_FILE = $(SRC)/looplang.ml
 MAIN_CMO_FILE = $(MAIN_FILE:.ml=.cmo)
 
-TEST_ML_FILES = $(TEST_DIR)/unit_tests.ml
+TEST_ML_FILES = $(TEST_DIR)/test_utils.ml $(TEST_DIR)/unit_tests.ml
 TEST_CMO_FILES = $(TEST_ML_FILES:.ml=.cmo)
 
 
@@ -51,9 +51,9 @@ test: $(TEST_EXEC)
 $(TEST_EXEC): $(CMO_FILES) $(TEST_CMO_FILES) 
 	opam exec -- $(OCAMLC) -g -linkpkg -o $@ -package $(LIBS) -I $(SRC) $^
 
-# Compile test/unit_tests.ml into an object file
-$(TEST_DIR)/unit_tests.cmo: $(TEST_DIR)/unit_tests.ml
-	opam exec -- $(OCAMLC) -g -I $(SRC) -package $(LIBS) -c -o $@ $<
+# compile .ml files into object filed
+$(TEST_DIR)/%.cmo: $(TEST_DIR)/%.ml
+	opam exec -- $(OCAMLC) -g -I $(SRC) -I $(TEST_DIR) -package $(LIBS) -c -o $@ $<
 
 # remove all generated files
 clean:
