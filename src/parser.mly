@@ -86,9 +86,9 @@ row_lit:
     | ROWINT COLON stitch_seq                                                                                       { RowLit(Int($1), $3)}
 
 row_expr:
-    | ID                                                                                                            { RowVar($1) }
     | ID LPAREN arg_list RPAREN                                                                                     { RowFuncCall($1, $3) }
     | ID LPAREN RPAREN                                                                                              { RowFuncCall($1, []) }
+    | ID                                                                                                            { RowVar($1) }
 
 arg_list:
     | arg COMMA arg_list                                                                                            { $1 :: $3 }
@@ -97,10 +97,14 @@ arg_list:
 arg:
     | expr                                                                                                          { ExprArg($1) }
     | LPAREN stitch_seq RPAREN                                                                                      { StitchSeqArg($2) }
-    | stitch_seq                                                                                                    { StitchSeqArg($1) }
+    | stitch_seq_expr                                                                                               { StitchSeqArg($1) }
+    | stitch_seq_item                                                                                               { StitchSeqArg(StitchSeq([$1])) }
 
 stitch_seq:
     | stitch_seq_item_list                                                                                          { StitchSeq($1) }
+    | stitch_seq_expr                                                                                               { $1 }
+
+stitch_seq_expr:
     | ID                                                                                                            { StitchSeqVar($1) }
     | ID LPAREN arg_list RPAREN                                                                                     { StitchSeqFuncCall($1, $3) }
     | ID LPAREN RPAREN                                                                                              { StitchSeqFuncCall($1, []) }
