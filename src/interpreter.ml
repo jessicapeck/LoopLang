@@ -1,5 +1,7 @@
 open Ast
 
+exception DivideByZero of string
+
 (* the resulting code should only consists of rows and comments *)
 
 type var_env = (var, t) Hashtbl.t (* TODO: check this is the correct type *)
@@ -30,7 +32,10 @@ let rec eval_expr env func_defs =
         | ADD -> v1 + v2
         | SUB -> v1 - v2
         | MUL -> v1 * v2
-        | DIV -> v1 / v2
+        | DIV -> 
+            try
+                v1 / v2
+            with Division_by_zero -> raise (DivideByZero "division by zero encountered in expression evaluation")
         | LT -> v1 < v2
         | GT -> v1 > v2
         | EQ -> v1 = v2
