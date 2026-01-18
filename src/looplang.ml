@@ -18,8 +18,7 @@ let () =
         let ast = Parser.pattern debug_lexer lexbuf in
         (* print_endline (Ast.string_of_pattern ast) *)
 
-        let initial_env = [] in
-        let _ = Type_checker.check_pattern initial_env ast in
+        let _ = Type_checker.check_pattern ast in
         Printf.printf("Type checking: SUCCESS\n")
     with
     | Parser.Error ->

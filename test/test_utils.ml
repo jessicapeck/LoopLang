@@ -29,6 +29,5 @@ let run_type_checker filename =
     let lexbuf = Lexing.from_channel channel in
     let ast = Parser.pattern Lexer.next_token lexbuf in
     close_in channel;
-    let initial_env = [] in
-    let _ = Type_checker.check_pattern initial_env ast in
+    let _ = Type_checker.check_pattern ast in
     ()

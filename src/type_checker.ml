@@ -2,7 +2,7 @@ open Ast
 
 exception TypeError of string
 
-type inference_ctx = (string, t option ref) Hashtbl.t
+type inference_ctx = (var, t option ref) Hashtbl.t
 
 (* string of type function for error messages *)
 let rec string_of_type = function
@@ -322,8 +322,9 @@ let check_pattern_item env = function
         let new_env, _ = check_statement env dummy_ctx stmt in
         new_env
 
-let check_pattern env = function
+let check_pattern = function
     | Pattern(items) ->
+        let initial_env = [] in
         List.fold_left(fun env_acc item ->
             check_pattern_item env_acc item
-        ) env items
+        ) initial_env items
