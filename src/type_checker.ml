@@ -278,7 +278,7 @@ let rec check_statement env ctx = function
 
 let check_pattern_item env = function
     | FuncDef(f, params, body) -> 
-        let ctx = Hashtbl.create 10 in
+        let ctx : inference_ctx = Hashtbl.create 10 in
         List.iter (fun param -> Hashtbl.add ctx param (ref None)) params;
 
         let rec analyse_body local_env return_types body =
@@ -318,7 +318,7 @@ let check_pattern_item env = function
         (* update environment with function type *)
         (f, TFunc(param_types, return_type)) :: env
     | Stmt(stmt) -> 
-        let dummy_ctx = Hashtbl.create 0 in
+        let dummy_ctx : inference_ctx = Hashtbl.create 0 in
         let new_env, _ = check_statement env dummy_ctx stmt in
         new_env
 
