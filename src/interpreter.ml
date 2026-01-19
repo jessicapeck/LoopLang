@@ -4,7 +4,7 @@ exception DivideByZero of string
 
 (* the resulting code should only consists of rows and comments *)
 
-type var_env = (var, t) Hashtbl.t (* TODO: check this is the correct type *)
+(* type var_env = (var, t) Hashtbl.t *) (* TODO: check this is the correct type *)
 
 type func_template = {
     params: var list;
@@ -14,6 +14,31 @@ type func_env = (var, func_template) Hashtbl.t (* TODO : change name of func_env
 
 let result = ref []
 
+type value =
+    | VInt of int
+    | VBool of bool
+
+type func_action =
+    | Continue
+    | Return of t
+
+let eval_function_call env func_defs f args =
+    let func_data = Hashtbl.find func_defs f in
+    let param_list = func_data.params in
+    let body = func_data.body in
+
+    let new_env : var_env = Hashtbl.create 10 inc
+    List.iter2 (fun param arg ->
+        let arg_value = eval_argument env func_defs arg in
+        Hashtbl.add new_env param arg_value
+    ) param_list args;
+
+    List.iter (fun stmt ->
+        eval_statement new_env func_defs stmt
+    ) body
+
+
+
 let eval_stitch env func_defs = function
     | CH -> "ch"
     | SC -> "sc"
@@ -22,30 +47,38 @@ let eval_stitch env func_defs = function
     | DEC -> "dec"
 
 let rec eval_expr env func_defs =
-    | Int(n) -> n
-    | Bool(b) -> b
+    | Int(n) -> VInt(n)
+    | Bool(b) -> VBool(b)
     | Var(var) -> Hashtbl.find env var
     | BinOp(e1, op, e2) ->
-        let v1 = eval_expr env func_defs e1 in
-        let v2 = eval_expr env func_defs e2 in
+        let v1 = 
+            match eval_expr env func_defs e1 with
+            | VInt(n) -> n
+            | VBool(b) -> b
+        in
+        let v2 = 
+            match eval_expr env func_defs e2 with
+            | VInt(n) -> n
+            | VBool(b) -> b
+        in
         match op with
-        | ADD -> v1 + v2
-        | SUB -> v1 - v2
-        | MUL -> v1 * v2
+        | ADD -> VInt(v1 + v2)
+        | SUB -> VInt(v1 - v2)
+        | MUL -> VInt(v1 * v2)
         | DIV -> 
             try
-                v1 / v2
+                VInt(v1 / v2)
             with Division_by_zero -> raise (DivideByZero "division by zero encountered in expression evaluation")
-        | LT -> v1 < v2
-        | GT -> v1 > v2
-        | EQ -> v1 = v2
-        | AND -> v1 && v2
-        | OR -> v1 || v2
+        | LT -> VBool(v1 < v2)
+        | GT -> VBool(v1 > v2)
+        | EQ -> VBool(v1 = v2)
+        | AND -> VBool(v1 && v2)
+        | OR -> VBool(v1 || v2)
     | UnaryOp(op, e) ->
         let v = eval_expr env func_defs e in
         match op with
-        | NEG -> (-v)
-        | NOT -> not v
+        | NEG -> VInt(-v)
+        | NOT -> VBool(not v)
     | ExprFuncCall(f, args) -> () (* TODO: implement function evaluation *)
 and eval_mult_expr env func_defs = function
     | StitchMultExpr(st, n) -> (Printf.sprintf "%s %d" (eval_stitch env func_defs st) (eval_expr env func_defs n))
@@ -130,7 +163,8 @@ let eval_pattern_item env func_defs = function
     | Stmt(stmt) -> eval_statement env func_defs stmt
 
 let eval_pattern pattern =
-    let env : var_env = Hashtbl.create 10 in
+    (* let env : var_env = Hashtbl.create 10 in *) (* TODO : sort of type of env*)
+    let env = Hashtbl.create 10 in
     let func_defs : func_env = Hashtbl.create 10 in
     List.iter (fun item ->
         eval_pattern_item env func_defs item
