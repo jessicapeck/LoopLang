@@ -71,10 +71,16 @@ let eval_row_lit env func_defs = function
     | RowLit(n, seq) ->
         let row_num = eval_expr env func_defs n in
         let stitch_seq = eval_stitch_seq env func_defs seq in
-        (Printf.sprintf "R%d: %s\n" row_num stitch_seq)
+        let row_str = (Printf.sprintf "R%d: %s\n" row_num stitch_seq) in
+        (* accumulate rows in results list *)
+        result := row_str :: !result
 
 let eval_row_expr env func_defs = function
-    | RowVar(var) -> () (* TODO *)
+    | RowVar(var) ->
+        let rows = Hashtbl.find env var in
+        List.iter (fun row ->
+            eval_row_list_item env func_defs row
+        ) rows
     | RowFuncCall(f, args) -> () (* TODO: implement function evaluation *)
 
 let eval_row_list_item env func_defs = function
@@ -82,7 +88,7 @@ let eval_row_list_item env func_defs = function
     | RowExpr(row_expr) -> eval_row_expr env func_defs row_expr
 
 (* returns the environment because the environment is being changed *)
-let eval_definition env func_defs = function (* TODO: make sure this is correct and consistent with type definition of env *)
+let eval_definition env func_defs = function
     | ExprDef(var, e) -> Hashtbl.add env func_defs var e; env
     | StitchSeqDef(var, seq) -> Hashtbl.add env func_defs seq; env
     | RowListDef(var, rows) -> Hashtbl.add env func_defs var rows; env
@@ -91,10 +97,9 @@ let eval_definition env func_defs = function (* TODO: make sure this is correct 
 let eval_return_expr env func_defs = function
     | ReturnExpr(e) -> eval_expr env func_defs e
     | ReturnStitchSeq(seq) -> eval_stitch_seq env func_defs seq
-    | ReturnRowList(rows) -> 
+    | ReturnRowList(rows) ->
         List.iter (fun row ->
-            let row_str = eval_row_list_item env func_defs row in
-            result := row_str :: !result
+            eval_row_list_item env func_defs row
         ) rows
 
 (* returns the environment because LetDef will change env *)
@@ -102,10 +107,9 @@ let rec eval_statement env func_defs = function
     | LetDef(def) -> eval_definition env func_defs def
     | Row(row) -> 
         let row_str = eval_row_lit env func_defs row in
-        result := row_str :: !result;
         env 
-    | RowList(row_expr) -> eval_row_expr env func_defs row_expr; env (* TODO: add each row to buffer *)
-    | Return(ret_expr) -> eval_return_expr env func_defs ret_expr; env (* TODO: what to do with this ??? *)
+    | RowList(row_expr) -> eval_row_expr env func_defs row_expr; env
+    | Return(ret_expr) -> eval_return_expr env func_defs ret_expr; env
     | If(cond, then_branch, else_branch) ->
         let cond_value = eval_expr env func_defs cond in
         if cond_value then (* TODO: accumulate func_defs as well as env *)
