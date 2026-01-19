@@ -208,9 +208,15 @@ let rec eval_statement env = function
         (None, new_env)
     | Row(row) -> 
         let row = eval_row_lit env row in
+        let row_value = unwrap_row row in
+        result := row_value :: !result;
         (Some(row), env)
     | RowList(row_expr) -> 
         let row_list = eval_row_expr env row_expr in
+        let row_list_value = unwrap_row_list row_list in
+        List.iter (fun row ->
+            result := row :: !result
+        ) row_list_value;
         (Some(row_list), env)
     | Return(ret_expr) -> 
         let value = eval_return_expr env ret_expr in
