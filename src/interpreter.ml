@@ -51,24 +51,17 @@ let unwrap_row = function
     | VRow(row) -> row
     | _ -> raise (InternalInterpreterError "expected a row, found a different type")
 
-type func_action =
-    | Continue
-    | Return of t
 
-let eval_function_call env f args =
-    let func_data = Hashtbl.find func_defs f in
-    let param_list = func_data.params in
-    let body = func_data.body in
+let map_cps f env l k =
+    match l with
+    | [] -> k []
+    | x::xs -> f env x (fun y -> map_cps f env xs (fun ys -> k (y::ys)))
 
-    let new_env : var_env = Hashtbl.create 10 in
-    List.iter2 (fun param arg ->
-        let arg_value = eval_argument env arg in
-        Hashtbl.add new_env param arg_value
-    ) param_list args;
 
-    List.iter (fun stmt ->
-        eval_statement new_env stmt
-    ) body
+let rec eval_statement_list env stmts k_next k_ret =
+    match stmts with
+    | [] -> k_next env
+    | stmt::rest -> eval_statement env stmt (fun new_env -> eval_statement_list new_env rest k_next k_ret) k_ret
 
 
 let eval_stitch env = function
@@ -78,169 +71,209 @@ let eval_stitch env = function
     | INC -> VStitch("inc")
     | DEC -> VStitch("dec")
 
+
+let rec eval_function_call env f args k_caller =
+    let func_data = Hashtbl.find func_defs f in
+    let param_list = func_data.params in
+    let body = func_data.body in
+
+    let new_env : var_env = Hashtbl.create 10 in
+    map_cps eval_argument env args (fun arg_values ->
+        (* bind arguments to parameters *)
+        List.iter2 (fun param arg_value ->
+            Hashtbl.add new_env param arg_value
+        ) param_list arg_values;
+
+        eval_statement_list new_env body (fun final_env -> k_caller ()) (fun ret_eval -> k_caller ret_eval)
+    )
 (* returns a VInt or a VBool *)
-let rec eval_expr env =
-    | Int(n) -> VInt(n)
-    | Bool(b) -> VBool(b)
-    | Var(var) -> Hashtbl.find env var
+and eval_expr env e k =
+    match e with
+    | Int(n) -> k VInt(n)
+    | Bool(b) -> k VBool(b)
+    | Var(var) -> k (Hashtbl.find env var)
     | BinOp(e1, op, e2) -> (
-        let v1 = eval_expr env e1 in
-        let v2 = eval_expr env e2 in
+        eval_expr env e1 (fun e1_eval ->
+            eval_expr env e2 (fun e2_eval ->
+                let (v1, v2) = (
+                    match op with
+                    | ADD | SUB | MUL | DIV | LT | GT | EQ -> 
+                        (unwrap_int e1_eval,
+                        unwrap_int e2_eval)
+                    | AND | OR -> 
+                        (unwrap_bool e1_eval,
+                        unwrap_bool e2_eval)
+                ) in
 
-        let (v1, v2) = (
-            match op with
-            | ADD | SUB | MUL | DIV | LT | GT | EQ -> 
-                (unwrap_int (eval_expr env e1),
-                unwrap_int (eval_expr env e2))
-            | AND | OR -> 
-                (unwrap_bool (eval_expr env e1),
-                unwrap_bool (eval_expr env e2))
-        ) in
-
-        match op with
-        | ADD -> VInt(v1 + v2)
-        | SUB -> VInt(v1 - v2)
-        | MUL -> VInt(v1 * v2)
-        | DIV -> 
-            try
-                VInt(v1 / v2)
-            with Division_by_zero -> raise (DivideByZero "division by zero encountered in expression evaluation")
-        | LT -> VBool(v1 < v2)
-        | GT -> VBool(v1 > v2)
-        | EQ -> VBool(v1 = v2)
-        | AND -> VBool(v1 && v2)
-        | OR -> VBool(v1 || v2)
+                match op with
+                | ADD -> k VInt(v1 + v2)
+                | SUB -> k VInt(v1 - v2)
+                | MUL -> k VInt(v1 * v2)
+                | DIV -> 
+                    try
+                        k VInt(v1 / v2)
+                    with Division_by_zero -> raise (DivideByZero "division by zero encountered in expression evaluation")
+                | LT -> k VBool(v1 < v2)
+                | GT -> k VBool(v1 > v2)
+                | EQ -> k VBool(v1 = v2)
+                | AND -> k VBool(v1 && v2)
+                | OR -> k VBool(v1 || v2)
+            )
+        )
     )
     | UnaryOp(op, e) -> (
-        let v = eval_expr env e in
-        match op with
-        | NEG -> 
-            let n = unwrap_int v in
-            VInt(-n)
-        | NOT -> 
-            let b = unwrap_bool v in
-            VBool(not b)
+        eval_expr env e (fun v ->
+            match op with
+            | NEG -> 
+                let n = unwrap_int v in
+                k VInt(-n)
+            | NOT -> 
+                let b = unwrap_bool v in
+                k VBool(not b)
+        )
     )
-    | ExprFuncCall(f, args) -> () (* TODO: implement function evaluation *)
+    | ExprFuncCall(f, args) -> eval_function_call env f args k
 (* returns a string of the mult_expr*)
-and eval_mult_expr env = function
+and eval_mult_expr env mult_expr k =
+    match mult_expr with
     | StitchMultExpr(st, n) ->
-        let n_value = unwrap_int (eval_expr env n) in
-        let st_value = unwrap_stitch (eval_stitch env st) in
-        (Printf.sprintf "%s %d" st_value n_value)
+        eval_expr env n (fun n_eval ->
+            let n_value = unwrap_int n_eval in
+            let st_value = unwrap_stitch (eval_stitch env st) in
+            k (Printf.sprintf "%s %d" st_value n_value)
+        )
     | StitchSeqMultExpr(seq, n) -> 
-        let n_value = unwrap_int (eval_expr env n) in
-        let seq_value = unwrap_stitch_seq (eval_stitch_seq env seq) in
-        (Printf.sprintf "(%s) x%d" seq_value n_value)
+        eval_expr env n (fun n_eval ->
+            eval_stitch_seq env seq (fun seq_eval ->
+                let n_value = unwrap_int n_eval in
+                let seq_value = unwrap_stitch_seq seq_eval in
+                k (Printf.sprintf "(%s) x%d" seq_value n_value)
+            )
+        )
 (* returns a VStitchSeqItem string *)
-and eval_stitch_seq_item env = function
-    | StitchSeqItem(mexpr) -> 
-        let v = eval_mult_expr env mexpr in
-        VStitchSeqItem(v)
-    | StitchSeqItemVar(var) -> Hashtbl.find env var
-    | StitchSeqItemFuncCall(f, args) -> () (* TODO: implement function evaluation *)
+and eval_stitch_seq_item item k = 
+    match item with
+    | StitchSeqItem(mexpr) ->
+        eval_mult_expr env mexpr (fun v ->
+            k (VStitchSeqItem(v))
+        )
+    | StitchSeqItemVar(var) -> k (Hashtbl.find env var)
+    | StitchSeqItemFuncCall(f, args) -> eval_function_call env f args k
 (* returns a VStitchSeq string *)
-and eval_stitch_seq env = function
+and eval_stitch_seq env seq k =
+    match seq with
     | StitchSeq(seq) -> 
-        let seq_str = unwrap_stitch_seq_item (String.concat ", " (List.map (eval_stitch_seq_item env) seq)) in
-        VStitchSeq(seq_str)
-    | StitchSeqVar(var) -> Hashtbl.find env var
-    | StitchSeqFuncCall(f, args) -> () (* TODO: implement function evaluation *)
+        map_cps eval_stitch_seq_item env seq (fun seq_items ->
+            let seq_str = String.concat ", " (List.map unwrap_stitch_seq_item seq_items) in
+            k (VStitchSeq(seq_str))
+        )
+    | StitchSeqVar(var) -> k (Hashtbl.find env var)
+    | StitchSeqFuncCall(f, args) -> eval_function_call env f args k
 (* returns a VInt, VBool, or VStitchSeq *)
-and eval_argument env = function
-    | ExprArg(e) -> eval_expr env e
-    | StitchSeqArg(seq) -> eval_stitch_seq env seq
+and eval_argument env arg k =
+    match arg with
+    | ExprArg(e) -> eval_expr env e k
+    | StitchSeqArg(seq) -> eval_stitch_seq env seq k
 
 (* returns a VRow string *)
-let eval_row_lit env = function
+let eval_row_lit env row_lit k =
+    match row_lit with
     | RowLit(n, seq) ->
-        let row_num = unwrap_int (eval_expr env n) in
-        let stitch_seq = unwrap_stitch_seq (eval_stitch_seq env seq) in
-        let row_str = (Printf.sprintf "R%d: %s\n" row_num stitch_seq) in
-        VRow(row_str)
+        eval_expr env n (fun n_eval ->
+            eval_stitch_seq env seq (fun seq_eval ->
+                let row_num = unwrap_int n_eval in
+                let stitch_seq = unwrap_stitch_seq seq_eval in
+                let row_str = (Printf.sprintf "R%d: %s\n" row_num stitch_seq) in
+                k (VRow(row_str))
+            )
+        )
 
 (* returns a VRowList string list *)
-let rec eval_row_expr env = function
-    | RowVar(var) ->
-        let row_list = Hashtbl.find env var in
-        let row_list_value = List.map (fun row -> 
-            unwrap_row (eval_row_list_item env row)
-        ) row_list in
-        VRowList(row_list_value)
-    | RowFuncCall(f, args) -> () (* TODO: implement function evaluation *)
+let rec eval_row_expr env row_expr k =
+    match row_expr with
+    | RowVar(var) -> k (Hashtbl.find env var)
+    | RowFuncCall(f, args) -> eval_function_call env f args k
 (* returns a VRow or a VRowList*)
-and eval_row_list_item env = function
-    | RowLitItem(row) -> eval_row_lit env row
-    | RowExpr(row_expr) -> eval_row_expr env row_expr
+and eval_row_list_item env item k =
+    match item with
+    | RowLitItem(row) -> eval_row_lit env row k
+    | RowExpr(row_expr) -> eval_row_expr env row_expr k
 
 (* returns the environment because the environment is being changed *)
-let eval_definition env = function
-    | ExprDef(var, e) -> 
-        let v = eval_expr env e in
-        Hashtbl.add env var v;
-        env
-    | StitchSeqDef(var, seq) -> 
-        let seq_value = eval_stitch_seq env seq in
-        Hashtbl.add env var seq_value;
-        env
-    | RowListDef(var, row_list) -> 
-        let row_list_value = List.map(fun row -> 
-            unwrap_row (eval_row_list_item env row)
-        ) row_list in
-        Hashtbl.add env var VRowList(row_list_value);
-        env
-    | FuncCallDef(var, f, args) -> () (* TODO: implement function evaluation *)
+let eval_definition env definition k =
+    match definition with
+    | ExprDef(var, e) ->
+        eval_expr env e (fun e_eval ->
+            Hashtbl.add env var e_eval;
+            k env
+        )
+    | StitchSeqDef(var, seq) ->
+        eval_stitch_seq env seq (fun seq_eval ->
+            Hashtbl.add env var seq_eval;
+            k env
+        )
+    | RowListDef(var, row_list) ->
+        map_cps eval_row_list_item env row_list (fun row_list_items ->
+            let row_list_value = List.map unwrap_row row_list_items in
+            Hashtbl.add env var (VRowList(row_list_value));
+            k env
+        )
+    | FuncCallDef(var, f, args) ->
+        eval_function_call env f args (fun func_eval ->
+            Hashtbl.add env var func_eval;
+            k env
+        )
 
 (* returns a VInt, VBool, VStitchSeq, or VRowList *)
-let eval_return_expr env = function
-    | ReturnExpr(e) -> eval_expr env e
-    | ReturnStitchSeq(seq) -> eval_stitch_seq env seq
-    | ReturnRowList(rows) ->
-        let row_list_value = List.map (fun row ->
-            eval_row_list_item env row
-        ) rows in
-        VRowList(row_list_value)
+let eval_return_expr env ret_expr k =
+    match ret_expr with
+    | ReturnExpr(e) -> eval_expr env e k
+    | ReturnStitchSeq(seq) -> eval_stitch_seq env seq k
+    | ReturnRowList(row_list) ->
+        map_cps eval_row_list_item env row_list (fun row_list_items ->
+            let row_list_value = List.map unwrap_row row_list_items in
+            k (VRowList(row_list_value))
+        )
 
 (* returns the environment because LetDef will change env *)
-let rec eval_statement env = function
+let rec eval_statement env stmt k_next k_ret =
+    match stmt with
     | LetDef(def) ->
-        let new_env = eval_definition env def in 
-        (None, new_env)
-    | Row(row) -> 
-        let row = eval_row_lit env row in
-        let row_value = unwrap_row row in
-        result := row_value :: !result;
-        (Some(row), env)
-    | RowList(row_expr) -> 
-        let row_list = eval_row_expr env row_expr in
-        let row_list_value = unwrap_row_list row_list in
-        List.iter (fun row ->
-            result := row :: !result
-        ) row_list_value;
-        (Some(row_list), env)
-    | Return(ret_expr) -> 
-        let value = eval_return_expr env ret_expr in
-        (Some(value), env)
+        eval_definition env def (fun new_env ->
+            k_next new_env
+        )
+    | Row(row) ->
+        eval_row_lit env row (fun row_eval ->
+            let row_value = unwrap_row row_eval in
+            result := row_value :: !result;
+            k_next env
+        )
+    | RowList(row_expr) ->
+        eval_row_expr env row_expr (fun row_list_eval ->
+            let row_list_value = unwrap_row_list row_list_eval in
+            List.iter (fun row ->
+                result := row :: !result
+            ) row_list_value;
+            k_next env
+        )
+    | Return(ret_expr) ->
+        eval_return_expr env ret_expr (fun ret_expr_eval ->
+            k_ret ret_expr_eval
+        )
     | If(cond, then_branch, else_branch) ->
-        let cond_value = eval_expr env cond in
-        let new_env = (
+        eval_expr env cond (fun cond_eval ->
+            let cond_value = unwrap_bool cond_eval in
             if cond_value then
-                List.fold_left (fun env_acc stmt ->
-                    let (value, new_then_env) = eval_statement env_acc stmt in
-                    new_then_env
-                ) env then_branch
+                eval_statement_list env then_branch k_next k_ret
             else
-                List.fold_left (fun env_acc stmt ->
-                    let (value, new_else_env) = eval_statement env_acc stmt in
-                    new_else_env
-                ) env else_branch
+                eval_statement_list env else_branch k_next k_ret
         )
 
 let eval_pattern_item env = function
     | FuncDef(f, params, body) ->
         let func_data = { params = params; body = body } in
         Hashtbl.add func_defs f func_data
-    | Stmt(stmt) -> let (value, new_env) =eval_statement env stmt in () (* TODO *)
+    | Stmt(stmt) -> let (value, new_env) = eval_statement env stmt in () (* TODO *)
 
 let eval_pattern pattern =
     Hashtbl.clear func_defs;
