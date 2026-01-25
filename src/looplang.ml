@@ -19,7 +19,10 @@ let () =
         (* print_endline (Ast.string_of_pattern ast) *)
 
         let _ = Type_checker.check_pattern ast in
-        Printf.printf("Type checking: SUCCESS\n")
+
+        let result = Interpreter.eval_pattern ast in
+        List.iter print_endline result
+
     with
     | Parser.Error ->
         let pos = lexbuf.lex_curr_p in
