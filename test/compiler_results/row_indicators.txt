@@ -1,0 +1,4 @@
+R1: ch 10
+R2: sc 4, dec, sc 4
+R3: dc 7, inc 2
+R4: sc 11

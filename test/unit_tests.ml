@@ -99,11 +99,25 @@ let create_type_checker_error_test (test_name, filename, expected_error) =
 let type_checker_error_test_suite =
     List.map create_type_checker_error_test error_tests
 
+
+let create_compiler_test (test_name, filename) = 
+    let test_fn () =
+        let expected_result = String.trim (read_file ("./test/compiler_results/" ^ filename ^ ".txt")) in
+        let actual_result = Test_utils.compile ("./test/patterns/" ^ filename ^ ".loopy") in
+        Alcotest.(check string) test_name expected_result actual_result
+    in
+    Alcotest.test_case test_name `Quick test_fn
+
+let compiler_test_suite =
+    List.map create_compiler_test tests
+
+
 let () =
     let test_suites = [
         ("Pattern -> Token Stream Conversion Test", token_stream_test_suite);
         ("Pattern -> AST Conversion Test", ast_test_suite);
         ("Pattern -> Type Checker Test", type_checker_test_suite);
-        ("Pattern -> Type Checker Error Test", type_checker_error_test_suite)
+        ("Pattern -> Type Checker Error Test", type_checker_error_test_suite);
+        ("Pattern -> Compiled Pattern", compiler_test_suite)
     ] in
     run "LoopLang Compiler" test_suites

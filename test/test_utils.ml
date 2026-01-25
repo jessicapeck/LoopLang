@@ -43,3 +43,17 @@ let run_type_checker filename =
     with e ->
         close_in channel;
         raise e
+
+
+let compile filename =
+    let channel = open_in filename in
+    try
+        let lexbuf = Lexing.from_channel channel in
+        let ast = Parser.pattern Lexer.next_token lexbuf in
+        let _ = Type_checker.check_pattern ast in
+        let result = Interpreter.eval_pattern ast in
+        close_in channel;
+        String.concat "\n" result
+    with e ->
+        close_in channel;
+        raise e
