@@ -165,8 +165,14 @@ and eval_stitch_seq_item env item k =
         eval_mult_expr env mexpr (fun v ->
             k (VStitchSeqItem(v))
         )
-    | StitchSeqItemVar(var) -> k (Hashtbl.find env var)
-    | StitchSeqItemFuncCall(f, args) -> eval_function_call env f args k
+    | StitchSeqItemVar(var) -> 
+        let stitch_seq_item_value = unwrap_stitch_seq (Hashtbl.find env var) in
+        k (VStitchSeqItem(stitch_seq_item_value))
+    | StitchSeqItemFuncCall(f, args) -> 
+        eval_function_call env f args (fun func_eval ->
+            let stitch_seq_item_value = unwrap_stitch_seq func_eval in
+            k (VStitchSeqItem(stitch_seq_item_value))
+        )
 
 (* returns a VStitchSeq string *)
 and eval_stitch_seq env seq k =
@@ -289,7 +295,7 @@ let eval_pattern_item env item k =
     | FuncDef(f, params, body) ->
         let func_data = { params = params; body = body } in
         Hashtbl.add func_defs f func_data;
-         k env
+        k env
     | Stmt(stmt) -> eval_statement env stmt (fun new_env -> k new_env) (fun _ -> raise (InternalInterpreterError "return statement not allowed at top level"))
 
 let eval_pattern pattern =
