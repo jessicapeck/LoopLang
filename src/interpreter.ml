@@ -202,7 +202,7 @@ and eval_row_lit env row_lit k =
             eval_stitch_seq env seq (fun seq_eval ->
                 let row_num = unwrap_int n_eval in
                 let stitch_seq = unwrap_stitch_seq seq_eval in
-                let row_str = (Printf.sprintf "R%d: %s\n" row_num stitch_seq) in
+                let row_str = (Printf.sprintf "R%d: %s" row_num stitch_seq) in
                 k (VRow(row_str))
             )
         )

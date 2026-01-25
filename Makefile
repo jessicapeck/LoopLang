@@ -5,7 +5,7 @@ MENHIR = menhir
 SRC = src
 TEST_DIR = test
 
-TARGET = llcompiler
+TARGET = loopycompiler
 TEST_EXEC = $(TEST_DIR)/unit_tests
 
 LIBS = alcotest
@@ -59,4 +59,8 @@ $(TEST_DIR)/%.cmo: $(TEST_DIR)/%.ml
 clean:
 	rm -f $(SRC)/*.cmi $(SRC)/*.cmo $(SRC)/*.cmx $(SRC)/lexer.ml $(SRC)/parser.ml $(SRC)/parser.mli $(TARGET) $(TEST_DIR)/*.cmi $(TEST_DIR)/*.cmo $(TEST_EXEC)
 
-.PHONY: all clean
+# remove all compiled results from the patterns folder
+patterns-clean:
+	rm -f test/patterns/*.txt
+
+.PHONY: all clean patterns-clean
