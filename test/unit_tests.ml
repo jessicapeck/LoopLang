@@ -55,7 +55,7 @@ let error_tests = [
 let create_token_stream_test (test_name, filename) = 
     let test_fn () =
         let expected_token_stream = String.split_on_char '\n' (read_file ("./test/lexer_results/" ^ filename ^ ".tokens")) in
-        let actual_token_stream = Test_utils.convert_to_token_stream ("./test/patterns/" ^ filename ^ ".txt") in
+        let actual_token_stream = Test_utils.convert_to_token_stream ("./test/patterns/" ^ filename ^ ".loopy") in
         Alcotest.(check (list string)) test_name expected_token_stream actual_token_stream
     in
     Alcotest.test_case test_name `Quick test_fn
@@ -67,7 +67,7 @@ let token_stream_test_suite =
 let create_ast_test (test_name, filename) = 
     let test_fn () =
         let expected_ast = read_file ("./test/parser_results/" ^ filename ^ ".ast") in
-        let actual_ast = Test_utils.convert_to_ast ("./test/patterns/" ^ filename ^ ".txt") in
+        let actual_ast = Test_utils.convert_to_ast ("./test/patterns/" ^ filename ^ ".loopy") in
         Alcotest.(check string) test_name expected_ast actual_ast
     in
     Alcotest.test_case test_name `Quick test_fn
@@ -79,7 +79,7 @@ let ast_test_suite =
 let create_type_checker_test (test_name, filename) =
     let test_fn () =
         try
-            let _ = Test_utils.run_type_checker ("./test/patterns/" ^ filename ^ ".txt") in
+            let _ = Test_utils.run_type_checker ("./test/patterns/" ^ filename ^ ".loopy") in
             Alcotest.(check unit) test_name () ()
         with
         | Type_checker.TypeError msg -> Alcotest.fail ("Unexpected TypeError: " ^ msg ^ "\n")
@@ -92,7 +92,7 @@ let type_checker_test_suite =
 
 let create_type_checker_error_test (test_name, filename, expected_error) =
     let test_fn () =
-        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_type_checker ("./test/error_patterns/" ^ filename ^ ".txt"))
+        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_type_checker ("./test/error_patterns/" ^ filename ^ ".loopy"))
     in
     Alcotest.test_case test_name `Quick test_fn
 
