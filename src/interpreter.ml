@@ -147,7 +147,10 @@ and eval_mult_expr env mult_expr k =
         eval_expr env n (fun n_eval ->
             let n_value = unwrap_int n_eval in
             let st_value = unwrap_stitch (eval_stitch env st) in
-            k (Printf.sprintf "%s %d" st_value n_value)
+            if n_value = 1 then
+                k st_value
+            else
+                k (Printf.sprintf "%s %d" st_value n_value)
         )
     | StitchSeqMultExpr(seq, n) -> 
         eval_expr env n (fun n_eval ->
