@@ -21,7 +21,7 @@ let () =
         let _ = Type_checker.check_pattern ast in
 
         let result = Interpreter.eval_pattern ast in
-        List.iter print_endline result
+        List.iter print_string result
 
     with
     | Parser.Error ->
