@@ -1,7 +1,9 @@
 open Ast
+open Validation_utils
 
 exception DivideByZero of string
 exception InternalInterpreterError of string
+exception RowNumberError of string
 
 (* the resulting code should only consists of rows and comments *)
 
@@ -26,7 +28,11 @@ type func_template = {
 type func_env = (var, func_template) Hashtbl.t (* TODO : change name of func_env *)
 let func_defs : func_env = Hashtbl.create 10
 
+(* result accumulates the rows for the final crochet pattern *)
 let result = ref []
+
+(* next_row_number keeps track of the next expected row number *)
+let next_row_number = ref 1
 
 
 let unwrap_int = function
@@ -265,14 +271,26 @@ and eval_statement env stmt k_next k_ret =
     | Row(row) ->
         eval_row_lit env row (fun row_eval ->
             let row_value = unwrap_row row_eval in
-            result := row_value :: !result;
-            k_next env
+            let (row_num_correct, actual_row_num) = check_row_num row_value !next_row_number in
+            if row_num_correct then (
+                next_row_number := !next_row_number + 1;
+                result := row_value :: !result;
+                k_next env
+            )
+            else 
+                raise (RowNumberError (Printf.sprintf "expected row number %d, but found row number %d in its place" !next_row_number actual_row_num))
         )
     | RowList(row_expr) ->
         eval_row_expr env row_expr (fun row_list_eval ->
             let row_list_value = unwrap_row_list row_list_eval in
             List.iter (fun row ->
-                result := row :: !result
+                let (row_num_correct, actual_row_num) = check_row_num row !next_row_number in
+                if row_num_correct then (
+                    next_row_number := !next_row_number + 1;
+                    result := row :: !result;
+                )
+                else
+                    raise (RowNumberError (Printf.sprintf "expected row number %d, but found row number %d in its place" !next_row_number actual_row_num))
             ) row_list_value;
             k_next env
         )
@@ -303,6 +321,7 @@ let eval_pattern_item env item k =
 
 let eval_pattern pattern =
     result := [];
+    next_row_number := 1;
     Hashtbl.clear func_defs;
     let env : var_env = Hashtbl.create 10 in
 

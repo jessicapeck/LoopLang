@@ -50,6 +50,9 @@ let () =
     | Type_checker.TypeError msg ->
         Printf.eprintf "Type error: %s\n" msg;
         exit 1
+    | Interpreter.RowNumberError msg ->
+        Printf.eprintf "Row number error: %s\n" msg;
+        exit 1
     | Failure msg ->
         Printf.eprintf "Error: %s\n" msg;
         exit 1
