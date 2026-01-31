@@ -8,10 +8,9 @@ exception RowNumberError of string
 
 (* the type checker will have already validated that the intended value instances are correct *)
 type value =
-    | VStitch of string
     | VInt of int
     | VBool of bool
-    | VStitchMultExpr of string * int
+    | VStitchMultExpr of stitch * int
     | VStitchSeqMultExpr of value * int (* value: VStitchSeq *)
     | VStitchSeqItem of value (* value: VStitchMultExpr, VStitchSeqMultExpr *)
     | VStitchSeq of value list (* value: VStitchSeqItem *)
@@ -36,10 +35,6 @@ let next_row_number = ref 1
 
 
 (* UNWRAPPER FUNCTIONS *)
-
-let unwrap_stitch = function
-    | VStitch(st) -> st
-    | _ -> raise (InternalInterpreterError "expected a stitch value, found a different type")
 
 let unwrap_int = function
     | VInt(n) -> n
@@ -79,17 +74,44 @@ let unwrap_nested_rows = function
 (* ROW NUMBER / ROW COUNT VALIDATION FUNCTIONS *)
 
 let check_row_num row_eval =
-    let (actual_row_num, stitch_seq) = unwrap_row row_eval in
+    let (actual_row_num, _) = unwrap_row row_eval in
     let valid = actual_row_num = !next_row_number in
     (valid, actual_row_num)
+
+let rec calculate_mult_expr_count = function
+    | VStitchMultExpr(st, n) -> (
+        match st with
+        | INC -> n * 2
+        | DEC -> -n
+        | _ -> n
+    )
+    | VStitchSeqMultExpr(seq, n) ->
+        let seq_total = calculate_stitch_seq_count seq in
+        seq_total * n
+    | _ -> raise (InternalInterpreterError "expected a multiplier expression, found a different type")
+and calculate_stitch_seq_count seq =
+    let seq_value = List.map unwrap_stitch_seq_item (unwrap_stitch_seq seq) in
+    List.fold_left (+) 0 (List.map calculate_mult_expr_count seq_value)
+
+let calculate_row_count row_eval =
+    let (_, stitch_seq) = unwrap_row row_eval in
+    calculate_stitch_seq_count stitch_seq
 
 
 (* STRING CONVERSION FUNCTIONS *)
 
+let stitch_to_str = function
+    | CH -> "ch"
+    | SC -> "sc"
+    | DC -> "dc"
+    | INC -> "inc"
+    | DEC -> "dec"
+
 let rec mult_expr_to_str = function
     | VStitchMultExpr(st, n) -> 
-        if n = 1 then st
-        else (Printf.sprintf "%s %d" st n)
+        let st_str = stitch_to_str st in
+        if n = 1 then st_str
+        else (Printf.sprintf "%s %d" st_str n)
     | VStitchSeqMultExpr(seq, n) -> 
         if n = 1 then stitch_seq_to_str seq
         else (Printf.sprintf "(%s) x%d" (stitch_seq_to_str seq) n)
@@ -114,15 +136,7 @@ let rec map_cps f env l k =
 
 (* EVALUATION FUNCTIONS *)
 
-(* returns VStitch *)
-let eval_stitch = function
-    | CH -> VStitch("ch")
-    | SC -> VStitch("sc")
-    | DC -> VStitch("dc")
-    | INC -> VStitch("inc")
-    | DEC -> VStitch("dec")
-
-
+(* returns VInt, VBool, VStitchSeq, or VRowList *)
 let rec eval_function_call env f args k_caller =
     let func_data = Hashtbl.find func_defs f in
     let param_list = func_data.params in
@@ -198,8 +212,7 @@ and eval_mult_expr env mult_expr k =
     | StitchMultExpr(st, n) ->
         eval_expr env n (fun n_eval ->
             let n_value = unwrap_int n_eval in
-            let st_value = unwrap_stitch (eval_stitch st) in
-            k (VStitchMultExpr(st_value, n_value)) 
+            k (VStitchMultExpr(st, n_value)) 
         )
     | StitchSeqMultExpr(seq, n) -> 
         eval_expr env n (fun n_eval ->
