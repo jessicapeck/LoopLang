@@ -1,5 +1,4 @@
 open Ast
-open Validation_utils
 
 exception DivideByZero of string
 exception InternalInterpreterError of string
@@ -63,6 +62,10 @@ let unwrap_nested_stitch_seqs = function
     | VStitchSeq(seq) -> seq
     | _ -> raise (InternalInterpreterError "expected a stitch sequence item, found a different type")
 
+let unwrap_row = function
+    | VRow(n, seq) -> (n, seq)
+    | _ -> raise (InternalInterpreterError "expected a row, found a different type")
+
 let unwrap_row_list = function
         | VRowList(row_list) -> row_list
         | _ -> raise (InternalInterpreterError "expected a row list, found a different type")
@@ -71,6 +74,14 @@ let unwrap_nested_rows = function
     | VRow(n, seq) -> [VRow(n, seq)]
     | VRowList(row_list) -> row_list
     | _ -> raise (InternalInterpreterError "expected a row list item, found a different type")
+
+
+(* ROW NUMBER / ROW COUNT VALIDATION FUNCTIONS *)
+
+let check_row_num row_eval =
+    let (actual_row_num, stitch_seq) = unwrap_row row_eval in
+    let valid = actual_row_num = !next_row_number in
+    (valid, actual_row_num)
 
 
 (* STRING CONVERSION FUNCTIONS *)
@@ -299,11 +310,11 @@ and eval_statement env stmt k_next k_ret =
         )
     | Row(row) ->
         eval_row_lit env row (fun row_eval ->
-            let row_value = row_to_str row_eval in
-            let (row_num_correct, actual_row_num) = check_row_num row_value !next_row_number in
+            let (row_num_correct, actual_row_num) = check_row_num row_eval in
             if row_num_correct then (
+                let row_str = row_to_str row_eval in
+                result := row_str :: !result;
                 next_row_number := !next_row_number + 1;
-                result := row_value :: !result;
                 k_next env
             )
             else 
@@ -311,12 +322,13 @@ and eval_statement env stmt k_next k_ret =
         )
     | RowList(row_expr) ->
         eval_row_expr env row_expr (fun row_list_eval ->
-            let row_list_value = List.map row_to_str (unwrap_row_list row_list_eval) in
-            List.iter (fun row ->
-                let (row_num_correct, actual_row_num) = check_row_num row !next_row_number in
+            let row_list_value = unwrap_row_list row_list_eval in
+            List.iter (fun row_eval ->
+                let (row_num_correct, actual_row_num) = check_row_num row_eval in
                 if row_num_correct then (
+                    let row_str = row_to_str row_eval in
+                    result := row_str :: !result;
                     next_row_number := !next_row_number + 1;
-                    result := row :: !result;
                 )
                 else
                     raise (RowNumberError (Printf.sprintf "expected row number %d, but found row number %d in its place" !next_row_number actual_row_num))
