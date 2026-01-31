@@ -7,16 +7,17 @@ exception RowNumberError of string
 
 (* the resulting code should only consists of rows and comments *)
 
-(* type var_env = (var, t) Hashtbl.t *) (* TODO: check this is the correct type *)
-
+(* the type checker will have already validated that the intended value instances are correct *)
 type value =
+    | VStitch of string
     | VInt of int
     | VBool of bool
-    | VStitch of string
-    | VStitchSeqItem of string
-    | VStitchSeq of string
-    | VRow of string
-    | VRowList of string list
+    | VStitchMultExpr of string * int
+    | VStitchSeqMultExpr of value * int (* value: VStitchSeq *)
+    | VStitchSeqItem of value (* value: VStitchMultExpr, VStitchSeqMultExpr *)
+    | VStitchSeq of value list (* value: VStitchSeqItem *)
+    | VRow of int * value (* value: VStitchSeq *)
+    | VRowList of value list (* value: VRow *)
     | Void
 
 type var_env = (var, value) Hashtbl.t
@@ -35,6 +36,12 @@ let result = ref []
 let next_row_number = ref 1
 
 
+(* UNWRAPPER FUNCTIONS *)
+
+let unwrap_stitch = function
+    | VStitch(st) -> st
+    | _ -> raise (InternalInterpreterError "expected a stitch value, found a different type")
+
 let unwrap_int = function
     | VInt(n) -> n
     | _ -> raise (InternalInterpreterError "expected an integer value, found a different type")
@@ -43,26 +50,50 @@ let unwrap_bool = function
     | VBool(b) -> b
     | _ -> raise (InternalInterpreterError "expected a boolean value, found a different type")
 
-let unwrap_stitch = function
-    | VStitch(st) -> st
-    | _ -> raise (InternalInterpreterError "expected a stitch, found a different type")
-
 let unwrap_stitch_seq_item = function
     | VStitchSeqItem(item) -> item
-    | _ -> raise (InternalInterpreterError "expected a stitch sequence item, found a different type")
+    | _ -> raise (InternalInterpreterError "expected a titch sequence item, found a different type")
 
 let unwrap_stitch_seq = function
     | VStitchSeq(seq) -> seq
     | _ -> raise (InternalInterpreterError "expected a stitch sequence, found a different type")
 
-let unwrap_row = function
-    | VRow(row) -> row
-    | _ -> raise (InternalInterpreterError "expected a row, found a different type")
+let unwrap_nested_stitch_seqs = function
+    | VStitchSeqItem(item) -> [VStitchSeqItem(item)]
+    | VStitchSeq(seq) -> seq
+    | _ -> raise (InternalInterpreterError "expected a stitch sequence item, found a different type")
 
 let unwrap_row_list = function
-    | VRowList(row_list) -> row_list
-    | _ -> raise (InternalInterpreterError "expected a row list, found a different type")
+        | VRowList(row_list) -> row_list
+        | _ -> raise (InternalInterpreterError "expected a row list, found a different type")
 
+let unwrap_nested_rows = function
+    | VRow(n, seq) -> [VRow(n, seq)]
+    | VRowList(row_list) -> row_list
+    | _ -> raise (InternalInterpreterError "expected a row list item, found a different type")
+
+
+(* STRING CONVERSION FUNCTIONS *)
+
+let rec mult_expr_to_str = function
+    | VStitchMultExpr(st, n) -> 
+        if n = 1 then st
+        else (Printf.sprintf "%s %d" st n)
+    | VStitchSeqMultExpr(seq, n) -> 
+        if n = 1 then stitch_seq_to_str seq
+        else (Printf.sprintf "(%s) x%d" (stitch_seq_to_str seq) n)
+    | _ -> raise (InternalInterpreterError "expected a multiplier expression, found a different type")
+and stitch_seq_to_str seq =
+    let seq_value = List.map unwrap_stitch_seq_item (unwrap_stitch_seq seq) in
+    String.concat ", " (List.map mult_expr_to_str seq_value)
+
+let row_to_str = function
+    | VRow(row_num, stitch_seq) ->
+        (Printf.sprintf "R%d: %s" row_num (stitch_seq_to_str stitch_seq))
+    | _ -> raise (InternalInterpreterError "expected a row, found a different type")
+
+
+(* CPS MAPPING FUNCTION *)
 
 let rec map_cps f env l k =
     match l with
@@ -70,7 +101,10 @@ let rec map_cps f env l k =
     | x::xs -> f env x (fun y -> map_cps f env xs (fun ys -> k (y::ys)))
 
 
-let eval_stitch env = function
+(* EVALUATION FUNCTIONS *)
+
+(* returns VStitch *)
+let eval_stitch = function
     | CH -> VStitch("ch")
     | SC -> VStitch("sc")
     | DC -> VStitch("dc")
@@ -84,16 +118,17 @@ let rec eval_function_call env f args k_caller =
     let body = func_data.body in
 
     let new_env : var_env = Hashtbl.create 10 in
-    map_cps eval_argument env args (fun arg_values ->
+    map_cps eval_argument env args (fun arg_evals ->
         (* bind arguments to parameters *)
-        List.iter2 (fun param arg_value ->
-            Hashtbl.add new_env param arg_value
-        ) param_list arg_values;
+        List.iter2 (fun param arg_eval ->
+            Hashtbl.add new_env param arg_eval
+        ) param_list arg_evals;
 
         eval_statement_list new_env body (fun final_env -> k_caller Void) (fun ret_eval -> k_caller ret_eval)
     )
 
-(* returns a VInt or a VBool *)
+
+(* returns VInt or VBool *)
 and eval_expr env e k =
     match e with
     | Int(n) -> k (VInt(n))
@@ -146,28 +181,24 @@ and eval_expr env e k =
     )
     | ExprFuncCall(f, args) -> eval_function_call env f args k
 
-(* returns a string of the mult_expr*)
+(* returns VStitchMultExpr or VStitchSeqMultExpr *)
 and eval_mult_expr env mult_expr k =
     match mult_expr with
     | StitchMultExpr(st, n) ->
         eval_expr env n (fun n_eval ->
             let n_value = unwrap_int n_eval in
-            let st_value = unwrap_stitch (eval_stitch env st) in
-            if n_value = 1 then
-                k st_value
-            else
-                k (Printf.sprintf "%s %d" st_value n_value)
+            let st_value = unwrap_stitch (eval_stitch st) in
+            k (VStitchMultExpr(st_value, n_value)) 
         )
     | StitchSeqMultExpr(seq, n) -> 
         eval_expr env n (fun n_eval ->
             eval_stitch_seq env seq (fun seq_eval ->
                 let n_value = unwrap_int n_eval in
-                let seq_value = unwrap_stitch_seq seq_eval in
-                k (Printf.sprintf "(%s) x%d" seq_value n_value)
+                k (VStitchSeqMultExpr(seq_eval, n_value))
             )
         )
 
-(* returns a VStitchSeqItem string *)
+(* returns VStitchSeqItem or VStitchSeq *)
 and eval_stitch_seq_item env item k = 
     match item with
     | StitchSeqItem(mexpr) ->
@@ -175,51 +206,49 @@ and eval_stitch_seq_item env item k =
             k (VStitchSeqItem(v))
         )
     | StitchSeqItemVar(var) -> 
-        let stitch_seq_item_value = unwrap_stitch_seq (Hashtbl.find env var) in
-        k (VStitchSeqItem(stitch_seq_item_value))
+        let stitch_seq_eval = Hashtbl.find env var in
+        k (stitch_seq_eval)
     | StitchSeqItemFuncCall(f, args) -> 
         eval_function_call env f args (fun func_eval ->
-            let stitch_seq_item_value = unwrap_stitch_seq func_eval in
-            k (VStitchSeqItem(stitch_seq_item_value))
+            k (func_eval)
         )
 
-(* returns a VStitchSeq string *)
+(* returns VStitchSeq *)
 and eval_stitch_seq env seq k =
     match seq with
     | StitchSeq(seq) -> 
         map_cps eval_stitch_seq_item env seq (fun seq_items ->
-            let seq_str = String.concat ", " (List.map unwrap_stitch_seq_item seq_items) in
-            k (VStitchSeq(seq_str))
+            (* flatten any stitch sequences within stitch sequences *)
+            let flattened_seq_items = List.flatten (List.map unwrap_nested_stitch_seqs seq_items) in
+            k (VStitchSeq(flattened_seq_items))
         )
     | StitchSeqVar(var) -> k (Hashtbl.find env var)
     | StitchSeqFuncCall(f, args) -> eval_function_call env f args k
 
-(* returns a VInt, VBool, or VStitchSeq *)
+(* returns VInt, VBool, or VStitchSeq *)
 and eval_argument env arg k =
     match arg with
     | ExprArg(e) -> eval_expr env e k
     | StitchSeqArg(seq) -> eval_stitch_seq env seq k
 
-(* returns a VRow string *)
+(* returns VRow *)
 and eval_row_lit env row_lit k =
     match row_lit with
     | RowLit(n, seq) ->
         eval_expr env n (fun n_eval ->
             eval_stitch_seq env seq (fun seq_eval ->
-                let row_num = unwrap_int n_eval in
-                let stitch_seq = unwrap_stitch_seq seq_eval in
-                let row_str = (Printf.sprintf "R%d: %s" row_num stitch_seq) in
-                k (VRow(row_str))
+                let n_value =  unwrap_int n_eval in
+                k (VRow(n_value, seq_eval))
             )
         )
 
-(* returns a VRowList string list *)
+(* returns VRowList *)
 and eval_row_expr env row_expr k =
     match row_expr with
     | RowVar(var) -> k (Hashtbl.find env var)
     | RowFuncCall(f, args) -> eval_function_call env f args k
 
-(* returns a VRow or a VRowList*)
+(* returns VRow or VRowList *)
 and eval_row_list_item env item k =
     match item with
     | RowLitItem(row) -> eval_row_lit env row k
@@ -240,8 +269,8 @@ and eval_definition env definition k =
         )
     | RowListDef(var, row_list) ->
         map_cps eval_row_list_item env row_list (fun row_list_items ->
-            let row_list_value = List.map unwrap_row row_list_items in
-            Hashtbl.add env var (VRowList(row_list_value));
+            let flattened_row_list_items = List.flatten (List.map unwrap_nested_rows row_list_items) in
+            Hashtbl.add env var (VRowList(flattened_row_list_items));
             k env
         )
     | FuncCallDef(var, f, args) ->
@@ -250,15 +279,15 @@ and eval_definition env definition k =
             k env
         )
 
-(* returns a VInt, VBool, VStitchSeq, or VRowList *)
+(* returns VInt, VBool, VStitchSeq, or VRowList *)
 and eval_return_expr env ret_expr k =
     match ret_expr with
     | ReturnExpr(e) -> eval_expr env e k
     | ReturnStitchSeq(seq) -> eval_stitch_seq env seq k
     | ReturnRowList(row_list) ->
         map_cps eval_row_list_item env row_list (fun row_list_items ->
-            let row_list_value = List.map unwrap_row row_list_items in
-            k (VRowList(row_list_value))
+            let flattened_row_list_items = List.flatten (List.map unwrap_nested_rows row_list_items) in
+            k (VRowList(flattened_row_list_items))
         )
 
 (* returns the environment because LetDef will change env *)
@@ -270,7 +299,7 @@ and eval_statement env stmt k_next k_ret =
         )
     | Row(row) ->
         eval_row_lit env row (fun row_eval ->
-            let row_value = unwrap_row row_eval in
+            let row_value = row_to_str row_eval in
             let (row_num_correct, actual_row_num) = check_row_num row_value !next_row_number in
             if row_num_correct then (
                 next_row_number := !next_row_number + 1;
@@ -282,7 +311,7 @@ and eval_statement env stmt k_next k_ret =
         )
     | RowList(row_expr) ->
         eval_row_expr env row_expr (fun row_list_eval ->
-            let row_list_value = unwrap_row_list row_list_eval in
+            let row_list_value = List.map row_to_str (unwrap_row_list row_list_eval) in
             List.iter (fun row ->
                 let (row_num_correct, actual_row_num) = check_row_num row !next_row_number in
                 if row_num_correct then (
