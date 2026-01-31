@@ -1,2 +1,2 @@
-R1: sc 30
-R2: dc 14, inc 2, dc 14
+R1: sc 30 [30]
+R2: dc 14, inc 2, dc 14 [32]

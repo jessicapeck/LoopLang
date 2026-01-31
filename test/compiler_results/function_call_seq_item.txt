@@ -1,1 +1,1 @@
-R1: ch 2, inc, ch 2
+R1: ch 2, inc, ch 2 [6]
