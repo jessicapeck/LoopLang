@@ -1,6 +1,0 @@
-def foo(seq, i):
-    return(
-        row i: seq
-    )
-
-foo(ch 30, true)

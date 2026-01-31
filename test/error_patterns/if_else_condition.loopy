@@ -1,4 +1,0 @@
-if 3:
-    row 1: ch 10
-else:
-    row 1: ch 20

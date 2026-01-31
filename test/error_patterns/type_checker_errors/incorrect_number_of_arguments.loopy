@@ -1,0 +1,4 @@
+def foo(x, y, z):
+    return(x+y+z)
+
+row foo(7): ch 30

@@ -1,6 +1,0 @@
-let x = true
-let y = 3
-if x and y:
-    row1: ch 30
-else:
-    row1: ch 48

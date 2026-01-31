@@ -1,2 +1,0 @@
-let myrow = row 2: sc 30
-row 1: (myrow) x6

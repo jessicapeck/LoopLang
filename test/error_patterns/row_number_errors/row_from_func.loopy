@@ -1,0 +1,6 @@
+def foo():
+    return (row 3: sc 30)
+
+row 1: ch 30
+foo()
+row 3: sc 30

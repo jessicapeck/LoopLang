@@ -1,6 +1,0 @@
-let x = sc 2, inc, sc 3
-
-if x < 10:
-    row 1: ch 30
-else:
-    row 1: ch 48

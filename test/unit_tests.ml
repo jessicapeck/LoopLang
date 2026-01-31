@@ -31,7 +31,7 @@ let tests = [
 
 
 (* list of (test_name, filename, expected_error) *)
-let error_tests = [
+let type_checker_error_tests = [
     ("Inconsistent type inference", "inconsistent_type_inference", Type_checker.TypeError "inconsistent type inference for parameter 'x'");
     ("Undefined function", "undefined_function", Type_checker.TypeError "undefined function: 'foo'");
     ("Incorrect number of arguments", "incorrect_number_of_arguments", Type_checker.TypeError "number of arguments passed and number of parameters expected do not match");
@@ -49,6 +49,14 @@ let error_tests = [
     ("Row number", "row_number", Type_checker.TypeError "row number expects TInt");
     ("Row content", "row_content", Type_checker.TypeError "variable 'z' expected TStitchSeq, but found TInt");
     ("If-else statement condition", "if_else_condition", Type_checker.TypeError "if-else statement condition expects TBool")
+]
+
+
+let row_number_error_tests = [
+    ("Literal integer row number", "literal_int_row_num", Interpreter.RowNumberError "expected row number 3, but found row number 4 in its place");
+    ("Calculated row number", "calculated_row_num", Interpreter.RowNumberError "expected row number 3, but found row number 10 in its place");
+    ("Row from function", "row_from_func", Interpreter.RowNumberError "expected row number 2, but found row number 3 in its place");
+    ("Not starting from one", "not_starting_from_one", Interpreter.RowNumberError "expected row number 1, but found row number 2 in its place")
 ]
 
 
@@ -92,12 +100,12 @@ let type_checker_test_suite =
 
 let create_type_checker_error_test (test_name, filename, expected_error) =
     let test_fn () =
-        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_type_checker ("./test/error_patterns/" ^ filename ^ ".loopy"))
+        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_type_checker ("./test/error_patterns/type_checker_errors/" ^ filename ^ ".loopy"))
     in
     Alcotest.test_case test_name `Quick test_fn
 
 let type_checker_error_test_suite =
-    List.map create_type_checker_error_test error_tests
+    List.map create_type_checker_error_test type_checker_error_tests
 
 
 let create_compiler_test (test_name, filename) = 
@@ -112,12 +120,23 @@ let compiler_test_suite =
     List.map create_compiler_test tests
 
 
+let create_row_number_error_test (test_name, filename, expected_error) =
+    let test_fn () =
+        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_interpreter ("./test/error_patterns/row_number_errors/" ^ filename ^ ".loopy"))
+    in
+    Alcotest.test_case test_name `Quick test_fn
+
+let row_number_error_test_suite =
+    List.map create_row_number_error_test row_number_error_tests
+
+
 let () =
     let test_suites = [
-        ("Pattern -> Token Stream Conversion Test", token_stream_test_suite);
-        ("Pattern -> AST Conversion Test", ast_test_suite);
-        ("Pattern -> Type Checker Test", type_checker_test_suite);
-        ("Pattern -> Type Checker Error Test", type_checker_error_test_suite);
-        ("Pattern -> Compiled Pattern", compiler_test_suite)
+        ("Token Stream Conversion Test", token_stream_test_suite);
+        ("AST Conversion Test", ast_test_suite);
+        ("Type Checker Test", type_checker_test_suite);
+        ("Type Checker Error Test", type_checker_error_test_suite);
+        ("Compiled Pattern", compiler_test_suite);
+        ("Row Number Error Test", row_number_error_test_suite)
     ] in
     run "LoopLang Compiler" test_suites

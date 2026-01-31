@@ -1,6 +1,0 @@
-def foo(x):
-    let y = x + 3
-
-    return (
-        ROW 1: x
-    )
