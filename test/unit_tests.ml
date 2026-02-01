@@ -60,6 +60,12 @@ let row_number_error_tests = [
 ]
 
 
+let row_one_error_tests = [
+    ("No chains in R1", "no_chains", Interpreter.RowOneError "R1 of the pattern can only contain chain stitches");
+    ("Chains and other stitches in R1", "chains_and_other_stitches", Interpreter.RowOneError "R1 of the pattern can only contain chain stitches")
+]
+
+
 let create_token_stream_test (test_name, filename) = 
     let test_fn () =
         let expected_token_stream = String.split_on_char '\n' (read_file ("./test/lexer_results/" ^ filename ^ ".tokens")) in
@@ -130,6 +136,16 @@ let row_number_error_test_suite =
     List.map create_row_number_error_test row_number_error_tests
 
 
+let create_row_one_error_test (test_name, filename, expected_error) =
+    let test_fn () =
+        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_interpreter ("./test/error_patterns/row_one_errors/" ^ filename ^ ".loopy"))
+    in
+    Alcotest.test_case test_name `Quick test_fn
+
+let row_one_error_test_suite =
+    List.map create_row_one_error_test row_one_error_tests
+
+
 let () =
     let test_suites = [
         ("Token Stream Conversion Test", token_stream_test_suite);
@@ -137,6 +153,7 @@ let () =
         ("Type Checker Test", type_checker_test_suite);
         ("Type Checker Error Test", type_checker_error_test_suite);
         ("Compiled Pattern", compiler_test_suite);
-        ("Row Number Error Test", row_number_error_test_suite)
+        ("Row Number Error Test", row_number_error_test_suite);
+        ("Row One Error Test", row_one_error_test_suite)
     ] in
     run "LoopLang Compiler" test_suites
