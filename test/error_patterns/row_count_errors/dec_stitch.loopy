@@ -1,0 +1,4 @@
+r1: ch 10
+r2: sc 10
+r3: (sc 3, dec) x2
+r4: sc 9

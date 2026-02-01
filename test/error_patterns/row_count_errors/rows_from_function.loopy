@@ -1,0 +1,9 @@
+def foo():
+    return(
+        row 2: sc 8
+        row 3: (sc 3, inc) x2
+    )
+
+row 1: ch 5
+foo()
+row 4: sc 10

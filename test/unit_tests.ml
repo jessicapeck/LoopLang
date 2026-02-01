@@ -66,6 +66,13 @@ let row_one_error_tests = [
 ]
 
 
+let row_count_error_tests = [
+    ("Increase stitch", "inc_stitch", Interpreter.RowCountError "row number 3 is built on top of 5 stitches which is inconsistent with the previous row count of 10");
+    ("Decrease stitch", "dec_stitch", Interpreter.RowCountError "row number 4 is built on top of 9 stitches which is inconsistent with the previous row count of 8");
+    ("Rows from function", "rows_from_function", Interpreter.RowCountError "row number 2 is built on top of 8 stitches which is inconsistent with the previous row count of 5")
+]
+
+
 let create_token_stream_test (test_name, filename) = 
     let test_fn () =
         let expected_token_stream = String.split_on_char '\n' (read_file ("./test/lexer_results/" ^ filename ^ ".tokens")) in
@@ -146,6 +153,16 @@ let row_one_error_test_suite =
     List.map create_row_one_error_test row_one_error_tests
 
 
+let create_row_count_error_test (test_name, filename, expected_error) =
+    let test_fn () =
+        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_interpreter ("./test/error_patterns/row_count_errors/" ^ filename ^ ".loopy"))
+    in
+    Alcotest.test_case test_name `Quick test_fn
+
+let row_count_error_test_suite =
+    List.map create_row_count_error_test row_count_error_tests
+
+
 let () =
     let test_suites = [
         ("Token Stream Conversion Test", token_stream_test_suite);
@@ -154,6 +171,7 @@ let () =
         ("Type Checker Error Test", type_checker_error_test_suite);
         ("Compiled Pattern", compiler_test_suite);
         ("Row Number Error Test", row_number_error_test_suite);
-        ("Row One Error Test", row_one_error_test_suite)
+        ("Row One Error Test", row_one_error_test_suite);
+        ("Row Count Error Test", row_count_error_test_suite)
     ] in
     run "LoopLang Compiler" test_suites
