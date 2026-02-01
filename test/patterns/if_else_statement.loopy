@@ -1,6 +1,8 @@
 let i = 1
 
+ROW 1: ch 30
+
 if i > 2:
-    ROW 1: sc 30
+    ROW 2: sc 30
 else:
-    ROW 1: dc 30
+    ROW 2: dc 30

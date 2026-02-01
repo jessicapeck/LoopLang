@@ -1,6 +1,6 @@
 def foo():
     return(
-        ROW 1: sc 30
+        ROW 1: ch 30
         ROW 2: dc 14, inc 2, dc 14
     )
 

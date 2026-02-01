@@ -3,6 +3,8 @@ open Ast
 exception DivideByZero of string
 exception InternalInterpreterError of string
 exception RowNumberError of string
+exception RowOneError of string
+exception RowCountError of string
 
 (* the resulting code should only consists of rows and comments *)
 
@@ -32,6 +34,9 @@ let result = ref []
 
 (* next_row_number keeps track of the next expected row number *)
 let next_row_number = ref 1
+
+(* prev_row_count keeps track of the row count of the previous row *)
+let prev_row_count = ref 0
 
 
 (* UNWRAPPER FUNCTIONS *)
@@ -73,29 +78,40 @@ let unwrap_nested_rows = function
 
 (* ROW NUMBER / ROW COUNT VALIDATION FUNCTIONS *)
 
-let check_row_num row_eval =
+let check_row_num row_eval next =
     let (actual_row_num, _) = unwrap_row row_eval in
-    let valid = actual_row_num = !next_row_number in
+    let valid = actual_row_num = next in
     (valid, actual_row_num)
 
-let rec calculate_mult_expr_count = function
+
+let rec calculate_mult_expr_count row_num = function
     | VStitchMultExpr(st, n) -> (
-        match st with
-        | INC -> n * 2
-        | DEC -> -n
-        | _ -> n
+        if row_num = 1 then (
+            match st with
+            | CH -> n
+            | _ -> raise (RowOneError "R1 of the pattern can only contain chain stitches")
+        )
+        else (
+            match st with
+            | INC -> n
+            | DEC -> -n
+            | CH -> n
+            | _ -> 0
+        )
     )
     | VStitchSeqMultExpr(seq, n) ->
-        let seq_total = calculate_stitch_seq_count seq in
-        seq_total * n
+        let seq_total_change = calculate_stitch_seq_count row_num seq in
+        seq_total_change * n
     | _ -> raise (InternalInterpreterError "expected a multiplier expression, found a different type")
-and calculate_stitch_seq_count seq =
+and calculate_stitch_seq_count row_num seq =
     let seq_value = List.map unwrap_stitch_seq_item (unwrap_stitch_seq seq) in
-    List.fold_left (+) 0 (List.map calculate_mult_expr_count seq_value)
+    let item_counts = List.map (calculate_mult_expr_count row_num) seq_value in
+    List.fold_left (+) 0 item_counts
 
-let calculate_row_count row_eval =
-    let (_, stitch_seq) = unwrap_row row_eval in
-    calculate_stitch_seq_count stitch_seq
+let calculate_row_count row_eval prev =
+    let (row_num, stitch_seq) = unwrap_row row_eval in
+    let change = calculate_stitch_seq_count row_num stitch_seq in
+    prev + change
 
 
 (* STRING CONVERSION FUNCTIONS *)
@@ -323,10 +339,13 @@ and eval_statement env stmt k_next k_ret =
         )
     | Row(row) ->
         eval_row_lit env row (fun row_eval ->
-            let (row_num_correct, actual_row_num) = check_row_num row_eval in
+            let (row_num_correct, actual_row_num) = check_row_num row_eval !next_row_number in
             if row_num_correct then (
                 let row_str = row_to_str row_eval in
+                let row_count = calculate_row_count row_eval !prev_row_count in
+                let row_str = (Printf.sprintf "%s [%d]" row_str row_count) in
                 result := row_str :: !result;
+                prev_row_count := row_count;
                 next_row_number := !next_row_number + 1;
                 k_next env
             )
@@ -337,10 +356,13 @@ and eval_statement env stmt k_next k_ret =
         eval_row_expr env row_expr (fun row_list_eval ->
             let row_list_value = unwrap_row_list row_list_eval in
             List.iter (fun row_eval ->
-                let (row_num_correct, actual_row_num) = check_row_num row_eval in
+                let (row_num_correct, actual_row_num) = check_row_num row_eval !next_row_number in
                 if row_num_correct then (
                     let row_str = row_to_str row_eval in
+                    let row_count = calculate_row_count row_eval !prev_row_count in
+                    let row_str = (Printf.sprintf "%s [%d]" row_str row_count) in
                     result := row_str :: !result;
+                    prev_row_count := row_count;
                     next_row_number := !next_row_number + 1;
                 )
                 else
@@ -376,6 +398,7 @@ let eval_pattern_item env item k =
 let eval_pattern pattern =
     result := [];
     next_row_number := 1;
+    prev_row_count := 0;
     Hashtbl.clear func_defs;
     let env : var_env = Hashtbl.create 10 in
 

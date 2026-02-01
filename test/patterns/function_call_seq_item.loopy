@@ -1,4 +1,5 @@
 def foo():
     return(inc)
 
-r1: ch 2, foo(), ch 2
+r1: ch 5
+r2: sc 2, foo(), sc 2
