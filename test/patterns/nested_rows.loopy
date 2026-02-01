@@ -1,0 +1,16 @@
+def goo():
+    return(
+        r3: dc 30
+        r4: (sc 14, inc) x2
+    )
+
+def foo():
+    return(
+        r2: sc 30
+        goo()
+        r5: sc 32
+    )
+
+r1: ch 30
+foo()
+r6: dc 32

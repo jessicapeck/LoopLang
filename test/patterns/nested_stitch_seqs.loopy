@@ -1,0 +1,6 @@
+let seq2 = inc 3, dec, sc
+
+let seq1 = dc 2, seq2, dc 2
+
+row 1: ch 20
+row 2: sc 5, seq1, sc 5

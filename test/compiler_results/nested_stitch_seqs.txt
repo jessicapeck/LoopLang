@@ -1,0 +1,2 @@
+R1: ch 20 [20]
+R2: sc 5, dc 2, inc 3, dec, sc, dc 2, sc 5 [22]
