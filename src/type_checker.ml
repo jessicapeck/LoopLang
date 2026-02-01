@@ -2,6 +2,7 @@ open Ast
 
 exception TypeError of string
 
+type var_env = (var, t) Hashtbl.t
 type inference_ctx = (var, t option ref) Hashtbl.t
 
 (* string of type function for error messages *)
@@ -35,18 +36,21 @@ let update_ctx ctx name expected_type =
 
 (* helper function to get the intersection of two environments for conditional branching *)
 let rec get_env_intersection env1 env2 =
-    List.filter (fun (v, t1) ->
+    let intersection_env : var_env = Hashtbl.create 10 in
+
+    Hashtbl.iter (fun v t1 ->
         try
-            let t2 = List.assoc v env2 in
-            t1 = t2
-        with Not_found -> false
-    ) env1
+            let t2 = Hashtbl.find env2 v in
+            if t1 = t2 then Hashtbl.add intersection_env v t1
+        with Not_found -> ()
+    ) env1;
+    intersection_env
 
 
 (* set of functions to check and get function types *)
 let get_func_types env f =
     let func_type =
-        try List.assoc f env
+        try Hashtbl.find env f
         with Not_found -> raise (TypeError ("undefined function: '" ^ f ^ "'"))
     in
     let (param_types, return_type) = 
@@ -82,7 +86,7 @@ and check_expr env ctx expected_t_opt = function
     | Int(_) -> TInt
     | Bool(_) -> TBool
     | Var(v) -> (
-        match List.assoc_opt v env with
+        match Hashtbl.find_opt env v with
         | Some(t) -> t
         | None -> (
             match expected_t_opt with
@@ -146,7 +150,7 @@ and check_stitch_seq_item env ctx = function
     | StitchSeqItem(mexpr) -> check_mult_expr env ctx mexpr
     | StitchSeqItemVar(v) ->
         let t =
-            try List.assoc v env
+            try Hashtbl.find env v
             with Not_found -> raise (TypeError ("undefined variable: '" ^ v ^ "'"))
         in
         if t = TStitchSeq then TStitchSeqItem
@@ -165,7 +169,7 @@ and check_stitch_seq env ctx expected_t = function
         TStitchSeq
     | StitchSeqVar(v) ->
         let t_v =
-            match List.assoc_opt v env with
+            match Hashtbl.find_opt env v with
             | Some(t) -> t
             | None -> update_ctx ctx v expected_t
         in
@@ -191,7 +195,7 @@ let check_row_lit env ctx = function
 let check_row_expr env ctx = function
     | RowVar(v) ->
         let t =
-            try List.assoc v env
+            try Hashtbl.find env v
             with Not_found -> raise (TypeError ("undefined variable: '" ^ v ^ "'"))
         in
         if t = TRowList then TRowList
@@ -215,25 +219,30 @@ let check_definition env ctx = function
                     env
                 | None ->
                     let t = check_expr env ctx None e in
-                    (v, t) :: env
+                    Hashtbl.add env v t;
+                    env
         )
         | _ ->
             let t = check_expr env ctx None e in
-            (v, t) :: env
+            Hashtbl.add env v t;
+            env
     )
     | StitchSeqDef(v, seq) -> 
         let t = check_stitch_seq env ctx TStitchSeq seq in
-        (v, t) :: env
+        Hashtbl.add env v t;
+        env
     | RowListDef(v, items) ->
         List.iter(fun item ->
             let t_item = check_row_list_item env ctx item in
             if t_item <> TRow then
                 raise (TypeError "row list definition expects TRow values")
         ) items;
-        (v, TRowList) :: env
+        Hashtbl.add env v TRowList;
+        env
     | FuncCallDef(v, f, args) ->
         let return_type = get_func_return_type env ctx f args in
-        (v, return_type) :: env
+        Hashtbl.add env v return_type;
+        env
 
 let check_return_expr env ctx = function
     | ReturnExpr(e) -> check_expr env ctx None e
@@ -241,7 +250,7 @@ let check_return_expr env ctx = function
     | ReturnRowList(items) ->
         List.iter(fun item ->
             let t_item = check_row_list_item env ctx item in
-            if t_item <> TRow then
+            if (t_item <> TRow && t_item <> TRowList) then
                 raise (TypeError "row list return expression expects TRow values")
         ) items;
         TRowList
@@ -286,11 +295,19 @@ let check_pattern_item env = function
             | [] -> return_types
             | stmt :: stmts ->
                 let new_local_env, new_return_types = check_statement local_env ctx stmt
-                in analyse_body new_local_env (return_types @new_return_types) stmts
+                in analyse_body new_local_env (return_types @ new_return_types) stmts
         in
 
+        (* retain previous function definitions in local env *)
+        let local_env : var_env = Hashtbl.create 10 in
+        Hashtbl.iter (fun var_name var_type ->
+            match var_type with
+            | TFunc(_, _) -> Hashtbl.add local_env var_name var_type
+            | _ -> ()
+        ) env;
+
         (* analyse body to determine return types *)
-        let all_return_types = analyse_body [] [] body in
+        let all_return_types = analyse_body local_env [] body in
 
         (* check return types are consistent to find overall return type *)
         let return_type = 
@@ -316,7 +333,8 @@ let check_pattern_item env = function
         ) params in
 
         (* update environment with function type *)
-        (f, TFunc(param_types, return_type)) :: env
+        Hashtbl.add env f (TFunc(param_types, return_type));
+        env
     | Stmt(stmt) -> 
         let dummy_ctx : inference_ctx = Hashtbl.create 0 in
         let new_env, _ = check_statement env dummy_ctx stmt in
@@ -324,7 +342,7 @@ let check_pattern_item env = function
 
 let check_pattern = function
     | Pattern(items) ->
-        let initial_env = [] in
+        let initial_env : var_env = Hashtbl.create 10 in
         List.fold_left(fun env_acc item ->
             check_pattern_item env_acc item
         ) initial_env items
