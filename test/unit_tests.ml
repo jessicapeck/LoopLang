@@ -28,7 +28,9 @@ let tests = [
     ("Parentheses around expressions", "paren_around_expr");
     ("Newlines at the start and end of constructs", "newline_at_start_and_end");
     ("Nested rows", "nested_rows");
-    ("Nested stitch sequences", "nested_stitch_seqs")
+    ("Nested stitch sequences", "nested_stitch_seqs");
+    ("Given row counts", "given_row_counts");
+    ("Incorrect given row counts", "incorrect_given_row_counts")
 ]
 
 
@@ -50,7 +52,8 @@ let type_checker_error_tests = [
     ("Stitch sequence item", "stitch_seq_item", Type_checker.TypeError "function 'foo' expected to return TStitchSeq, but found TBool");
     ("Row number", "row_number", Type_checker.TypeError "row number expects TInt");
     ("Row content", "row_content", Type_checker.TypeError "variable 'z' expected TStitchSeq, but found TInt");
-    ("If-else statement condition", "if_else_condition", Type_checker.TypeError "if-else statement condition expects TBool")
+    ("If-else statement condition", "if_else_condition", Type_checker.TypeError "if-else statement condition expects TBool");
+    ("Row count", "row_count", Type_checker.TypeError "row count expects TInt")
 ]
 
 
