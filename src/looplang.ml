@@ -39,6 +39,7 @@ let () =
         (* List.iter print_string result *)
     with
     | Parser.Error ->
+        close_in in_channel;
         let pos = lexbuf.lex_curr_p in
         Printf.eprintf "Syntax error at line %d, column %d\n" pos.pos_lnum (pos.pos_cnum - pos.pos_bol + 1);
 
@@ -48,11 +49,22 @@ let () =
         ) (List.rev !tokens); *)
         exit 1
     | Type_checker.TypeError msg ->
+        close_in in_channel;
         Printf.eprintf "Type error: %s\n" msg;
         exit 1
     | Interpreter.RowNumberError msg ->
+        close_in in_channel;
         Printf.eprintf "Row number error: %s\n" msg;
         exit 1
+    | Interpreter.RowOneError msg ->
+        close_in in_channel;
+        Printf.eprintf "Row one error: %s\n" msg;
+        exit 1
+    | Interpreter.RowCountError msg ->
+        close_in in_channel;
+        Printf.eprintf "Row count error: %s\n" msg;
+        exit 1
     | Failure msg ->
+        close_in in_channel;
         Printf.eprintf "Error: %s\n" msg;
         exit 1
