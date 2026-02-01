@@ -16,7 +16,7 @@ type value =
     | VStitchSeqMultExpr of value * int (* value: VStitchSeq *)
     | VStitchSeqItem of value (* value: VStitchMultExpr, VStitchSeqMultExpr *)
     | VStitchSeq of value list (* value: VStitchSeqItem *)
-    | VRow of int * value (* value: VStitchSeq *)
+    | VRow of int * value * int option (* value: VStitchSeq *)
     | VRowList of value list (* value: VRow *)
     | Void
 
@@ -63,7 +63,7 @@ let unwrap_nested_stitch_seqs = function
     | _ -> raise (InternalInterpreterError "expected a stitch sequence item, found a different type")
 
 let unwrap_row = function
-    | VRow(n, seq) -> (n, seq)
+    | VRow(n, seq, count) -> (n, seq, count)
     | _ -> raise (InternalInterpreterError "expected a row, found a different type")
 
 let unwrap_row_list = function
@@ -71,7 +71,7 @@ let unwrap_row_list = function
         | _ -> raise (InternalInterpreterError "expected a row list, found a different type")
 
 let unwrap_nested_rows = function
-    | VRow(n, seq) -> [VRow(n, seq)]
+    | VRow(n, seq, count) -> [VRow(n, seq, count)]
     | VRowList(row_list) -> row_list
     | _ -> raise (InternalInterpreterError "expected a row list item, found a different type")
 
@@ -79,7 +79,7 @@ let unwrap_nested_rows = function
 (* ROW NUMBER / ROW COUNT VALIDATION FUNCTIONS *)
 
 let check_row_num row_eval next =
-    let (actual_row_num, _) = unwrap_row row_eval in
+    let (actual_row_num, _, _) = unwrap_row row_eval in
     let valid = actual_row_num = next in
     (valid, actual_row_num)
 
@@ -111,9 +111,16 @@ and calculate_stitch_seq_count row_num seq =
     (List.fold_left (+) 0 row_count_changes, List.fold_left (+) 0 used_stitch_counts)
 
 let calculate_row_count row_eval prev =
-    let (row_num, stitch_seq) = unwrap_row row_eval in
+    let (row_num, stitch_seq, _) = unwrap_row row_eval in
     let change, used_stitch_count = calculate_stitch_seq_count row_num stitch_seq in
     (prev + change, used_stitch_count)
+
+
+let given_row_count_correct row_eval row_count =
+    let (_, _, count) = unwrap_row row_eval in
+    match count with
+    | Some(given_count_value) -> (given_count_value = row_count)
+    | None -> true
 
 
 (* STRING CONVERSION FUNCTIONS *)
@@ -140,7 +147,7 @@ and stitch_seq_to_str seq =
 
 let row_to_str row_eval row_count =
     match row_eval with
-    | VRow(row_num, stitch_seq) ->
+    | VRow(row_num, stitch_seq, _) ->
         (Printf.sprintf "R%d: %s [%d]" row_num (stitch_seq_to_str stitch_seq) row_count)
     | _ -> raise (InternalInterpreterError "expected a row, found a different type")
 
@@ -277,11 +284,17 @@ and eval_argument env arg k =
 (* returns VRow *)
 and eval_row_lit env row_lit k =
     match row_lit with
-    | RowLit(n, seq) ->
-        eval_expr env n (fun n_eval ->
+    | RowLit(n1, seq, count) ->
+        eval_expr env n1 (fun n1_eval ->
             eval_stitch_seq env seq (fun seq_eval ->
-                let n_value =  unwrap_int n_eval in
-                k (VRow(n_value, seq_eval))
+                let n1_value = unwrap_int n1_eval in
+                match count with
+                | Some(n2) -> 
+                    eval_expr env n2 (fun n2_eval ->
+                        let n2_value = unwrap_int n2_eval in
+                        k (VRow(n1_value, seq_eval, Some(n2_value)))
+                    )
+                | None -> k (VRow(n1_value, seq_eval, None))
             )
         )
 
@@ -348,11 +361,16 @@ and eval_statement env stmt k_next k_ret =
                 (* validate row count *)
                 let row_count, used_stitch_count = calculate_row_count row_eval !prev_row_count in
                 if used_stitch_count = !prev_row_count then (
+                    (* compare row count against given row count *)
+                    if not (given_row_count_correct row_eval row_count) then 
+                        Printf.eprintf "WARNING: the given row count for row number %d was incorrect, this has been corrected in the result" actual_row_num;
+
                     (* update result, row count, and row number states *)
                     let row_str = row_to_str row_eval row_count in
                     result := row_str :: !result;
                     prev_row_count := row_count;
                     next_row_number := !next_row_number + 1;
+
                     (* return environement *)
                     k_next env
                 )
@@ -372,6 +390,10 @@ and eval_statement env stmt k_next k_ret =
                     (* validate row count*)
                     let row_count, used_stitch_count = calculate_row_count row_eval !prev_row_count in
                     if used_stitch_count = !prev_row_count then (
+                        (* compare row count against given row count *)
+                        if not (given_row_count_correct row_eval row_count) then 
+                            Printf.eprintf "WARNING: the given row count for row number %d was incorrect, this has been corrected in the result" actual_row_num;
+                        
                         (* update result, row count, and row number states *)
                         let row_str = row_to_str row_eval row_count in
                         result := row_str :: !result;

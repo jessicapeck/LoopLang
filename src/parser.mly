@@ -82,8 +82,10 @@ row_list_item:
     | row_expr                                                                                                      { RowExpr($1) }
 
 row_lit:
-    | ROW expr COLON stitch_seq                                                                                     { RowLit($2, $4) }
-    | ROWINT COLON stitch_seq                                                                                       { RowLit(Int($1), $3)}
+    | ROW expr COLON stitch_seq LBRACKET expr RBRACKET                                                              { RowLit($2, $4, Some($6)) }
+    | ROW expr COLON stitch_seq                                                                                     { RowLit($2, $4, None) }
+    | ROWINT COLON stitch_seq LBRACKET expr RBRACKET                                                                { RowLit(Int($1), $3, Some($5))}
+    | ROWINT COLON stitch_seq                                                                                       { RowLit(Int($1), $3, None)}
 
 row_expr:
     | ID LPAREN arg_list RPAREN                                                                                     { RowFuncCall($1, $3) }

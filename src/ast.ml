@@ -123,7 +123,11 @@ and string_of_argument = function
     | StitchSeqArg(seq) -> Printf.sprintf "StitchSeqArg(%s)" (string_of_stitch_seq seq)
 
 let string_of_row_lit = function
-    | RowLit(n1, seq) -> Printf.sprintf "RowLit(%s, %s)" (string_of_expr n1) (string_of_stitch_seq seq)
+    | RowLit(n1, seq, count) -> (
+        match count with
+        | Some(n2) -> Printf.sprintf "RowLit(%s, %s, Some(%s))" (string_of_expr n1) (string_of_stitch_seq seq) (string_of_expr n2)
+        | None -> Printf.sprintf "RowLit(%s, %s, None)" (string_of_expr n1) (string_of_stitch_seq seq)
+    )
 
 let string_of_row_expr = function
     | RowVar(v) -> Printf.sprintf "RowVar(%s)" v

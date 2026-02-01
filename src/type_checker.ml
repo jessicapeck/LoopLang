@@ -184,11 +184,18 @@ and check_argument env ctx expected_t = function
     | StitchSeqArg(seq) -> check_stitch_seq env ctx TStitchSeq seq
 
 let check_row_lit env ctx = function
-    | RowLit(e, seq) ->
-        let t_e = check_expr env ctx (Some TInt) e in
+    | RowLit(e1, seq, count) ->
+        let t_e1 = check_expr env ctx (Some TInt) e1 in
         let t_seq = check_stitch_seq env ctx TStitchSeq seq in
-        if t_e = TInt then
-            if t_seq = TStitchSeq then TRow
+        let t_e2 = (
+            match count with
+            | Some(e2) -> check_expr env ctx (Some TInt) e2
+            | None -> TInt
+        ) in
+        if t_e1 = TInt then
+            if t_seq = TStitchSeq then
+                if t_e2 = TInt then TRow
+                else raise (TypeError "row count expects TInt")
             else raise (TypeError "row content expects TStitchSeq")
         else raise (TypeError "row number expects TInt")
 
