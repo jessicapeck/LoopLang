@@ -363,7 +363,7 @@ and eval_statement env stmt k_next k_ret =
                 if used_stitch_count = !prev_row_count then (
                     (* compare row count against given row count *)
                     if not (given_row_count_correct row_eval row_count) then 
-                        Printf.eprintf "WARNING: the given row count for row number %d was incorrect, this has been corrected in the result" actual_row_num;
+                        Printf.eprintf "WARNING: the given row count for row number %d was incorrect, this has been corrected in the result\n" actual_row_num;
 
                     (* update result, row count, and row number states *)
                     let row_str = row_to_str row_eval row_count in
@@ -392,7 +392,7 @@ and eval_statement env stmt k_next k_ret =
                     if used_stitch_count = !prev_row_count then (
                         (* compare row count against given row count *)
                         if not (given_row_count_correct row_eval row_count) then 
-                            Printf.eprintf "WARNING: the given row count for row number %d was incorrect, this has been corrected in the result" actual_row_num;
+                            Printf.eprintf "WARNING: the given row count for row number %d was incorrect, this has been corrected in the result\n" actual_row_num;
                         
                         (* update result, row count, and row number states *)
                         let row_str = row_to_str row_eval row_count in
