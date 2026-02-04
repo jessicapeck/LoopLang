@@ -5,6 +5,7 @@ exception InternalInterpreterError of string
 exception RowNumberError of string
 exception RowOneError of string
 exception RowCountError of string
+exception ForLoopError of string
 
 (* the resulting code should only consists of rows and comments *)
 
@@ -420,6 +421,30 @@ and eval_statement env stmt k_next k_ret =
             else
                 eval_statement_list env else_branch k_next k_ret
         )
+    | For(v, lower, upper, stmts) ->
+        eval_expr env lower (fun lower_eval ->
+            eval_expr env upper (fun upper_eval ->
+                let lower_value = unwrap_int lower_eval in
+                let upper_value = unwrap_int upper_eval in
+
+                if lower_value > upper_value then
+                    raise (ForLoopError (Printf.sprintf "the for-loop expects the lower bound to be less than or equal to the upper bound, but found a lower bound of %d and an upper bound of %d being used" lower_value upper_value));
+
+                let loop_env = Hashtbl.copy env in
+
+                let rec take_loop_step curr_i curr_env =
+                    if curr_i > upper_value then
+                        k_next curr_env
+                    else (
+                        Hashtbl.replace loop_env v (VInt(curr_i));
+                        eval_statement_list loop_env stmts (fun new_loop_env -> take_loop_step (curr_i + 1) new_loop_env) k_ret
+                    )
+                in
+
+                take_loop_step lower_value loop_env
+            )
+        )
+
 and eval_statement_list env stmts k_next k_ret =
     match stmts with
     | [] -> k_next env

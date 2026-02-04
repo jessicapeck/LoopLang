@@ -291,6 +291,23 @@ let rec check_statement env ctx = function
             (get_env_intersection env_after_then env_after_else, ret_exprs_in_then @ ret_exprs_in_else)
         else
             raise (TypeError "if-else statement condition expects TBool")
+    | For(v, lower, upper, stmts) ->
+        let t_lower = check_expr env ctx (Some TInt) lower in
+        let t_upper = check_expr env ctx (Some TInt) upper in
+        if t_lower = TInt then
+            if t_upper = TInt then
+                let local_env = Hashtbl.copy env in
+                Hashtbl.add local_env v TInt;
+                let (_, ret_exprs_in_for_loop) = 
+                    List.fold_left (fun (env_acc, ret_exprs_acc) stmt ->
+                        let (new_env, new_ret_exprs) = check_statement env_acc ctx stmt in
+                        (new_env, ret_exprs_acc @ new_ret_exprs)
+                    ) (local_env, []) stmts
+                in
+                (* return original env, local env in for-loop is not carried out into the wider program *)
+                (env, ret_exprs_in_for_loop)
+            else raise (TypeError "upper bound of for-loop expects TInt")
+        else raise (TypeError "lower bound of for-loop expects TInt")
 
 let check_pattern_item env = function
     | FuncDef(f, params, body) -> 

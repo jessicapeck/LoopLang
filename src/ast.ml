@@ -67,6 +67,7 @@ type statement =
     | RowList of row_expr
     | Return of return_expr
     | If of expr * statement list * statement list  (* condition, then branch, else branch *)
+    | For of var * expr * expr * statement list (* variable name, lower bound, upper bound, body *)
 
 type pattern_item = 
     | FuncDef of var * var list * statement list (* func name, params, body *)
@@ -154,6 +155,7 @@ let rec string_of_statement = function
     | RowList(e) -> Printf.sprintf "RowList(%s)" (string_of_row_expr e)
     | Return(r) -> Printf.sprintf "Return(%s)" (string_of_return_expr r)
     | If(cond, if_branch, else_branch) -> Printf.sprintf "If(%s, [%s], [%s])" (string_of_expr cond) (String.concat ", " (List.map string_of_statement if_branch)) (String.concat ", " (List.map string_of_statement else_branch))
+    | For(v, lower, upper, stmts) -> Printf.sprintf "For(%s, %s, %s, [%s])" v (string_of_expr lower) (string_of_expr upper) (String.concat ", " (List.map string_of_statement stmts))
 
 let string_of_pattern_item = function
     | FuncDef(f, params, stmts) -> Printf.sprintf "FuncDef(%s, [%s], [%s])" f (String.concat ", " params) (String.concat ", " (List.map string_of_statement stmts))
