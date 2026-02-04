@@ -42,7 +42,6 @@ let () =
         close_in in_channel;
         let pos = lexbuf.lex_curr_p in
         Printf.eprintf "Syntax error at line %d, column %d\n" pos.pos_lnum (pos.pos_cnum - pos.pos_bol + 1);
-
         (* Printf.eprintf "--- Tokens seen up to error ---\n";
         List.iter (fun token ->
             Printf.eprintf "%s\n" (Lexer.string_of_token token)
@@ -63,6 +62,10 @@ let () =
     | Interpreter.RowCountError msg ->
         close_in in_channel;
         Printf.eprintf "Row count error: %s\n" msg;
+        exit 1
+    | Interpreter.ForLoopError msg ->
+        close_in in_channel;
+        Printf.eprintf "For-loop error: %s\n" msg;
         exit 1
     | Failure msg ->
         close_in in_channel;
