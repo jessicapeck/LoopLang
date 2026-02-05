@@ -30,7 +30,9 @@ let tests = [
     ("Nested rows", "nested_rows");
     ("Nested stitch sequences", "nested_stitch_seqs");
     ("Given row counts", "given_row_counts");
-    ("Incorrect given row counts", "incorrect_given_row_counts")
+    ("Incorrect given row counts", "incorrect_given_row_counts");
+    ("For-loop to generate rows", "for_loop_rows");
+    ("For-loop to perform calculations", "for_loop_calculations")
 ]
 
 
@@ -75,6 +77,11 @@ let row_count_error_tests = [
     ("Increase stitch", "inc_stitch", Interpreter.RowCountError "row number 3 is built on top of 5 stitches which is inconsistent with the previous row count of 10");
     ("Decrease stitch", "dec_stitch", Interpreter.RowCountError "row number 4 is built on top of 9 stitches which is inconsistent with the previous row count of 8");
     ("Rows from function", "rows_from_function", Interpreter.RowCountError "row number 2 is built on top of 8 stitches which is inconsistent with the previous row count of 5")
+]
+
+
+let for_loop_error_tests = [
+    ("For-loop bounds", "for_loop_bounds", Interpreter.ForLoopError "the for-loop expects the lower bound to be less than or equal to the upper bound, but found a lower bound of 5 and an upper bound of 1 being used")
 ]
 
 
@@ -168,6 +175,16 @@ let row_count_error_test_suite =
     List.map create_row_count_error_test row_count_error_tests
 
 
+let create_for_loop_error_test (test_name, filename, expected_error) =
+    let test_fn () =
+        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_interpreter ("./test/error_patterns/for_loop_errors/" ^ filename ^ ".loopy"))
+    in
+    Alcotest.test_case test_name `Quick test_fn
+
+let for_loop_error_test_suite =
+    List.map create_for_loop_error_test for_loop_error_tests
+
+
 let () =
     let test_suites = [
         ("Token Stream Conversion Test", token_stream_test_suite);
@@ -177,6 +194,7 @@ let () =
         ("Compiled Pattern", compiler_test_suite);
         ("Row Number Error Test", row_number_error_test_suite);
         ("Row One Error Test", row_one_error_test_suite);
-        ("Row Count Error Test", row_count_error_test_suite)
+        ("Row Count Error Test", row_count_error_test_suite);
+        ("For-loop Error Test", for_loop_error_test_suite)
     ] in
     run "LoopLang Compiler" test_suites

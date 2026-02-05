@@ -1,0 +1,6 @@
+let x = 1
+
+for i = 1 to 5:
+    let x = x * i
+
+row 1: ch x
