@@ -4,13 +4,16 @@ type t =
     | TStitch
     | TStitchSeqItem
     | TStitchSeq
-    | TFunc of t list * t
     | TRow
     | TRowList
+    | TFunc of t list * t
 
 type env = (string * t) list
 
 type var = string
+
+type comment =
+    | Comment of string
 
 type stitch = CH | SC | DC | INC | DEC (* TStitch *)
 
@@ -27,8 +30,9 @@ type expr =
 and mult_expr = 
     | StitchMultExpr of stitch * expr (* TStitchSeqItem *)
     | StitchSeqMultExpr of stitch_seq * expr (* TStitchSeqItem *)
+(* comments are allowed after a StitchSeqItem *)
 and stitch_seq_item =
-    | StitchSeqItem of mult_expr
+    | StitchSeqItem of mult_expr * comment option
     | StitchSeqItemVar of var
     | StitchSeqItemFuncCall of var * argument list (* func name, args *) (* for functions that return: TStitchSeq, but are used within another stitch seq *)
 and stitch_seq =
@@ -40,7 +44,7 @@ and argument =
     | StitchSeqArg of stitch_seq
 
 type row_lit =
-    | RowLit of expr * stitch_seq * expr option (* row number, stitch list, row count *) (* TRow *)
+    | RowLit of expr * stitch_seq * expr option * comment option (* row number, stitch list, row count, comment *) (* TRow *)
 
 type row_expr =
     | RowVar of var (* TRowList *)
@@ -61,7 +65,9 @@ type return_expr =
     | ReturnStitchSeq of stitch_seq
     | ReturnRowList of row_list_item list
 
+(* comments are allowed at the end of rows *)
 type statement =
+    | CommentStmt of comment
     | LetDef of definition
     | Row of row_lit
     | RowList of row_expr
@@ -78,6 +84,14 @@ type pattern =
 
 
 (* string conversions for debugging *)
+
+let string_of_option x f =
+    match x with
+    | Some(v) -> Printf.sprintf "Some(%s)" (f v)
+    | None -> "None"
+
+let string_of_comment = function
+    | Comment(txt) -> Printf.sprintf "Comment(%s)" txt
 
 let string_of_stitch = function
     | CH -> "CH"
@@ -112,7 +126,7 @@ and string_of_mult_expr = function
     | StitchMultExpr(s, n) -> Printf.sprintf "StitchMultExpr(%s, %s)" (string_of_stitch s) (string_of_expr n)
     | StitchSeqMultExpr(seq, n) -> Printf.sprintf "StitchSeqMultExpr(%s, %s)" (string_of_stitch_seq seq) (string_of_expr n)
 and string_of_stitch_seq_item = function
-    | StitchSeqItem(m) -> Printf.sprintf "StitchSeqItem(%s)" (string_of_mult_expr m)
+    | StitchSeqItem(m, c_opt) -> Printf.sprintf "StitchSeqItem(%s, %s)" (string_of_mult_expr m) (string_of_option c_opt string_of_comment)
     | StitchSeqItemVar(v) -> Printf.sprintf "StitchSeqItemVar(%s)" v
     | StitchSeqItemFuncCall(f, args) -> Printf.sprintf "StitchSeqItemFuncCall(%s, [%s])" f (String.concat ", " (List.map string_of_argument args))
 and string_of_stitch_seq = function
@@ -124,11 +138,7 @@ and string_of_argument = function
     | StitchSeqArg(seq) -> Printf.sprintf "StitchSeqArg(%s)" (string_of_stitch_seq seq)
 
 let string_of_row_lit = function
-    | RowLit(n1, seq, count) -> (
-        match count with
-        | Some(n2) -> Printf.sprintf "RowLit(%s, %s, Some(%s))" (string_of_expr n1) (string_of_stitch_seq seq) (string_of_expr n2)
-        | None -> Printf.sprintf "RowLit(%s, %s, None)" (string_of_expr n1) (string_of_stitch_seq seq)
-    )
+    | RowLit(n1, seq, count_opt, c_opt) -> Printf.sprintf "RowLit(%s, %s, %s, %s)" (string_of_expr n1) (string_of_stitch_seq seq) (string_of_option count_opt string_of_expr) (string_of_option c_opt string_of_comment)
 
 let string_of_row_expr = function
     | RowVar(v) -> Printf.sprintf "RowVar(%s)" v
@@ -150,6 +160,7 @@ let string_of_return_expr = function
     | ReturnRowList(e) -> Printf.sprintf "ReturnRowList([%s])" (String.concat ", " (List.map string_of_row_list_item e))
 
 let rec string_of_statement = function
+    | CommentStmt(c) -> Printf.sprintf "CommentStmt(%s)" (string_of_comment c)
     | LetDef(d) -> Printf.sprintf "LetDef(%s)" (string_of_definition d)
     | Row(e) -> Printf.sprintf "Row(%s)" (string_of_row_lit e)
     | RowList(e) -> Printf.sprintf "RowList(%s)" (string_of_row_expr e)

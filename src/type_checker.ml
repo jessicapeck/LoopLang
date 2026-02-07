@@ -147,7 +147,7 @@ and check_mult_expr env ctx = function
             else raise (TypeError "stitch sequence multiplier expression expects TInt")
         else raise (TypeError "stitch sequence multiplier expression expects TStitchSeq within parentheses")
 and check_stitch_seq_item env ctx = function
-    | StitchSeqItem(mexpr) -> check_mult_expr env ctx mexpr
+    | StitchSeqItem(mexpr, c_opt) -> check_mult_expr env ctx mexpr
     | StitchSeqItemVar(v) ->
         let t =
             try Hashtbl.find env v
@@ -184,7 +184,7 @@ and check_argument env ctx expected_t = function
     | StitchSeqArg(seq) -> check_stitch_seq env ctx TStitchSeq seq
 
 let check_row_lit env ctx = function
-    | RowLit(e1, seq, count) ->
+    | RowLit(e1, seq, count, c_opt) ->
         let t_e1 = check_expr env ctx (Some TInt) e1 in
         let t_seq = check_stitch_seq env ctx TStitchSeq seq in
         let t_e2 = (
@@ -263,6 +263,7 @@ let check_return_expr env ctx = function
         TRowList
 
 let rec check_statement env ctx = function
+    | CommentStmt(c) -> (env, [])
     | LetDef(def) -> (check_definition env ctx def, [])
     | Row(row) -> 
         let _ = check_row_lit env ctx row in

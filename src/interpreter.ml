@@ -15,10 +15,11 @@ type value =
     | VBool of bool
     | VStitchMultExpr of stitch * int
     | VStitchSeqMultExpr of value * int (* value: VStitchSeq *)
-    | VStitchSeqItem of value (* value: VStitchMultExpr, VStitchSeqMultExpr *)
+    | VStitchSeqItem of value * value option (* value 1: VStitchMultExpr, VStitchSeqMultExpr *) (* value 2: VComment *)
     | VStitchSeq of value list (* value: VStitchSeqItem *)
-    | VRow of int * value * int option (* value: VStitchSeq *)
+    | VRow of int * value * int option * value option (* value 1: VStitchSeq *) (* value 2: VComment *)
     | VRowList of value list (* value: VRow *)
+    | VComment of string
     | Void
 
 type var_env = (var, value) Hashtbl.t
@@ -51,36 +52,40 @@ let unwrap_bool = function
     | _ -> raise (InternalInterpreterError "expected a boolean value, found a different type")
 
 let unwrap_stitch_seq_item = function
-    | VStitchSeqItem(item) -> item
-    | _ -> raise (InternalInterpreterError "expected a titch sequence item, found a different type")
+    | VStitchSeqItem(item, c_opt) -> (item, c_opt)
+    | _ -> raise (InternalInterpreterError "expected a stitch sequence item, found a different type")
 
 let unwrap_stitch_seq = function
     | VStitchSeq(seq) -> seq
     | _ -> raise (InternalInterpreterError "expected a stitch sequence, found a different type")
 
 let unwrap_nested_stitch_seqs = function
-    | VStitchSeqItem(item) -> [VStitchSeqItem(item)]
+    | VStitchSeqItem(item, c_opt) -> [VStitchSeqItem(item, c_opt)]
     | VStitchSeq(seq) -> seq
     | _ -> raise (InternalInterpreterError "expected a stitch sequence item, found a different type")
 
 let unwrap_row = function
-    | VRow(n, seq, count) -> (n, seq, count)
+    | VRow(n, seq, count_opt, c_opt) -> (n, seq, count_opt, c_opt)
     | _ -> raise (InternalInterpreterError "expected a row, found a different type")
 
 let unwrap_row_list = function
-        | VRowList(row_list) -> row_list
-        | _ -> raise (InternalInterpreterError "expected a row list, found a different type")
+    | VRowList(row_list) -> row_list
+    | _ -> raise (InternalInterpreterError "expected a row list, found a different type")
 
 let unwrap_nested_rows = function
-    | VRow(n, seq, count) -> [VRow(n, seq, count)]
+    | VRow(n, seq, count_opt, c_opt) -> [VRow(n, seq, count_opt, c_opt)]
     | VRowList(row_list) -> row_list
     | _ -> raise (InternalInterpreterError "expected a row list item, found a different type")
+
+let unwrap_comment = function
+    | VComment(txt) -> txt
+    | _ -> raise (InternalInterpreterError "expected a comment, found a different type")
 
 
 (* ROW NUMBER / ROW COUNT VALIDATION FUNCTIONS *)
 
 let check_row_num row_eval next =
-    let (actual_row_num, _, _) = unwrap_row row_eval in
+    let (actual_row_num, _, _, _) = unwrap_row row_eval in
     let valid = actual_row_num = next in
     (valid, actual_row_num)
 
@@ -106,25 +111,38 @@ let rec calculate_mult_expr_count row_num = function
         (seq_row_count_change * n, seq_used_stitch_count * n)
     | _ -> raise (InternalInterpreterError "expected a multiplier expression, found a different type")
 and calculate_stitch_seq_count row_num seq =
-    let seq_value = List.map unwrap_stitch_seq_item (unwrap_stitch_seq seq) in
+    let seq_value = List.map (fun item -> 
+        let (item_value, _) = unwrap_stitch_seq_item item in
+        item_value
+    ) (unwrap_stitch_seq seq) in
     let results = List.map (calculate_mult_expr_count row_num) seq_value in
     let row_count_changes, used_stitch_counts = List.split results in
     (List.fold_left (+) 0 row_count_changes, List.fold_left (+) 0 used_stitch_counts)
 
 let calculate_row_count row_eval prev =
-    let (row_num, stitch_seq, _) = unwrap_row row_eval in
+    let (row_num, stitch_seq, _, _) = unwrap_row row_eval in
     let change, used_stitch_count = calculate_stitch_seq_count row_num stitch_seq in
     (prev + change, used_stitch_count)
 
 
 let given_row_count_correct row_eval row_count =
-    let (_, _, count) = unwrap_row row_eval in
+    let (_, _, count, _) = unwrap_row row_eval in
     match count with
     | Some(given_count_value) -> (given_count_value = row_count)
     | None -> true
 
 
 (* STRING CONVERSION FUNCTIONS *)
+
+let string_of_comment = function
+    | Comment(txt) -> (Printf.sprintf "<<%s>>" txt)
+
+let string_of_optional_comment = function
+    | Some(c) -> (
+        let comment_text = unwrap_comment c in
+        (Printf.sprintf " <<%s>>" comment_text)
+    )
+    | None -> ""
 
 let stitch_to_str = function
     | CH -> "ch"
@@ -143,13 +161,15 @@ let rec mult_expr_to_str = function
         else (Printf.sprintf "(%s) x%d" (stitch_seq_to_str seq) n)
     | _ -> raise (InternalInterpreterError "expected a multiplier expression, found a different type")
 and stitch_seq_to_str seq =
-    let seq_value = List.map unwrap_stitch_seq_item (unwrap_stitch_seq seq) in
-    String.concat ", " (List.map mult_expr_to_str seq_value)
+    String.concat ", " (List.map (fun item -> 
+        let (item_value, c_opt) = unwrap_stitch_seq_item item in
+        (Printf.sprintf "%s%s" (mult_expr_to_str item_value) (string_of_optional_comment c_opt))
+    ) (unwrap_stitch_seq seq))
 
 let row_to_str row_eval row_count =
     match row_eval with
-    | VRow(row_num, stitch_seq, _) ->
-        (Printf.sprintf "R%d: %s [%d]" row_num (stitch_seq_to_str stitch_seq) row_count)
+    | VRow(row_num, stitch_seq, _, c_opt) ->
+        (Printf.sprintf "R%d: %s [%d]%s" row_num (stitch_seq_to_str stitch_seq) row_count (string_of_optional_comment c_opt))
     | _ -> raise (InternalInterpreterError "expected a row, found a different type")
 
 
@@ -162,6 +182,15 @@ let rec map_cps f env l k =
 
 
 (* EVALUATION FUNCTIONS *)
+
+(* returns optional VComment *)
+let eval_optional_comment env c_opt k =
+    match c_opt with
+    | Some(c) -> (
+        match c with
+        | Comment(txt) -> k (Some(VComment(txt)))
+    )
+    | None -> k None
 
 (* returns VInt, VBool, VStitchSeq, or VRowList *)
 let rec eval_function_call env f args k_caller =
@@ -179,6 +208,16 @@ let rec eval_function_call env f args k_caller =
         eval_statement_list new_env body (fun final_env -> k_caller Void) (fun ret_eval -> k_caller ret_eval)
     )
 
+(* returns optional int *)
+and eval_optional_count env count_opt k =
+    match count_opt with
+    | Some(count) -> (
+        eval_expr env count (fun count_eval ->
+            let count_value = unwrap_int count_eval in
+            k (Some(count_value))
+        )
+    )
+    | None -> k None
 
 (* returns VInt or VBool *)
 and eval_expr env e k =
@@ -252,9 +291,11 @@ and eval_mult_expr env mult_expr k =
 (* returns VStitchSeqItem or VStitchSeq *)
 and eval_stitch_seq_item env item k = 
     match item with
-    | StitchSeqItem(mexpr) ->
+    | StitchSeqItem(mexpr, c_opt) ->
         eval_mult_expr env mexpr (fun v ->
-            k (VStitchSeqItem(v))
+            eval_optional_comment env c_opt (fun c_opt_eval ->
+                k (VStitchSeqItem(v, c_opt_eval))
+            )
         )
     | StitchSeqItemVar(var) -> 
         let stitch_seq_eval = Hashtbl.find env var in
@@ -285,17 +326,15 @@ and eval_argument env arg k =
 (* returns VRow *)
 and eval_row_lit env row_lit k =
     match row_lit with
-    | RowLit(n1, seq, count) ->
+    | RowLit(n1, seq, count_opt, c_opt) ->
         eval_expr env n1 (fun n1_eval ->
             eval_stitch_seq env seq (fun seq_eval ->
-                let n1_value = unwrap_int n1_eval in
-                match count with
-                | Some(n2) -> 
-                    eval_expr env n2 (fun n2_eval ->
-                        let n2_value = unwrap_int n2_eval in
-                        k (VRow(n1_value, seq_eval, Some(n2_value)))
+                eval_optional_count env count_opt (fun count_eval ->
+                    eval_optional_comment env c_opt (fun c_eval ->
+                        let n1_value = unwrap_int n1_eval in
+                        k (VRow(n1_value, seq_eval, count_eval, c_eval))
                     )
-                | None -> k (VRow(n1_value, seq_eval, None))
+                )
             )
         )
 
@@ -350,6 +389,10 @@ and eval_return_expr env ret_expr k =
 (* returns the environment because LetDef will change env *)
 and eval_statement env stmt k_next k_ret =
     match stmt with
+    | CommentStmt(c) ->
+        let comment_text = string_of_comment c in
+        result := comment_text :: !result;
+        k_next env
     | LetDef(def) ->
         eval_definition env def (fun new_env ->
             k_next new_env
