@@ -32,7 +32,8 @@ let tests = [
     ("Given row counts", "given_row_counts");
     ("Incorrect given row counts", "incorrect_given_row_counts");
     ("For-loop to generate rows", "for_loop_rows");
-    ("For-loop to perform calculations", "for_loop_calculations")
+    ("For-loop to perform calculations", "for_loop_calculations");
+    ("Comment on its own line", "comment_statement")
 ]
 
 

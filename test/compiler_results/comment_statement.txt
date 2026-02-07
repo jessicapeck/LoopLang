@@ -1,0 +1,5 @@
+<< start with RED yarn >>
+R1: ch 12 [12]
+R2: sc 12 [12]
+R3: dc 12 [12]
+<< FO and sew in ends >>
