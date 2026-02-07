@@ -1,1 +1,1 @@
-Pattern([Stmt(For(i, Int(1), Int(5), [If(BinOp(Var(i), EQ, Int(1)), [Row(RowLit(Var(i), StitchSeq([StitchSeqItem(StitchMultExpr(CH, Int(30)))]), None))], [Row(RowLit(Var(i), StitchSeq([StitchSeqItem(StitchMultExpr(SC, Int(30)))]), None))])]))])
+Pattern([Stmt(For(i, Int(1), Int(5), [If(BinOp(Var(i), EQ, Int(1)), [Row(RowLit(Var(i), StitchSeq([StitchSeqItem(StitchMultExpr(CH, Int(30)), None)]), None, None))], [Row(RowLit(Var(i), StitchSeq([StitchSeqItem(StitchMultExpr(SC, Int(30)), None)]), None, None))])]))])
