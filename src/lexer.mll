@@ -68,7 +68,7 @@ let id_regex = ['a'-'z' 'A'-'Z' '0'-'9']+
 let num_regex = ['0'-'9']+
 let bool_regex = ("true" | "True" | "TRUE" | "false" | "False" | "FALSE")
 let row_ident_regex = ('r' | 'R' | "row" | "ROW")
-let comment_text = [^ '>']*
+let comment_text = [^ '<' '>']*
 
 
 rule token = parse
@@ -102,7 +102,7 @@ rule token = parse
     | num_regex as num                                  { INT (int_of_string num) }
     | bool_regex as b                                   { BOOL (b = "true" || b = "True" || b = "TRUE") }
     | id_regex as id                                    { ID id }
-    | "<<" comment_text as txt ">>"                     { COMMENT txt }
+    | "<<" (comment_text as txt) ">>"                   { COMMENT txt }
     | '+'                                               { ADD }
     | '-'                                               { SUB }
     | '*'                                               { MUL }
