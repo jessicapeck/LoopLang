@@ -10,3 +10,9 @@ _build/*
 questions.txt
 
 test/patterns/*.txt
+
+_coverage
+_coverage/*
+
+_coverage_data
+_coverage_data/*
