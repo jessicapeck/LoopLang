@@ -76,4 +76,4 @@ coverage:
 	@echo "---------- REPORT SUMMARY ----------"
 	bisect-ppx-report summary --per-file $(TEST_COVERAGE_DIR)/*.coverage
 
-.PHONY: all clean patterns-clean
+.PHONY: all clean patterns-clean coverage
