@@ -34,7 +34,8 @@ let tests = [
     ("For-loop to generate rows", "for_loop_rows");
     ("For-loop to perform calculations", "for_loop_calculations");
     ("Comment on its own line", "comment_statement");
-    ("Comment within a row", "comment_in_row")
+    ("Comment within a row", "comment_in_row");
+    ("Stitch types", "stitch_types")
 ]
 
 

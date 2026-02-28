@@ -1,0 +1,4 @@
+r1: mr 8
+r2: (sc 3, inc) x2
+r3: (hdc, tr) x5
+r4: sl st 10
