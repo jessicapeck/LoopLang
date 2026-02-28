@@ -42,6 +42,20 @@ let next_row_number = ref 1
 let prev_row_count = ref 0
 
 
+(* PRETTY PRINT FUNCTION FOR WARNINGS *)
+
+let print_boxed_warning warning_msg =
+    let yellow s = "\x1b[33m" ^ s ^ "\x1b[0m" in
+    let width = max (String.length "Warning") (String.length warning_msg) in
+    let border = yellow ("+-" ^ (String.make width '-') ^ "-+") in
+    let pipe = yellow "|" in
+
+    Printf.printf "%s\n" border;
+    Printf.printf "%s %s%s %s\n" pipe "Warning" (String.make (width - String.length "Warning") ' ') pipe;
+    Printf.printf "%s %s%s %s\n" pipe warning_msg (String.make (width - String.length warning_msg) ' ') pipe;
+    Printf.printf "%s\n" border
+
+
 (* UNWRAPPER FUNCTIONS *)
 
 let unwrap_int = function
@@ -441,8 +455,8 @@ and eval_statement env stmt k_next k_ret =
                 if used_stitch_count <> !prev_row_count then
                     raise (RowCountError (Printf.sprintf "row number %d is built on top of %d stitches which is inconsistent with the previous row count of %d" row_num used_stitch_count !prev_row_count));
 
-                if not (given_row_count_correct count_opt row_count) then 
-                    Printf.eprintf "WARNING: the given row count for row number %d was incorrect, this has been corrected in the result\n" row_num;
+                if not (given_row_count_correct count_opt row_count) then
+                    print_boxed_warning (Printf.sprintf "the given row count for row number %d was incorrect, this has been corrected in the result" row_num);
 
                 (* update result, row count, and row number states *)
                 let row_str = row_to_str row_eval row_count in

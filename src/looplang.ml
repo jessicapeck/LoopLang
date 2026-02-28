@@ -15,6 +15,19 @@ let write_result_to_file filename result =
     ) result;
     close_out out_channel
 
+let green s = "\x1b[32m" ^ s ^ "\x1b[0m"
+let red s = "\x1b[31m" ^ s ^ "\x1b[0m"
+
+let print_boxed_error err_type err_msg =
+    let width = max (String.length err_type) (String.length err_msg) in
+    let border = red ("+-" ^ (String.make width '-') ^ "-+") in
+    let pipe = red "|" in
+
+    Printf.eprintf "%s\n" border;
+    Printf.eprintf "%s %s%s %s\n" pipe err_type (String.make (width - String.length err_type) ' ') pipe;
+    Printf.eprintf "%s %s%s %s\n" pipe err_msg (String.make (width - String.length err_msg) ' ') pipe;
+    Printf.eprintf "%s\n" border
+
 let () =
     let filename = Sys.argv.(1) in
     let in_channel = open_in filename in
@@ -35,8 +48,11 @@ let () =
 
         let name_no_ext = Filename.remove_extension filename in
         let output_filename = name_no_ext ^ ".txt" in
-        write_result_to_file output_filename result
+        write_result_to_file output_filename result;
         (* List.iter print_string result *)
+
+        let success_msg = (green "Pattern compiled successfully! ") ^ (Printf.sprintf "Result written to %s" output_filename) in
+        Printf.printf "%s\n" success_msg
     with
     | Parser.Error ->
         close_in in_channel;
@@ -49,23 +65,23 @@ let () =
         exit 1
     | Type_checker.TypeError msg ->
         close_in in_channel;
-        Printf.eprintf "Type error: %s\n" msg;
+        print_boxed_error "TypeError" msg;
         exit 1
     | Interpreter.RowNumberError msg ->
         close_in in_channel;
-        Printf.eprintf "Row number error: %s\n" msg;
+        print_boxed_error "RowNumberError" msg;
         exit 1
     | Interpreter.RowOneError msg ->
         close_in in_channel;
-        Printf.eprintf "Row one error: %s\n" msg;
+        print_boxed_error "RowOneError" msg;
         exit 1
     | Interpreter.RowCountError msg ->
         close_in in_channel;
-        Printf.eprintf "Row count error: %s\n" msg;
+        print_boxed_error "RowCountError" msg;
         exit 1
     | Interpreter.ForLoopError msg ->
         close_in in_channel;
-        Printf.eprintf "For-loop error: %s\n" msg;
+        print_boxed_error "ForLoopError" msg;
         exit 1
     | Failure msg ->
         close_in in_channel;
