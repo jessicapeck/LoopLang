@@ -1,0 +1,2 @@
+R1: ch 30 [30]
+R2: sc 15 << change to RED yarn >>, sc 15 [30]
