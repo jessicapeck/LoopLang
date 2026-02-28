@@ -35,7 +35,8 @@ let tests = [
     ("For-loop to perform calculations", "for_loop_calculations");
     ("Comment on its own line", "comment_statement");
     ("Comment within a row", "comment_in_row");
-    ("Stitch types", "stitch_types")
+    ("Stitch types", "stitch_types");
+    ("Row range", "row_range")
 ]
 
 
@@ -66,7 +67,9 @@ let row_number_error_tests = [
     ("Literal integer row number", "literal_int_row_num", Interpreter.RowNumberError "expected row number 3, but found row number 4 in its place");
     ("Calculated row number", "calculated_row_num", Interpreter.RowNumberError "expected row number 3, but found row number 10 in its place");
     ("Row from function", "row_from_func", Interpreter.RowNumberError "expected row number 2, but found row number 3 in its place");
-    ("Not starting from one", "not_starting_from_one", Interpreter.RowNumberError "expected row number 1, but found row number 2 in its place")
+    ("Not starting from one", "not_starting_from_one", Interpreter.RowNumberError "expected row number 1, but found row number 2 in its place");
+    ("Row number range not increasing", "range_not_inc", Interpreter.RowNumberError "lower bound row number (3) should be strictly less than upper bound row number (1)");
+    ("Incorrect lower bound row number", "lower_row_num", Interpreter.RowNumberError "expected row number 3, but found row number 4 in its place")
 ]
 
 

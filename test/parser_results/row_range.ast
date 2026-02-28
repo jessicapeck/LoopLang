@@ -1,0 +1,1 @@
+Pattern([Stmt(Row(RowLit(Int(1), StitchSeq([StitchSeqItem(StitchMultExpr(CH, Int(30)), None)]), None, None))), Stmt(Row(RowRangeLit((Int(2), Int(5)), StitchSeq([StitchSeqItem(StitchMultExpr(SC, Int(30)), None)]), None, None))), Stmt(Row(RowLit(Int(6), StitchSeq([StitchSeqItem(StitchMultExpr(DC, Int(30)), None)]), None, None)))])
