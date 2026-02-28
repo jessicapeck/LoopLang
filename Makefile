@@ -30,9 +30,17 @@ else
 	COVERAGE_FLAGS =
 endif
 
+help: ## Show help
+	@echo "Usage: make [target]"
+	@echo ""
+	@echo "Targets:"
+	@awk 'BEGIN {FS = ":.*?## "}; /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-# generate all files needed to create TARGET upon `make` command
-all: $(TARGET)
+all: ## Build the compiler and unit test executables
+	make compiler
+	make test
+
+compiler: $(TARGET) ## Build the ./loopycompiler executable
 
 # link everything together to create the final executable
 $(TARGET): $(CMO_FILES) $(MAIN_CMO_FILE)
@@ -57,7 +65,7 @@ $(SRC)/parser.cmo: $(SRC)/parser.cmi
 ${SRC}/lexer.ml: ${SRC}/lexer.mll
 	$(OCAMLLEX) -o $@ $<
 
-test: $(TEST_EXEC)
+test: $(TEST_EXEC) ## Build the ./test/unit_tests executable
 
 $(TEST_EXEC): $(CMO_FILES) $(TEST_CMO_FILES) 
 	opam exec -- $(OCAMLC) -g -linkpkg -o $@ -package $(ALCOTEST) $(COVERAGE_FLAGS) -I $(SRC) $^
@@ -66,15 +74,13 @@ $(TEST_EXEC): $(CMO_FILES) $(TEST_CMO_FILES)
 $(TEST_DIR)/%.cmo: $(TEST_DIR)/%.ml
 	opam exec -- $(OCAMLC) -g -I $(SRC) -I $(TEST_DIR) -package $(ALCOTEST) $(COVERAGE_FLAGS) -c -o $@ $<
 
-# remove all generated files
-clean:
+clean: ## Remove all generated files
 	rm -f $(SRC)/*.cmi $(SRC)/*.cmo $(SRC)/*.cmx $(SRC)/lexer.ml $(SRC)/parser.ml $(SRC)/parser.mli $(TARGET) $(TEST_DIR)/*.cmi $(TEST_DIR)/*.cmo $(TEST_EXEC)
 
-# remove all compiled results from the patterns folder
-patterns-clean:
+patterns-clean: ## Remove all compiled results from the ./test/patterns/ directory
 	rm -f test/patterns/*.txt
 
-coverage:
+coverage: ## Run tests with coverage tracking and generate reports
 	make clean
 	make TRACK_COVERAGE=true
 	make test TRACK_COVERAGE=true
@@ -88,4 +94,4 @@ coverage:
 	@echo "---------- REPORT SUMMARY ----------"
 	bisect-ppx-report summary --per-file $(TEST_COVERAGE_DIR)/*.coverage
 
-.PHONY: all clean patterns-clean coverage
+.PHONY: help compiler clean patterns-clean coverage
