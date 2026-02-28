@@ -3,6 +3,7 @@
 %}
 
 %token<int> INT MULINT ROWINT
+%token<(int * int)> ROWINTRANGE
 %token<bool> BOOL
 %token<string> ID COMMENT
 %token ROW MULEXPR
@@ -92,6 +93,10 @@ row_lit:
     | ROWINT COLON stitch_seq LBRACKET expr RBRACKET                                                                { RowLit(Int($1), $3, Some($5), None)}
     | ROWINT COLON stitch_seq comment                                                                               { RowLit(Int($1), $3, None, Some($4))}
     | ROWINT COLON stitch_seq                                                                                       { RowLit(Int($1), $3, None, None)}
+    | ROWINTRANGE COLON stitch_seq LBRACKET expr RBRACKET comment                                                   { let (lower, upper) = $1 in RowRangeLit((Int(lower), Int(upper)), $3, Some($5), Some($7))}
+    | ROWINTRANGE COLON stitch_seq LBRACKET expr RBRACKET                                                           { let (lower, upper) = $1 in RowRangeLit((Int(lower), Int(upper)), $3, Some($5), None)}
+    | ROWINTRANGE COLON stitch_seq comment                                                                          { let (lower, upper) = $1 in RowRangeLit((Int(lower), Int(upper)), $3, None, Some($4))}
+    | ROWINTRANGE COLON stitch_seq                                                                                  { let (lower, upper) = $1 in RowRangeLit((Int(lower), Int(upper)), $3, None, None) }
 
 row_expr:
     | ID LPAREN arg_list RPAREN                                                                                     { RowFuncCall($1, $3) }

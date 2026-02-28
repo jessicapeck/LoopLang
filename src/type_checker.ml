@@ -187,17 +187,34 @@ let check_row_lit env ctx = function
     | RowLit(e1, seq, count, c_opt) ->
         let t_e1 = check_expr env ctx (Some TInt) e1 in
         let t_seq = check_stitch_seq env ctx TStitchSeq seq in
-        let t_e2 = (
+        let t_count = (
             match count with
-            | Some(e2) -> check_expr env ctx (Some TInt) e2
+            | Some(e) -> check_expr env ctx (Some TInt) e
             | None -> TInt
         ) in
         if t_e1 = TInt then
             if t_seq = TStitchSeq then
-                if t_e2 = TInt then TRow
+                if t_count = TInt then TRow
                 else raise (TypeError "row count expects TInt")
             else raise (TypeError "row content expects TStitchSeq")
         else raise (TypeError "row number expects TInt")
+    | RowRangeLit((e1, e2), seq, count, c_opt) ->
+        let t_e1 = check_expr env ctx (Some TInt) e1 in
+        let t_e2 = check_expr env ctx (Some TInt) e2 in
+        let t_seq = check_stitch_seq env ctx TStitchSeq seq in
+        let t_count = (
+            match count with
+            | Some(e) -> check_expr env ctx (Some TInt) e
+            | None -> TInt
+        ) in
+        if t_e1 = TInt then
+            if t_e2 = TInt then
+                if t_seq = TStitchSeq then
+                    if t_count = TInt then TRow
+                    else raise (TypeError "row count expects TInt")
+                else raise (TypeError "row content expects TStitchSeq")
+            else raise (TypeError "upper bound row number expects TInt")
+        else raise (TypeError "lower bound row number expects TInt")
 
 let check_row_expr env ctx = function
     | RowVar(v) ->

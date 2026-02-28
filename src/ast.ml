@@ -45,6 +45,7 @@ and argument =
 
 type row_lit =
     | RowLit of expr * stitch_seq * expr option * comment option (* row number, stitch list, row count, comment *) (* TRow *)
+    | RowRangeLit of (expr * expr) * stitch_seq * expr option * comment option (* (lower bound row number, upper bound row number), stitch list, row count, comment *) (* TRow *)
 
 type row_expr =
     | RowVar of var (* TRowList *)
@@ -143,6 +144,7 @@ and string_of_argument = function
 
 let string_of_row_lit = function
     | RowLit(n1, seq, count_opt, c_opt) -> Printf.sprintf "RowLit(%s, %s, %s, %s)" (string_of_expr n1) (string_of_stitch_seq seq) (string_of_option count_opt string_of_expr) (string_of_option c_opt string_of_comment)
+    | RowRangeLit((lower, upper), seq, count_opt, c_opt) -> Printf.sprintf "RowRangeLit((%s, %s), %s, %s, %s)" (string_of_expr lower) (string_of_expr upper) (string_of_stitch_seq seq) (string_of_option count_opt string_of_expr) (string_of_option c_opt string_of_comment)
 
 let string_of_row_expr = function
     | RowVar(v) -> Printf.sprintf "RowVar(%s)" v

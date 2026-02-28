@@ -72,66 +72,67 @@ let comment_text = [^ '<' '>']*
 
 
 rule token = parse
-    | '\n'+ ((' '*) | ('\t'*) as seq)     { 
-                                                          next_line lexbuf; 
-                                                          match process_indentation seq with
-                                                          | Indent -> NEWLINE
-                                                          | Dedent -> Queue.add NEWLINE pending_tokens; Queue.take pending_tokens
-                                                          | Skip -> NEWLINE
-                                                        }
-    | ' '                                               { token lexbuf }
-    | "ch" | "CH"                                       { CH }
-    | "sc" | "SC"                                       { SC }
-    | "dc" | "DC"                                       { DC }
-    | "inc" | "INC"                                     { INC }
-    | "dec" | "DEC"                                     { DEC }
-    | "mr" | "MR"                                       { MR }
-    | "hdc" | "HDC"                                     { HDC }
-    | "tr" | "TR"                                       { TR }
-    | "sl st" | "SL ST" | "slst" | "SLST"               { SLST }
-    | row_ident_regex                                   { ROW }
-    | row_ident_regex ' '? (num_regex as num)           { ROWINT (int_of_string num) }
-    | 'x' (num_regex as num)                            { MULINT (int_of_string num)}
-    | "x("                                              { MULEXPR }
-    | "if"                                              { IF }
-    | "else"                                            { ELSE }
-    | "let"                                             { LET }
-    | "def"                                             { DEF }
-    | "return"                                          { RETURN } 
-    | "for"                                             { FOR }
-    | "to"                                              { TO }
-    | "and"                                             { AND }
-    | "or"                                              { OR }
-    | "not"                                             { NOT }
-    | num_regex as num                                  { INT (int_of_string num) }
-    | bool_regex as b                                   { BOOL (b = "true" || b = "True" || b = "TRUE") }
-    | id_regex as id                                    { ID id }
-    | "<<" (comment_text as txt) ">>"                   { COMMENT txt }
-    | '+'                                               { ADD }
-    | '-'                                               { SUB }
-    | '*'                                               { MUL }
-    | '/'                                               { DIV }
-    | '<'                                               { LT }
-    | '>'                                               { GT }
-    | "=="                                              { EQ }
-    | '='                                               { ASSIGN }
-    | '('                                               { LPAREN }
-    | ')'                                               { RPAREN }
-    | '['                                               { LBRACKET }
-    | ']'                                               { RBRACKET }
-    | ':'                                               { COLON }
-    | ','                                               { COMMA }
-    | eof                                               {
-                                                            begin
-                                                                while (Stack.length indent_stack > 1) do
-                                                                    let _ = Stack.pop indent_stack in
-                                                                    Queue.add DEDENT pending_tokens
-                                                                done;
-                                                                Queue.add EOF pending_tokens;
-                                                                Queue.take pending_tokens
-                                                            end
-                                                        }
-    | _                                                 { failwith ("Unexpected character: " ^ Lexing.lexeme lexbuf) }
+    | '\n'+ ((' '*) | ('\t'*) as seq)                                   { 
+                                                                          next_line lexbuf; 
+                                                                          match process_indentation seq with
+                                                                          | Indent -> NEWLINE
+                                                                          | Dedent -> Queue.add NEWLINE pending_tokens; Queue.take pending_tokens
+                                                                          | Skip -> NEWLINE
+                                                                        }
+    | ' '                                                               { token lexbuf }
+    | "ch" | "CH"                                                       { CH }
+    | "sc" | "SC"                                                       { SC }
+    | "dc" | "DC"                                                       { DC }
+    | "inc" | "INC"                                                     { INC }
+    | "dec" | "DEC"                                                     { DEC }
+    | "mr" | "MR"                                                       { MR }
+    | "hdc" | "HDC"                                                     { HDC }
+    | "tr" | "TR"                                                       { TR }
+    | "sl st" | "SL ST" | "slst" | "SLST"                               { SLST }
+    | row_ident_regex                                                   { ROW }
+    | row_ident_regex ' '? (num_regex as num)                           { ROWINT (int_of_string num) }
+    | row_ident_regex ' '? (num_regex as num1) '-' (num_regex as num2)  { ROWINTRANGE ((int_of_string num1, int_of_string num2)) }
+    | 'x' (num_regex as num)                                            { MULINT (int_of_string num)}
+    | "x("                                                              { MULEXPR }
+    | "if"                                                              { IF }
+    | "else"                                                            { ELSE }
+    | "let"                                                             { LET }
+    | "def"                                                             { DEF }
+    | "return"                                                          { RETURN } 
+    | "for"                                                             { FOR }
+    | "to"                                                              { TO }
+    | "and"                                                             { AND }
+    | "or"                                                              { OR }
+    | "not"                                                             { NOT }
+    | num_regex as num                                                  { INT (int_of_string num) }
+    | bool_regex as b                                                   { BOOL (b = "true" || b = "True" || b = "TRUE") }
+    | id_regex as id                                                    { ID id }
+    | "<<" (comment_text as txt) ">>"                                   { COMMENT txt }
+    | '+'                                                               { ADD }
+    | '-'                                                               { SUB }
+    | '*'                                                               { MUL }
+    | '/'                                                               { DIV }
+    | '<'                                                               { LT }
+    | '>'                                                               { GT }
+    | "=="                                                              { EQ }
+    | '='                                                               { ASSIGN }
+    | '('                                                               { LPAREN }
+    | ')'                                                               { RPAREN }
+    | '['                                                               { LBRACKET }
+    | ']'                                                               { RBRACKET }
+    | ':'                                                               { COLON }
+    | ','                                                               { COMMA }
+    | eof                                                               {
+                                                                            begin
+                                                                                while (Stack.length indent_stack > 1) do
+                                                                                    let _ = Stack.pop indent_stack in
+                                                                                    Queue.add DEDENT pending_tokens
+                                                                                done;
+                                                                                Queue.add EOF pending_tokens;
+                                                                                Queue.take pending_tokens
+                                                                            end
+                                                                        }
+    | _                                                                 { failwith ("Unexpected character: " ^ Lexing.lexeme lexbuf) }
 
 {
     let next_token lexbuf =
@@ -156,6 +157,7 @@ rule token = parse
     | SLST -> "SLST"
     | ROW -> "ROW"
     | ROWINT num -> Printf.sprintf "ROWINT(%d)" num
+    | ROWINTRANGE (num1, num2) -> Printf.sprintf "ROWINTRANGE(%d,%d)" num1 num2
     | MULINT num -> Printf.sprintf "MULINT(%d)" num
     | MULEXPR -> "MULEXPR"
     | IF -> "IF"
