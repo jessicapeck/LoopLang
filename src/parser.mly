@@ -6,7 +6,7 @@
 %token<bool> BOOL
 %token<string> ID COMMENT
 %token ROW MULEXPR
-%token CH SC DC INC DEC
+%token CH SC DC INC DEC MR HDC TR SLST
 %token ADD SUB MUL DIV
 %token LT GT EQ
 %token AND OR NOT
@@ -144,6 +144,18 @@ mult_expr:
     | DEC expr                                                                                                      { StitchMultExpr(DEC, $2) }
     | expr DEC                                                                                                      { StitchMultExpr(DEC, $1) }
     | DEC                                                                                                           { StitchMultExpr(DEC, Int(1)) }
+    | MR expr                                                                                                       { StitchMultExpr(MR, $2) }
+    | expr MR                                                                                                       { StitchMultExpr(MR, $1) }
+    | MR                                                                                                            { StitchMultExpr(MR, Int(1)) }
+    | HDC expr                                                                                                      { StitchMultExpr(HDC, $2) }
+    | expr HDC                                                                                                      { StitchMultExpr(HDC, $1) }
+    | HDC                                                                                                           { StitchMultExpr(HDC, Int(1)) }
+    | TR expr                                                                                                       { StitchMultExpr(TR, $2) }
+    | expr TR                                                                                                       { StitchMultExpr(TR, $1) }
+    | TR                                                                                                            { StitchMultExpr(TR, Int(1)) }
+    | SLST expr                                                                                                     { StitchMultExpr(SLST, $2) }
+    | expr SLST                                                                                                     { StitchMultExpr(SLST, $1) }
+    | SLST                                                                                                          { StitchMultExpr(SLST, Int(1)) }
     | LPAREN stitch_seq RPAREN MULINT                                                                               { StitchSeqMultExpr($2, Int($4)) }
     | LPAREN stitch_seq RPAREN MULEXPR expr RPAREN                                                                  { StitchSeqMultExpr($2, $5) }
 

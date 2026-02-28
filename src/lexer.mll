@@ -80,11 +80,15 @@ rule token = parse
                                                           | Skip -> NEWLINE
                                                         }
     | ' '                                               { token lexbuf }
-    | "ch"                                              { CH }
-    | "sc"                                              { SC }
-    | "dc"                                              { DC }
-    | "inc"                                             { INC }
-    | "dec"                                             { DEC }
+    | "ch" | "CH"                                       { CH }
+    | "sc" | "SC"                                       { SC }
+    | "dc" | "DC"                                       { DC }
+    | "inc" | "INC"                                     { INC }
+    | "dec" | "DEC"                                     { DEC }
+    | "mr" | "MR"                                       { MR }
+    | "hdc" | "HDC"                                     { HDC }
+    | "tr" | "TR"                                       { TR }
+    | "sl st" | "SL ST" | "slst" | "SLST"               { SLST }
     | row_ident_regex                                   { ROW }
     | row_ident_regex ' '? (num_regex as num)           { ROWINT (int_of_string num) }
     | 'x' (num_regex as num)                            { MULINT (int_of_string num)}
@@ -146,6 +150,10 @@ rule token = parse
     | DC -> "DC"
     | INC -> "INC"
     | DEC -> "DEC"
+    | MR -> "MR"
+    | HDC -> "HDC"
+    | TR -> "TR"
+    | SLST -> "SLST"
     | ROW -> "ROW"
     | ROWINT num -> Printf.sprintf "ROWINT(%d)" num
     | MULINT num -> Printf.sprintf "MULINT(%d)" num

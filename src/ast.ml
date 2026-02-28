@@ -15,7 +15,7 @@ type var = string
 type comment =
     | Comment of string
 
-type stitch = CH | SC | DC | INC | DEC (* TStitch *)
+type stitch = CH | SC | DC | INC | DEC | MR | HDC | TR | SLST (* TStitch *)
 
 type bin_op = ADD | SUB | MUL | DIV | LT | GT | EQ | AND | OR
 type unary_op = NEG | NOT
@@ -99,6 +99,10 @@ let string_of_stitch = function
     | DC -> "DC"
     | INC -> "INC"
     | DEC -> "DEC"
+    | MR -> "MR"
+    | HDC -> "HDC"
+    | TR -> "TR"
+    | SLST -> "SLST"
 
 let string_of_bin_op = function
     | ADD -> "ADD"

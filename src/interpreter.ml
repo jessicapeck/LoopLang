@@ -95,6 +95,7 @@ let rec calculate_mult_expr_count row_num = function
         if row_num = 1 then (
             match st with
             | CH -> (n, 0)
+            | MR -> (n, 0)
             | _ -> raise (RowOneError "R1 of the pattern can only contain chain stitches")
         )
         else (
@@ -150,6 +151,10 @@ let stitch_to_str = function
     | DC -> "dc"
     | INC -> "inc"
     | DEC -> "dec"
+    | MR -> "mr"
+    | HDC -> "hdc"
+    | TR -> "tr"
+    | SLST -> "sl st"
 
 let rec mult_expr_to_str = function
     | VStitchMultExpr(st, n) -> 

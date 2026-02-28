@@ -80,7 +80,7 @@ let rec get_func_return_type env ctx f args =
 
 (* main type checking functions *)
 and check_stitch env ctx = function
-    | CH | SC | DC | INC | DEC -> TStitch
+    | CH | SC | DC | INC | DEC | MR | HDC | TR | SLST -> TStitch
 
 and check_expr env ctx expected_t_opt = function
     | Int(_) -> TInt
