@@ -32,6 +32,11 @@ Implemented stitch types include:
 `R21: sc 30 [30]`
 - the row count can optionally be specified at the end of the line using square brackets
 
+```
+R1: ch 30 [30]
+R2: dc 14, inc 2, dc 14 [32]
+```
+
 ## Comments
 ```
 <<Starting with red yarn>>
