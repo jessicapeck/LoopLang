@@ -24,16 +24,23 @@ TEST_COVERAGE_DIR = _coverage_data
 TEST_COVERAGE_DATA = $(TEST_COVERAGE_DIR)/bisect
 
 
+ifeq ($(TRACK_COVERAGE), true)
+	COVERAGE_FLAGS = -package $(TEST_COVERAGE)
+else
+	COVERAGE_FLAGS =
+endif
+
+
 # generate all files needed to create TARGET upon `make` command
 all: $(TARGET)
 
 # link everything together to create the final executable
 $(TARGET): $(CMO_FILES) $(MAIN_CMO_FILE)
-	$(OCAMLC) -g -package $(TEST_COVERAGE) -linkpkg -o $@ $^
+	$(OCAMLC) -g $(COVERAGE_FLAGS) -linkpkg -o $@ $^
 
 # compile .ml files to .cmo files
 $(SRC)/%.cmo: $(SRC)/%.ml
-	$(OCAMLC) -g -package $(TEST_COVERAGE) -I $(SRC) -c -o $@ $<
+	$(OCAMLC) -g $(COVERAGE_FLAGS) -I $(SRC) -c -o $@ $<
 
 # compile .mli files to .cmi files
 $(SRC)/%.cmi: $(SRC)/%.mli
@@ -41,7 +48,7 @@ $(SRC)/%.cmi: $(SRC)/%.mli
 
 # generate parser.ml and parser.mli from parser.mly
 $(SRC)/parser.ml $(SRC)/parser.mli: $(SRC)/parser.mly
-	$(MENHIR) --ocamlc '$(OCAMLC) -package $(TEST_COVERAGE) -I $(SRC)' --infer --base $(SRC)/parser $<
+	$(MENHIR) --ocamlc '$(OCAMLC) $(COVERAGE_FLAGS) -I $(SRC)' --infer --base $(SRC)/parser $<
 
 # specify dependency for parser.cmo
 $(SRC)/parser.cmo: $(SRC)/parser.cmi
@@ -53,11 +60,11 @@ ${SRC}/lexer.ml: ${SRC}/lexer.mll
 test: $(TEST_EXEC)
 
 $(TEST_EXEC): $(CMO_FILES) $(TEST_CMO_FILES) 
-	opam exec -- $(OCAMLC) -g -linkpkg -o $@ -package $(ALCOTEST) -package $(TEST_COVERAGE) -I $(SRC) $^
+	opam exec -- $(OCAMLC) -g -linkpkg -o $@ -package $(ALCOTEST) $(COVERAGE_FLAGS) -I $(SRC) $^
 
 # compile .ml files into object filed
 $(TEST_DIR)/%.cmo: $(TEST_DIR)/%.ml
-	opam exec -- $(OCAMLC) -g -I $(SRC) -I $(TEST_DIR) -package $(ALCOTEST) -package $(TEST_COVERAGE) -c -o $@ $<
+	opam exec -- $(OCAMLC) -g -I $(SRC) -I $(TEST_DIR) -package $(ALCOTEST) $(COVERAGE_FLAGS) -c -o $@ $<
 
 # remove all generated files
 clean:
@@ -68,9 +75,14 @@ patterns-clean:
 	rm -f test/patterns/*.txt
 
 coverage:
-	make test
+	make clean
+	make TRACK_COVERAGE=true
+	make test TRACK_COVERAGE=true
 	BISECT_FILE=$(TEST_COVERAGE_DATA) ./$(TEST_EXEC)
-	@echo "---------- REPORT WEBSITE ----------"
+	make clean
+	make
+	make test
+	@echo "\n\n---------- REPORT WEBSITE ----------"
 	bisect-ppx-report html $(TEST_COVERAGE_DIR)/*.coverage
 	@echo "Report generated in _coverage/index.html"
 	@echo "---------- REPORT SUMMARY ----------"
