@@ -64,7 +64,7 @@
         end
 }
 
-let id_regex = ['a'-'z' 'A'-'Z' '0'-'9']+
+let id_regex = ['a'-'z' 'A'-'Z' '0'-'9' '_']+
 let num_regex = ['0'-'9']+
 let bool_regex = ("true" | "True" | "TRUE" | "false" | "False" | "FALSE")
 let row_ident_regex = ('r' | 'R' | "row" | "ROW")
