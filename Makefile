@@ -82,12 +82,10 @@ patterns-clean: ## Remove all compiled results from the ./test/patterns/ directo
 
 coverage: ## Run tests with coverage tracking and generate reports
 	make clean
-	make TRACK_COVERAGE=true
-	make test TRACK_COVERAGE=true
+	make all TRACK_COVERAGE=true
 	BISECT_FILE=$(TEST_COVERAGE_DATA) ./$(TEST_EXEC)
 	make clean
-	make
-	make test
+	make all
 	@echo "\n\n---------- REPORT WEBSITE ----------"
 	bisect-ppx-report html $(TEST_COVERAGE_DIR)/*.coverage
 	@echo "Report generated in _coverage/index.html"
