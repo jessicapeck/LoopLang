@@ -37,7 +37,8 @@ let tests = [
     ("Comment within a row", "comment_in_row");
     ("Stitch types", "stitch_types");
     ("Row range", "row_range");
-    ("Variable definition in an if-else statement", "if_else_var_defs")
+    ("Variable definition in an if-else statement", "if_else_var_defs");
+    ("Unreturned row in function body", "row_not_returned")
 ]
 
 

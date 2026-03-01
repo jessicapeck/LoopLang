@@ -606,10 +606,32 @@ and eval_statement_list env stmts k_next k_ret =
     | [] -> k_next env
     | stmt::rest -> eval_statement env stmt (fun new_env -> eval_statement_list new_env rest k_next k_ret) k_ret
 
+let rec filter_rows body =
+    match body with
+    | [] -> ([], false)
+    | stmt::rest -> (
+        let filtered_rest, rest_had_rows = filter_rows rest in
+        match stmt with
+        | Row _ | RowList _ -> (filtered_rest, true)
+        | If(cond, then_branch, else_branch) ->
+            let filtered_then, then_had_rows = filter_rows then_branch in
+            let filtered_else, else_had_rows = filter_rows else_branch in
+            (If(cond, filtered_then, filtered_else) :: filtered_rest, then_had_rows || else_had_rows || rest_had_rows)
+        | For(v, lower, upper, stmts) ->
+            let filtered_stmts, stmts_had_rows = filter_rows stmts in
+            (For(v, lower, upper, filtered_stmts) :: filtered_rest, stmts_had_rows || rest_had_rows)
+        | _ -> (stmt :: filtered_rest, rest_had_rows)
+    )
+
 let eval_pattern_item env item k =
     match item with
     | FuncDef(f, params, body) ->
-        let func_data = { params = params; body = body } in
+        (* remove unreturned rows from the function body *)
+        let filtered_body, func_body_has_rows = filter_rows body in
+        if func_body_has_rows then
+            print_boxed_warning (Printf.sprintf "the function %s contains rows that are not returned" f);
+            
+        let func_data = { params = params; body = filtered_body } in
         Hashtbl.add func_defs f func_data;
         k env
     | Stmt(stmt) -> eval_statement env stmt (fun new_env -> k new_env) (fun _ -> raise (InternalInterpreterError "return statement not allowed at top level"))
