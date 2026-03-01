@@ -294,17 +294,19 @@ let rec check_statement env ctx = function
     | If(cond, then_branch, else_branch) ->
         let t_cond = check_expr env ctx (Some TBool) cond in
         if t_cond = TBool then
+            let env_then = Hashtbl.copy env in
             let (env_after_then, ret_exprs_in_then) = 
                 List.fold_left (fun (env_acc, ret_exprs_acc) stmt ->
                     let (new_env, new_ret_exprs) = check_statement env_acc ctx stmt in
                     (new_env, ret_exprs_acc @ new_ret_exprs)
-                ) (env, []) then_branch
+                ) (env_then, []) then_branch
             in
+            let env_else = Hashtbl.copy env in
             let (env_after_else, ret_exprs_in_else) = 
                 List.fold_left (fun (env_acc, ret_exprs_acc) stmt ->
                     let (new_env, new_ret_exprs) = check_statement env_acc ctx stmt in
                     (new_env, ret_exprs_acc @ new_ret_exprs)
-                ) (env, []) else_branch
+                ) (env_else, []) else_branch
             in
             (get_env_intersection env_after_then env_after_else, ret_exprs_in_then @ ret_exprs_in_else)
         else
