@@ -36,7 +36,8 @@ let tests = [
     ("Comment on its own line", "comment_statement");
     ("Comment within a row", "comment_in_row");
     ("Stitch types", "stitch_types");
-    ("Row range", "row_range")
+    ("Row range", "row_range");
+    ("Variable definition in an if-else statement", "if_else_var_defs")
 ]
 
 
@@ -59,7 +60,9 @@ let type_checker_error_tests = [
     ("Row number", "row_number", Type_checker.TypeError "row number expects TInt");
     ("Row content", "row_content", Type_checker.TypeError "variable 'z' expected TStitchSeq, but found TInt");
     ("If-else statement condition", "if_else_condition", Type_checker.TypeError "if-else statement condition expects TBool");
-    ("Row count", "row_count", Type_checker.TypeError "row count expects TInt")
+    ("Row count", "row_count", Type_checker.TypeError "row count expects TInt");
+    ("Antisymmetric variable definition", "if_else_antisymmetric_var_def", Type_checker.TypeError "undefined variable: 'seq1'");
+    ("Variable definition outside of function body", "out_of_scope_var", Type_checker.TypeError "undefined variable: 'seq1'")
 ]
 
 

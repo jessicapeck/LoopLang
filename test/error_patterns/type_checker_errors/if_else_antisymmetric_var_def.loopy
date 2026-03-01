@@ -1,0 +1,9 @@
+let flag = true
+
+if flag:
+    let seq1 = sc 10
+else:
+    let seq2 = dc 10
+
+r1: mr 10
+r2: seq1

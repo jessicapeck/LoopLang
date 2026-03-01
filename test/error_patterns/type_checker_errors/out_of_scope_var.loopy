@@ -1,0 +1,7 @@
+let seq1 = ch 10
+
+def foo():
+    let seq2 = seq1
+    return(seq2)
+
+r1: foo()
