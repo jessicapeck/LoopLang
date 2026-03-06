@@ -1,0 +1,19 @@
+<!doctype html>
+<html data-theme="autumn">
+  <head>
+    <meta charset="UTF-8">
+    <link href="style.css" rel="stylesheet" type="text/css" />
+    <title>LoopLang Compiler</title>
+  </head>
+  <body class="p-10 flex flex-col gap-4 items-start bg-base-200 min-h-screen">
+    <div class="flex gap-6 p-10">
+      <%- include('menu', { page: 'compiler' }) %>
+      <main class="flex-1">
+        <h1 class="text-3xl font-bold text-primary">LoopLang Compiler</h1>
+        <p class="text-base-content">hello world</p>
+        <input type="text" id="editor" placeholder="enter code" class="input input-bordered input-primary w-full max-w-xs">
+        <button type="button" id="compile-button" class="btn btn-secondary">Compile</button>
+      </main>
+    </div>
+  </body>
+</html>
