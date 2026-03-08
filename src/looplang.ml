@@ -93,25 +93,31 @@ let () =
         exit 1
     | Type_checker.TypeError msg ->
         close_in in_channel;
+        Interpreter.warning_messages := [];
         print_boxed_error "TypeError" msg;
         exit 1
     | Interpreter.RowNumberError msg ->
         close_in in_channel;
+        Interpreter.warning_messages := [];
         print_boxed_error "RowNumberError" msg;
         exit 1
     | Interpreter.RowOneError msg ->
         close_in in_channel;
+        Interpreter.warning_messages := [];
         print_boxed_error "RowOneError" msg;
         exit 1
     | Interpreter.RowCountError msg ->
         close_in in_channel;
+        Interpreter.warning_messages := [];
         print_boxed_error "RowCountError" msg;
         exit 1
     | Interpreter.ForLoopError msg ->
         close_in in_channel;
+        Interpreter.warning_messages := [];
         print_boxed_error "ForLoopError" msg;
         exit 1
     | Failure msg ->
         close_in in_channel;
+        Interpreter.warning_messages := [];
         Printf.eprintf "Error: %s\n" msg;
         exit 1
