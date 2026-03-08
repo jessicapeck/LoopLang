@@ -5,11 +5,15 @@
     <link href="style.css" rel="stylesheet" type="text/css" />
     <title>LoopLang Compiler</title>
   </head>
-  <body class="p-10 flex flex-col gap-4 items-start bg-base-200 min-h-screen">
-    <div class="flex gap-6 p-10">
-      <%- include('menu', { page: 'about' }) %>
+  <body class="bg-base-200 min-h-screen">
+    <div class="flex flex-row gap-6 p-10">
+
+      <aside class="w-64 flex-none">
+        <%- include('menu', { page: 'compiler' }) %>
+      </aside>
+
       <main class="flex-1">
-        <h1 class="text-3xl font-bold text-primary">about</h1>
+        <h1 class="text-3xl font-bold text-primary">About</h1>
       </main>
     </div>
   </body>

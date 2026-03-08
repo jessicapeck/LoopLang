@@ -5,14 +5,33 @@
     <link href="style.css" rel="stylesheet" type="text/css" />
     <title>LoopLang Compiler</title>
   </head>
-  <body class="p-10 flex flex-col gap-4 items-start bg-base-200 min-h-screen">
-    <div class="flex gap-6 p-10">
-      <%- include('menu', { page: 'compiler' }) %>
+  <body class="bg-base-200 min-h-screen">
+    <div class="flex flex-row gap-6 p-10">
+
+      <aside class="w-64 flex-none">
+        <%- include('menu', { page: 'compiler' }) %>
+      </aside>
+
       <main class="flex-1">
-        <h1 class="text-3xl font-bold text-primary">LoopLang Compiler</h1>
-        <p class="text-base-content">hello world</p>
-        <input type="text" id="editor" placeholder="enter code" class="input input-bordered input-primary w-full max-w-xs">
-        <button type="button" id="compile-button" class="btn btn-secondary">Compile</button>
+
+        <div class="flex w-full flex-col gap-4">
+          
+          <h1 class="text-3xl font-bold text-primary">LoopLang Compiler</h1>
+
+          <div class="flex flex-col gap-2">
+            <h2 class="text-xl font-bold text-secondary">LoopLang Code</h2>
+            <textarea class="textarea w-full h-64 resize-none" id="editor" placeholder="enter code"></textarea>
+            <button type="button" id="compile-button" class="btn btn-secondary w-full">Compile</button>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="flex flex-col gap-2">
+            <h2 class="text-xl font-bold text-secondary">Crochet Pattern</h2>
+            <textarea class="textarea w-full h-64 resize-none" id="editor" placeholder="crochet pattern" readonly></textarea>
+          </div>
+
+        </div>
       </main>
     </div>
   </body>
