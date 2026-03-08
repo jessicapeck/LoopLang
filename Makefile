@@ -4,8 +4,10 @@ MENHIR = menhir
 
 SRC = src
 TEST_DIR = test
+WEB_DIR = web
 
 TARGET = loopycompiler
+TARGET_WEB = $(WEB_DIR)/loopycompiler_web
 TEST_EXEC = $(TEST_DIR)/unit_tests
 
 ALCOTEST = alcotest
@@ -16,6 +18,9 @@ CMO_FILES = $(ML_FILES:.ml=.cmo)
 
 MAIN_FILE = $(SRC)/looplang.ml
 MAIN_CMO_FILE = $(MAIN_FILE:.ml=.cmo)
+
+MAIN_FILE_WEB = $(SRC)/looplang_web.ml
+MAIN_CMO_FILE_WEB = $(MAIN_FILE_WEB:.ml=.cmo)
 
 TEST_ML_FILES = $(TEST_DIR)/test_utils.ml $(TEST_DIR)/unit_tests.ml
 TEST_CMO_FILES = $(TEST_ML_FILES:.ml=.cmo)
@@ -38,12 +43,19 @@ help: ## Show help
 
 all: ## Build the compiler and unit test executables
 	make compiler
+	make web-compiler
 	make test
 
 compiler: $(TARGET) ## Build the ./loopycompiler executable
 
 # link everything together to create the final executable
 $(TARGET): $(CMO_FILES) $(MAIN_CMO_FILE)
+	$(OCAMLC) -g $(COVERAGE_FLAGS) -linkpkg -o $@ $^
+
+web-compiler: $(TARGET_WEB) ## Build the ./web/loopycompiler_web executable
+
+# link everything together to create the final executable
+$(TARGET_WEB): $(CMO_FILES) $(MAIN_CMO_FILE_WEB)
 	$(OCAMLC) -g $(COVERAGE_FLAGS) -linkpkg -o $@ $^
 
 # compile .ml files to .cmo files
@@ -75,7 +87,7 @@ $(TEST_DIR)/%.cmo: $(TEST_DIR)/%.ml
 	opam exec -- $(OCAMLC) -g -I $(SRC) -I $(TEST_DIR) -package $(ALCOTEST) $(COVERAGE_FLAGS) -c -o $@ $<
 
 clean: ## Remove all generated files
-	rm -f $(SRC)/*.cmi $(SRC)/*.cmo $(SRC)/*.cmx $(SRC)/lexer.ml $(SRC)/parser.ml $(SRC)/parser.mli $(TARGET) $(TEST_DIR)/*.cmi $(TEST_DIR)/*.cmo $(TEST_EXEC)
+	rm -f $(SRC)/*.cmi $(SRC)/*.cmo $(SRC)/*.cmx $(SRC)/lexer.ml $(SRC)/parser.ml $(SRC)/parser.mli $(TARGET) $(TEST_DIR)/*.cmi $(TEST_DIR)/*.cmo $(TEST_EXEC) $(TARGET_WEB)
 
 patterns-clean: ## Remove all compiled results from the ./test/patterns/ directory
 	rm -f test/patterns/*.txt
