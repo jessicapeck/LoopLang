@@ -1,8 +1,4 @@
 async function compile() {
-    // debug test
-    console.log('Compiling code...');
-
-    // get code from the input area
     const editor = document.getElementById('editor');
     const codeInput = editor.value;
 
@@ -23,10 +19,23 @@ async function compile() {
     } else {
         outputArea.textContent = data.result;
     }
-
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     const compileButton = document.getElementById('compile-button');
     compileButton.addEventListener('click', compile);
+
+    const editor = document.getElementById('editor');
+    editor.addEventListener('keydown', function(e) {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+
+            this.value = this.value.substring(0, start) + '\t' + this.value.substring(end);
+
+            this.selectionStart = this.selectionEnd = start + 1;
+        }
+    });
 });
