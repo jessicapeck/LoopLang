@@ -1,18 +1,32 @@
-
-
-const compileButton = document.getElementById('compile-button');
-compileButton.addEventListener('click', compile);
-
 async function compile() {
+    // debug test
+    console.log('Compiling code...');
+
     // get code from the input area
     const editor = document.getElementById('editor');
-    const code = editor.value;
+    const codeInput = editor.value;
 
-    // make POST request to the server with the code
-    
-    // await response from server
+    const outputArea = document.getElementById('output-area');
 
-    // handle errors and warnings if there are any
+    const response = await fetch('/compile', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ code: codeInput })
+    });
 
-    // display the compiled code in the output area
+    const data = await response.json();
+
+    if (data.error) {
+        outputArea.textContent = data.error;
+    } else {
+        outputArea.textContent = data.result;
+    }
+
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const compileButton = document.getElementById('compile-button');
+    compileButton.addEventListener('click', compile);
+});
