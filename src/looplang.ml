@@ -73,7 +73,7 @@ let () =
         write_result_to_file output_filename result;
         (* List.iter print_string result *)
 
-        let success_msg = (green "Pattern compiled successfully! ") ^ (Printf.sprintf "Result written to %s" output_filename) in
+        let success_msg = (green "Compilation successful! ") ^ (Printf.sprintf "Result written to %s" output_filename) in
 
         (* print warnings if there are any *)
         List.iter print_boxed_warning (List.rev !Interpreter.warning_messages);
