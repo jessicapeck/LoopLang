@@ -40,7 +40,7 @@ let () =
 
         let result = Interpreter.eval_pattern ast in
         let combined_result = String.concat "\n" result in
-        let warnings = !Interpreter.warning_messages in
+        let warnings = List.rev !Interpreter.warning_messages in
         Interpreter.warning_messages := [];
         construct_json combined_result warnings ""
 
