@@ -43,14 +43,14 @@ function displayErrors(errorMessage) {
     outputArea.textContent = '';
 
     // display the error message in the terminal
-    const formattedMessage = `<span class="text-error font-bold">ERROR</span>: ${errorMessage}`;
+    const formattedMessage = `<span class="text-error font-bold">ERROR</span> ${errorMessage}`;
     addTerminalLine(formattedMessage);
 }
 
 function displayWarnings(warnings) {
     // add all warning messages to the terminal
     warnings.forEach((warning) => {
-        const formattedMessage = `<span class="text-warning font-bold">WARNING</span>: ${warning}`;
+        const formattedMessage = `<span class="text-warning font-bold">WARNING</span> ${warning}`;
         addTerminalLine(formattedMessage);
     });
 }
