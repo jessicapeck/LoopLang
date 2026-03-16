@@ -8,6 +8,7 @@ _build
 _build/*
 
 questions.txt
+commands.txt
 
 test/patterns/*.txt
 

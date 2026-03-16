@@ -41,19 +41,8 @@ let next_row_number = ref 1
 (* prev_row_count keeps track of the row count of the previous row *)
 let prev_row_count = ref 0
 
-
-(* PRETTY PRINT FUNCTION FOR WARNINGS *)
-
-let print_boxed_warning warning_msg =
-    let yellow s = "\x1b[33m" ^ s ^ "\x1b[0m" in
-    let width = max (String.length "Warning") (String.length warning_msg) in
-    let border = yellow ("+-" ^ (String.make width '-') ^ "-+") in
-    let pipe = yellow "|" in
-
-    Printf.printf "%s\n" border;
-    Printf.printf "%s %s%s %s\n" pipe "Warning" (String.make (width - String.length "Warning") ' ') pipe;
-    Printf.printf "%s %s%s %s\n" pipe warning_msg (String.make (width - String.length warning_msg) ' ') pipe;
-    Printf.printf "%s\n" border
+(* holds warning messages *)
+let warning_messages = ref []
 
 
 (* UNWRAPPER FUNCTIONS *)
@@ -456,7 +445,7 @@ and eval_statement env stmt k_next k_ret =
                     raise (RowCountError (Printf.sprintf "row number %d is built on top of %d stitches which is inconsistent with the previous row count of %d" row_num used_stitch_count !prev_row_count));
 
                 if not (given_row_count_correct count_opt row_count) then
-                    print_boxed_warning (Printf.sprintf "the given row count for row number %d was incorrect, this has been corrected in the result" row_num);
+                    warning_messages := (Printf.sprintf "the given row count for row number %d was incorrect, this has been corrected in the result" row_num) :: !warning_messages;
 
                 (* update result, row count, and row number states *)
                 let row_str = row_to_str row_eval row_count in
@@ -483,8 +472,8 @@ and eval_statement env stmt k_next k_ret =
                     if used_stitch_count <> !prev_row_count then
                         raise (RowCountError (Printf.sprintf "row number %d is built on top of %d stitches which is inconsistent with the previous row count of %d" row_num used_stitch_count !prev_row_count));
 
-                    if not (given_row_count_correct count_opt row_count) then 
-                        Printf.eprintf "WARNING: the given row count for row number %d was incorrect, this has been corrected in the result\n" row_num;
+                    if not (given_row_count_correct count_opt row_count) then
+                        warning_messages := (Printf.sprintf "the given row count for row number %d was incorrect, this has been corrected in the result" row_num) :: !warning_messages; 
 
                     (* update row count *)
                     prev_row_count := row_count;
@@ -521,7 +510,7 @@ and eval_statement env stmt k_next k_ret =
                         raise (RowCountError (Printf.sprintf "row number %d is built on top of %d stitches which is inconsistent with the previous row count of %d" row_num used_stitch_count !prev_row_count));
 
                     if not (given_row_count_correct count_opt row_count) then 
-                        Printf.eprintf "WARNING: the given row count for row number %d was incorrect, this has been corrected in the result\n" row_num;
+                        warning_messages := (Printf.sprintf "the given row count for row number %d was incorrect, this has been corrected in the result" row_num) :: !warning_messages;
 
                     (* update result, row count, and row number states *)
                     let row_str = row_to_str row_eval row_count in
@@ -546,7 +535,7 @@ and eval_statement env stmt k_next k_ret =
                             raise (RowCountError (Printf.sprintf "row number %d is built on top of %d stitches which is inconsistent with the previous row count of %d" row_num used_stitch_count !prev_row_count));
 
                         if not (given_row_count_correct count_opt row_count) then 
-                            Printf.eprintf "WARNING: the given row count for row number %d was incorrect, this has been corrected in the result\n" row_num;
+                            warning_messages := (Printf.sprintf "the given row count for row number %d was incorrect, this has been corrected in the result" row_num) :: !warning_messages;
 
                         (* update row count *)
                         prev_row_count := row_count;
@@ -629,7 +618,7 @@ let eval_pattern_item env item k =
         (* remove unreturned rows from the function body *)
         let filtered_body, func_body_has_rows = filter_rows body in
         if func_body_has_rows then
-            print_boxed_warning (Printf.sprintf "the function %s contains rows that are not returned" f);
+            warning_messages := (Printf.sprintf "the function %s contains rows that are not returned" f) :: !warning_messages;
             
         let func_data = { params = params; body = filtered_body } in
         Hashtbl.add func_defs f func_data;
