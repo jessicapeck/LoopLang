@@ -62,16 +62,8 @@ function displaySuccessMessage() {
 
 async function compile() {
     const codeInput = editor.value;
-
-    const response = await fetch('/compile', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ code: codeInput })
-    });
-
-    const data = await response.json();
+    const jsonStrResult = LoopyCompiler.compile(codeInput)
+    const data = JSON.parse(jsonStrResult)
 
     // clear the terminal
     clearTerminal();

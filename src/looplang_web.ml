@@ -1,3 +1,4 @@
+open Js_of_ocaml
 open Lexing
 open Ast
 
@@ -20,7 +21,7 @@ let construct_json result warnings error_msg =
     let warnings_list = List.map (fun w -> Printf.sprintf "\"%s\"" (escape_json_str w)) warnings in
     let warnings_str = Printf.sprintf "[%s]" (String.concat ", " warnings_list) in
     let json_str = Printf.sprintf "{ \"result\": \"%s\", \"warnings\": %s, \"error\": \"%s\" }" (escape_json_str result) warnings_str (escape_json_str error_msg) in
-    Printf.printf "%s\n" json_str
+    Printf.sprintf "%s\n" json_str
 
 let construct_err_json error_msg =
     let warnings = !Interpreter.warning_messages in
@@ -30,8 +31,7 @@ let construct_err_json error_msg =
 
 (* compilation logic *)
 
-let () =
-    let code_str = Sys.argv.(1) in
+let get_compile_results code_str =
     let lexbuf = Lexing.from_string code_str in
     try
         let ast = Parser.pattern Lexer.next_token lexbuf in
@@ -68,3 +68,12 @@ let () =
     | Failure msg ->
         let error_msg = ("Error: " ^ msg) in
         construct_err_json error_msg
+
+
+let () =
+    Js.export "LoopyCompiler" (object%js
+        method compile code_str = 
+            let ocaml_code_str = Js.to_string code_str in
+            let json_result = get_compile_results ocaml_code_str in
+            Js.string json_result
+        end)
