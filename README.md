@@ -3,10 +3,20 @@
 ## Setup and execution
 
 ### Makefile commands
-- `make` to build the `./loopycompiler` executable
-- `make test` to build the `./test/unit_tests` executable
-- `make clean` to remove all generated files
-- `make patterns-clean` to remove all compiled results from the `./test/patterns/` directory
+```
+> make help
+Usage: make [target]
+
+Targets:
+  help            Show help
+  all             Build the compiler and unit test executables
+  compiler        Build the ./loopycompiler executable
+  web-compiler    Build the ./web/public/loopycompiler.js file
+  test            Build the ./test/unit_tests executable
+  clean           Remove all generated files
+  patterns-clean  Remove all compiled results from the ./test/patterns/ directory
+  coverage        Run tests with coverage tracking and generate reports
+```
 
 ### Running the compiler
 Executing the following command will compile the given `.loopy` file into a `.txt` file of the same filename.
