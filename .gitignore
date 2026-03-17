@@ -12,6 +12,9 @@ commands.txt
 
 test/patterns/*.txt
 
+test/user_study_patterns
+test/user_stidy_patterns/*
+
 _coverage
 _coverage/*
 

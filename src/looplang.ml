@@ -85,12 +85,13 @@ let () =
     | Parser.Error ->
         close_in in_channel;
         let pos = lexbuf.lex_curr_p in
-        Printf.eprintf "Syntax error at line %d, column %d\n" pos.pos_lnum (pos.pos_cnum - pos.pos_bol + 1);
+        let msg = Printf.sprintf "Syntax error at line %d, column %d" pos.pos_lnum (pos.pos_cnum - pos.pos_bol + 1) in
+        print_boxed_error "SyntaxError" msg;
+        exit 1
         (* Printf.eprintf "--- Tokens seen up to error ---\n";
         List.iter (fun token ->
             Printf.eprintf "%s\n" (Lexer.string_of_token token)
         ) (List.rev !tokens); *)
-        exit 1
     | Type_checker.TypeError msg ->
         close_in in_channel;
         Interpreter.warning_messages := [];
@@ -119,5 +120,5 @@ let () =
     | Failure msg ->
         close_in in_channel;
         Interpreter.warning_messages := [];
-        Printf.eprintf "Error: %s\n" msg;
+        print_boxed_error "Error" msg;
         exit 1

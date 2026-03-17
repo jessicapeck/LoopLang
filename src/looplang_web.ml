@@ -48,7 +48,7 @@ let get_compile_results code_str =
     | Parser.Error ->
         let pos = lexbuf.lex_curr_p in
         let msg = Printf.sprintf "syntax error at line %d, column %d" pos.pos_lnum (pos.pos_cnum - pos.pos_bol + 1) in
-        let error_msg = ("ParserError: " ^ msg) in
+        let error_msg = ("SyntaxError: " ^ msg) in
         construct_err_json error_msg
     | Type_checker.TypeError msg ->
         let error_msg = ("TypeError: " ^ msg) in

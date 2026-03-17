@@ -108,7 +108,7 @@ let rec calculate_mult_expr_count row_num = function
             match st with
             | CH -> (n, 0)
             | MR -> (n, 0)
-            | _ -> raise (RowOneError "R1 of the pattern can only contain chain stitches")
+            | _ -> raise (RowOneError "R1 of the pattern can only contain chain stitches or a magic ring")
         )
         else (
             match st with
