@@ -105,7 +105,8 @@ patterns-clean: ## Remove all compiled results from the ./test/patterns/ directo
 
 coverage: ## Run tests with coverage tracking and generate reports
 	make clean
-	make all TRACK_COVERAGE=true
+	make compiler TRACK_COVERAGE=true
+	make test TRACK_COVERAGE=true
 	BISECT_FILE=$(TEST_COVERAGE_DATA) ./$(TEST_EXEC)
 	make clean
 	make all
