@@ -2,10 +2,12 @@
 <html data-theme="autumn">
   <head>
     <meta charset="UTF-8">
+    <script src="main.js"></script>
+    <script src="loopycompiler.js"></script>
     <link href="style.css" rel="stylesheet" type="text/css" />
     <title>LoopLang Compiler</title>
   </head>
-  <body class="bg-base-200 h-screen overflow-hidden">
+  <body class="bg-base-200 min-h-screen">
     <div class="flex flex-row gap-6 p-10 h-full">
 
       <aside class="w-64 flex-none">
@@ -39,13 +41,30 @@
         </ul>
       </aside>
 
-      <main class="flex-1 h-full flex flex-col">
+      <main class="flex-1 h-full flex flex-col min-w-0">
 
-        <div class="flex w-full flex-col gap-2 flex-1">
+        <div class="flex w-full flex-col gap-2 flex-1 min-w-0">
           
           <h1 class="text-3xl font-bold text-primary mb-4">About</h1>
 
-          <p>about</p>
+          <h2 class="text-xl font-bold text-secondary">Welcome to LoopLang!</h2>
+
+          <p>LoopLang is a domain-specific language for crochet patterns.</p>
+
+          <p>Despite traditionally being viewed as a purely artistic hobby, there are strong links between crochet and programming. LoopLang has been designed to exploit the similarities between crochet and programming to enable people to write crochet patterns more efficiently and with fewer mistakes.</p>
+
+          <p>Navigate to the <a href="docs.html" class="link text-secondary">Documentation</a> page to learn about the LoopLang syntax!</p>
+
+          <h2 class="text-xl font-bold text-secondary">The Compiler</h2>
+
+          <p>The LoopLang language comes with a compiler which validates the LoopLang program and converts it into a traditional crochet pattern.</p>
+
+          <p>You can try this out on the <a href="index.html" class="link text-secondary">Compiler</a> page!</p>
+
+          <h2 class="text-xl font-bold text-secondary">Source</h2>
+          <p>Take a look at the source code for this project in the <a href="https://github.com/jessicapeck/LoopLang" target="_blank" rel="noopener noreferrer" class="link text-secondary">LoopLang GitHub repository</a>.</p>
+
+
         </div>
       </main>
     </div>
