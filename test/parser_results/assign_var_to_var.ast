@@ -1,1 +1,1 @@
-Pattern([Stmt(LetDef(DefStitchSeq(seq, StitchSeq([StitchSeqItem(StitchMultExpr(CH, Int(30)), None)])))), Stmt(LetDef(DefVar(new_seq, seq))), Stmt(LetDef(DefExpr(num, Int(1)))), Stmt(LetDef(DefVar(new_num, num))), Stmt(Row(RowLit(Var(num), StitchSeqVar(new_seq), None, None)))])
+Pattern([Stmt(LetDef(DefStitchSeq(seq, StitchSeq([StitchSeqItem(StitchMultExpr(CH, Int(30)), None)])))), Stmt(LetDef(DefVar(new_seq, seq))), Stmt(LetDef(DefExpr(num, Int(1)))), Stmt(LetDef(DefVar(new_num, num))), Stmt(Row(RowLit(ExprVar(num), StitchSeqVar(new_seq), None, None)))])

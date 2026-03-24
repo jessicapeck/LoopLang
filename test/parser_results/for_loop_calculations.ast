@@ -1,1 +1,1 @@
-Pattern([Stmt(LetDef(DefExpr(x, Int(1)))), Stmt(For(i, Int(1), Int(5), [LetDef(DefExpr(x, BinOp(Var(x), MUL, Var(i))))])), Stmt(Row(RowLit(Int(1), StitchSeq([StitchSeqItem(StitchMultExpr(CH, Var(x)), None)]), None, None)))])
+Pattern([Stmt(LetDef(DefExpr(x, Int(1)))), Stmt(For(i, Int(1), Int(5), [LetDef(DefExpr(x, BinOp(ExprVar(x), MUL, ExprVar(i))))])), Stmt(Row(RowLit(Int(1), StitchSeq([StitchSeqItem(StitchMultExpr(CH, ExprVar(x)), None)]), None, None)))])

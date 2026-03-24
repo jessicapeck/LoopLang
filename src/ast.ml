@@ -131,7 +131,7 @@ let rec string_of_func_call f args = Printf.sprintf "%s, [%s]" f (String.concat 
 and string_of_expr = function
     | Int(n) -> Printf.sprintf "Int(%d)" n
     | Bool(b) -> Printf.sprintf "Bool(%b)" b
-    | ExprVar(v) -> Printf.sprintf "Var(%s)" v
+    | ExprVar(v) -> Printf.sprintf "ExprVar(%s)" v
     | ExprFuncCall(f, args) -> Printf.sprintf "ExprFuncCall(%s)" (string_of_func_call f args)
     | BinOp(left, op, right) -> Printf.sprintf "BinOp(%s, %s, %s)" (string_of_expr left) (string_of_bin_op op) (string_of_expr right)
     | UnaryOp(op, e) -> Printf.sprintf "UnaryOp(%s, %s)" (string_of_unary_op op) (string_of_expr e)
