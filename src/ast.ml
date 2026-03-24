@@ -10,7 +10,6 @@ type t =
 
 type env = (string * t) list
 
-type var = string
 
 type comment =
     | Comment of string
@@ -20,13 +19,16 @@ type stitch = CH | SC | DC | INC | DEC | MR | HDC | TR | SLST (* TStitch *)
 type bin_op = ADD | SUB | MUL | DIV | LT | GT | EQ | AND | OR
 type unary_op = NEG | NOT
 
-type expr = 
+type var = string
+type func_call = var * argument list (* func name, args *)
+
+and expr = 
     | Int of int (* TInt *)
     | Bool of bool (* TBool *)
-    | Var of var
+    | ExprVar of var
+    | ExprFuncCall of func_call (* for functions that return: TInt, TBool, TStitch *)
     | BinOp of expr * bin_op * expr
     | UnaryOp of unary_op * expr
-    | ExprFuncCall of var * argument list (* func name, args *) (* for functions that return: TInt, TBool, TStitch *)
 and mult_expr = 
     | StitchMultExpr of stitch * expr (* TStitchSeqItem *)
     | StitchSeqMultExpr of stitch_seq * expr (* TStitchSeqItem *)
@@ -34,32 +36,37 @@ and mult_expr =
 and stitch_seq_item =
     | StitchSeqItem of mult_expr * comment option
     | StitchSeqItemVar of var
-    | StitchSeqItemFuncCall of var * argument list (* func name, args *) (* for functions that return: TStitchSeq, but are used within another stitch seq *)
+    | StitchSeqItemFuncCall of func_call (* for functions that return: TStitchSeq, but are used within another stitch seq *)
 and stitch_seq =
     | StitchSeq of stitch_seq_item list (* TStitchSeq *)
     | StitchSeqVar of var
-    | StitchSeqFuncCall of var * argument list (* func name, args *) (* for functions that return: TStitchSeq *)
-and argument = 
-    | ExprArg of expr
-    | StitchSeqArg of stitch_seq
+    | StitchSeqFuncCall of func_call (* for functions that return: TStitchSeq *)
 
-type row_lit =
+and argument = 
+    | ArgVar of var
+    | ArgFuncCall of func_call
+    | ArgExpr of expr
+    | ArgStitchSeq of stitch_seq
+    | ArgRowLit of row_lit list
+
+and row_lit =
     | RowLit of expr * stitch_seq * expr option * comment option (* row number, stitch list, row count, comment *) (* TRow *)
     | RowRangeLit of (expr * expr) * stitch_seq * expr option * comment option (* (lower bound row number, upper bound row number), stitch list, row count, comment *) (* TRow *)
 
 type row_expr =
     | RowVar of var (* TRowList *)
-    | RowFuncCall of var * argument list (* func name, args *) (* for functions that return: TRowList *)
+    | RowFuncCall of func_call (* for functions that return: TRowList *)
 
 type row_list_item =
     | RowLitItem of row_lit
     | RowExpr of row_expr
 
 type definition =
-    | ExprDef of var * expr
-    | StitchSeqDef of var * stitch_seq
-    | RowListDef of var * row_list_item list
-    | FuncCallDef of var * var * argument list  (* variable name, func name, args *)
+    | DefVar of var * var
+    | DefFuncCall of var * func_call (* variable name, func name, args *)
+    | DefExpr of var * expr
+    | DefStitchSeq of var * stitch_seq
+    | DefRowList of var * row_list_item list
 
 type return_expr = 
     | ReturnExpr of expr
@@ -120,29 +127,34 @@ let string_of_unary_op = function
     | NEG -> "NEG"
     | NOT -> "NOT"
 
-let rec string_of_expr = function
+let rec string_of_func_call f args = Printf.sprintf "%s, [%s]" f (String.concat ", " (List.map string_of_argument args))
+and string_of_expr = function
     | Int(n) -> Printf.sprintf "Int(%d)" n
     | Bool(b) -> Printf.sprintf "Bool(%b)" b
-    | Var(v) -> Printf.sprintf "Var(%s)" v
+    | ExprVar(v) -> Printf.sprintf "Var(%s)" v
+    | ExprFuncCall(f, args) -> Printf.sprintf "ExprFuncCall(%s)" (string_of_func_call f args)
     | BinOp(left, op, right) -> Printf.sprintf "BinOp(%s, %s, %s)" (string_of_expr left) (string_of_bin_op op) (string_of_expr right)
     | UnaryOp(op, e) -> Printf.sprintf "UnaryOp(%s, %s)" (string_of_unary_op op) (string_of_expr e)
-    | ExprFuncCall(f, args) -> Printf.sprintf "ExprFuncCall(%s, [%s])" f (String.concat ", " (List.map string_of_argument args))
 and string_of_mult_expr = function
     | StitchMultExpr(s, n) -> Printf.sprintf "StitchMultExpr(%s, %s)" (string_of_stitch s) (string_of_expr n)
     | StitchSeqMultExpr(seq, n) -> Printf.sprintf "StitchSeqMultExpr(%s, %s)" (string_of_stitch_seq seq) (string_of_expr n)
 and string_of_stitch_seq_item = function
     | StitchSeqItem(m, c_opt) -> Printf.sprintf "StitchSeqItem(%s, %s)" (string_of_mult_expr m) (string_of_option c_opt string_of_comment)
     | StitchSeqItemVar(v) -> Printf.sprintf "StitchSeqItemVar(%s)" v
-    | StitchSeqItemFuncCall(f, args) -> Printf.sprintf "StitchSeqItemFuncCall(%s, [%s])" f (String.concat ", " (List.map string_of_argument args))
+    | StitchSeqItemFuncCall(f, args) -> Printf.sprintf "StitchSeqItemFuncCall(%s)" (string_of_func_call f args)
 and string_of_stitch_seq = function
     | StitchSeq(seq) -> Printf.sprintf "StitchSeq([%s])" (String.concat ", " (List.map string_of_stitch_seq_item seq))
     | StitchSeqVar(v) -> Printf.sprintf "StitchSeqVar(%s)" v
-    | StitchSeqFuncCall(f, args) -> Printf.sprintf "StitchSeqFuncCall(%s, [%s])" f (String.concat ", " (List.map string_of_argument args))
-and string_of_argument = function
-    | ExprArg(n) -> Printf.sprintf "ExprArg(%s)" (string_of_expr n)
-    | StitchSeqArg(seq) -> Printf.sprintf "StitchSeqArg(%s)" (string_of_stitch_seq seq)
+    | StitchSeqFuncCall(f, args) -> Printf.sprintf "StitchSeqFuncCall(%s)" (string_of_func_call f args)
 
-let string_of_row_lit = function
+and string_of_argument = function
+    | ArgVar(v) -> Printf.sprintf "ArgVar(%s)" v
+    | ArgFuncCall(f, args) -> Printf.sprintf "ArgFuncCall(%s)" (string_of_func_call f args)
+    | ArgExpr(n) -> Printf.sprintf "ArgExpr(%s)" (string_of_expr n)
+    | ArgStitchSeq(seq) -> Printf.sprintf "ArgStitchSeq(%s)" (string_of_stitch_seq seq)
+    | ArgRowLit([r]) -> Printf.sprintf "ArgRowLit([%s])" (string_of_row_lit r) 
+
+and string_of_row_lit = function
     | RowLit(n1, seq, count_opt, c_opt) -> Printf.sprintf "RowLit(%s, %s, %s, %s)" (string_of_expr n1) (string_of_stitch_seq seq) (string_of_option count_opt string_of_expr) (string_of_option c_opt string_of_comment)
     | RowRangeLit((lower, upper), seq, count_opt, c_opt) -> Printf.sprintf "RowRangeLit((%s, %s), %s, %s, %s)" (string_of_expr lower) (string_of_expr upper) (string_of_stitch_seq seq) (string_of_option count_opt string_of_expr) (string_of_option c_opt string_of_comment)
 
@@ -155,10 +167,11 @@ let string_of_row_list_item = function
     | RowExpr(e) -> Printf.sprintf "RowExpr(%s)" (string_of_row_expr e)
 
 let string_of_definition = function
-    | ExprDef(v, n) -> Printf.sprintf "ExprDef(%s, %s)" v (string_of_expr n)
-    | StitchSeqDef(v, seq) -> Printf.sprintf "StitchSeqDef(%s, %s)" v (string_of_stitch_seq seq)
-    | RowListDef(v, e) -> Printf.sprintf "RowListDef(%s, [%s])" v (String.concat ", " (List.map string_of_row_list_item e))
-    | FuncCallDef(v, f, args) -> Printf.sprintf "FuncCallDef(%s, %s, [%s])" v f (String.concat ", " (List.map string_of_argument args))
+    | DefVar(v1, v2) -> Printf.sprintf "DefVar(%s, %s)" v1 v2
+    | DefFuncCall(v, (f, args)) -> Printf.sprintf "DefFuncCall(%s, (%s))" v (string_of_func_call f args)
+    | DefExpr(v, n) -> Printf.sprintf "DefExpr(%s, %s)" v (string_of_expr n)
+    | DefStitchSeq(v, seq) -> Printf.sprintf "DefStitchSeq(%s, %s)" v (string_of_stitch_seq seq)
+    | DefRowList(v, e) -> Printf.sprintf "DefRowList(%s, [%s])" v (String.concat ", " (List.map string_of_row_list_item e))
 
 let string_of_return_expr = function
     | ReturnExpr(n) -> Printf.sprintf "ReturnExpr(%s)" (string_of_expr n)

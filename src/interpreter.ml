@@ -241,7 +241,8 @@ and eval_expr env e k =
     match e with
     | Int(n) -> k (VInt(n))
     | Bool(b) -> k (VBool(b))
-    | Var(var) -> k (Hashtbl.find env var)
+    | ExprVar(var) -> k (Hashtbl.find env var)
+    | ExprFuncCall(f, args) -> eval_function_call env f args k
     | BinOp(e1, op, e2) -> (
         eval_expr env e1 (fun e1_eval ->
             eval_expr env e2 (fun e2_eval ->
@@ -287,7 +288,6 @@ and eval_expr env e k =
                 k (VBool(not b))
         )
     )
-    | ExprFuncCall(f, args) -> eval_function_call env f args k
 
 (* returns VStitchMultExpr or VStitchSeqMultExpr *)
 and eval_mult_expr env mult_expr k =
@@ -337,8 +337,14 @@ and eval_stitch_seq env seq k =
 (* returns VInt, VBool, or VStitchSeq *)
 and eval_argument env arg k =
     match arg with
-    | ExprArg(e) -> eval_expr env e k
-    | StitchSeqArg(seq) -> eval_stitch_seq env seq k
+    | ArgVar(var) -> k (Hashtbl.find env var)
+    | ArgFuncCall(f, args) -> eval_function_call env f args k
+    | ArgExpr(e) -> eval_expr env e k
+    | ArgStitchSeq(seq) -> eval_stitch_seq env seq k
+    | ArgRowLit([row_lit]) -> 
+        eval_row_lit env row_lit (fun row_lit_eval ->
+            k (VRowList([row_lit_eval]))
+        )
 
 (* returns VRow or VRowRange *)
 and eval_row_lit env row_lit k =
@@ -384,25 +390,29 @@ and eval_row_list_item env item k =
 (* returns the environment because the environment is being changed *)
 and eval_definition env definition k =
     match definition with
-    | ExprDef(var, e) ->
+    | DefVar(var1, var2) -> 
+        let var2_eval = Hashtbl.find env var2 in
+        Hashtbl.add env var1 var2_eval;
+        k env
+    | DefFuncCall(var, (f, args)) ->
+        eval_function_call env f args (fun func_eval ->
+            Hashtbl.add env var func_eval;
+            k env
+        )
+    | DefExpr(var, e) ->
         eval_expr env e (fun e_eval ->
             Hashtbl.add env var e_eval;
             k env
         )
-    | StitchSeqDef(var, seq) ->
+    | DefStitchSeq(var, seq) ->
         eval_stitch_seq env seq (fun seq_eval ->
             Hashtbl.add env var seq_eval;
             k env
         )
-    | RowListDef(var, row_list) ->
+    | DefRowList(var, row_list) ->
         map_cps eval_row_list_item env row_list (fun row_list_items ->
             let flattened_row_list_items = List.flatten (List.map unwrap_nested_rows row_list_items) in
             Hashtbl.add env var (VRowList(flattened_row_list_items));
-            k env
-        )
-    | FuncCallDef(var, f, args) ->
-        eval_function_call env f args (fun func_eval ->
-            Hashtbl.add env var func_eval;
             k env
         )
 

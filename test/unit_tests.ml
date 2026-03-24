@@ -78,8 +78,8 @@ let row_number_error_tests = [
 
 
 let row_one_error_tests = [
-    ("No chains in R1", "no_chains", Interpreter.RowOneError "R1 of the pattern can only contain chain stitches");
-    ("Chains and other stitches in R1", "chains_and_other_stitches", Interpreter.RowOneError "R1 of the pattern can only contain chain stitches")
+    ("No chains in R1", "no_chains", Interpreter.RowOneError "R1 of the pattern can only contain chain stitches or a magic ring");
+    ("Chains and other stitches in R1", "chains_and_other_stitches", Interpreter.RowOneError "R1 of the pattern can only contain chain stitches or a magic ring")
 ]
 
 

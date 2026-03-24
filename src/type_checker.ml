@@ -75,22 +75,19 @@ let rec get_func_return_type env ctx f args =
         if check_arg_types env ctx param_types args then
             return_type
         else
-            raise (TypeError "argument types do not match expected parameter types")
+            raise (TypeError (Printf.sprintf"argument types do not match expected parameter types (%s) for function '%s'" (String.concat ", " (List.map string_of_type param_types)) f))
 
 
 (* main type checking functions *)
 and check_stitch env ctx = function
     | CH | SC | DC | INC | DEC | MR | HDC | TR | SLST -> TStitch
 
-and check_expr env ctx expected_t_opt = function
-    | Int(_) -> TInt
-    | Bool(_) -> TBool
-    | Var(v) -> (
-        match Hashtbl.find_opt env v with
-        | Some(t) -> t
+and get_var_type env ctx expected_t_opt v = 
+    match Hashtbl.find_opt env v with
+        | Some(t) -> t (* if v is in env, return its type*)
         | None -> (
             match expected_t_opt with
-            | Some(expected_t) -> update_ctx ctx v expected_t
+            | Some(expected_t) -> update_ctx ctx v expected_t (* return type inferred from context *)
             | None -> (
                 (* check if previously inferred *)
                 match Hashtbl.find_opt ctx v with
@@ -102,7 +99,12 @@ and check_expr env ctx expected_t_opt = function
                 | None -> raise (TypeError ("undefined variable: '" ^ v ^ "'"))
             )
         )
-    )
+
+and check_expr env ctx expected_t_opt = function
+    | Int(_) -> TInt
+    | Bool(_) -> TBool
+    | ExprVar(v) -> get_var_type env ctx expected_t_opt v
+    | ExprFuncCall(f, args) -> get_func_return_type env ctx f args
     | BinOp(e1, op, e2) -> (
         match op with
         | ADD | SUB | MUL | DIV ->
@@ -132,7 +134,6 @@ and check_expr env ctx expected_t_opt = function
             if t = TBool then TBool
             else raise (TypeError "unary logical operations expect a TBool operand")
     )
-    | ExprFuncCall(f, args) -> get_func_return_type env ctx f args
 
 and check_mult_expr env ctx = function
     | StitchMultExpr(st, e) ->
@@ -149,10 +150,7 @@ and check_mult_expr env ctx = function
 and check_stitch_seq_item env ctx = function
     | StitchSeqItem(mexpr, c_opt) -> check_mult_expr env ctx mexpr
     | StitchSeqItemVar(v) ->
-        let t =
-            try Hashtbl.find env v
-            with Not_found -> raise (TypeError ("undefined variable: '" ^ v ^ "'"))
-        in
+        let t = get_var_type env ctx (Some TStitchSeq) v in
         if t = TStitchSeq then TStitchSeqItem
         else raise (TypeError (Printf.sprintf "variable '%s' expected TStitchSeq, but found %s" v (string_of_type t)))
     | StitchSeqItemFuncCall(f, args) ->
@@ -168,22 +166,24 @@ and check_stitch_seq env ctx expected_t = function
         ) seq;
         TStitchSeq
     | StitchSeqVar(v) ->
-        let t_v =
-            match Hashtbl.find_opt env v with
-            | Some(t) -> t
-            | None -> update_ctx ctx v expected_t
-        in
-        if t_v = TStitchSeq then TStitchSeq
-        else raise (TypeError (Printf.sprintf "variable '%s' expected TStitchSeq, but found %s" v (string_of_type t_v)))
+        let t = get_var_type env ctx (Some TStitchSeq) v in
+        if t = TStitchSeq then TStitchSeq
+        else raise (TypeError (Printf.sprintf "variable '%s' expected TStitchSeq, but found %s" v (string_of_type t)))
     | StitchSeqFuncCall(f, args) ->  
         let t = get_func_return_type env ctx f args in
         if t = TStitchSeq then TStitchSeq
         else raise (TypeError (Printf.sprintf "function '%s' expected to return TStitchSeq, but found %s" f (string_of_type t)))
 and check_argument env ctx expected_t = function
-    | ExprArg(e) -> check_expr env ctx (Some expected_t) e
-    | StitchSeqArg(seq) -> check_stitch_seq env ctx TStitchSeq seq
+    | ArgVar(v) -> get_var_type env ctx (Some expected_t) v
+    | ArgFuncCall(f, args) -> get_func_return_type env ctx f args
+    | ArgExpr(e) -> check_expr env ctx (Some expected_t) e
+    | ArgStitchSeq(seq) -> check_stitch_seq env ctx TStitchSeq seq
+    | ArgRowLit([row]) -> 
+        let t = check_row_lit env ctx row in
+        if t = TRow then TRowList
+        else raise (TypeError "function argument expects TRow value")
 
-let check_row_lit env ctx = function
+and check_row_lit env ctx = function
     | RowLit(e1, seq, count, c_opt) ->
         let t_e1 = check_expr env ctx (Some TInt) e1 in
         let t_seq = check_stitch_seq env ctx TStitchSeq seq in
@@ -218,10 +218,7 @@ let check_row_lit env ctx = function
 
 let check_row_expr env ctx = function
     | RowVar(v) ->
-        let t =
-            try Hashtbl.find env v
-            with Not_found -> raise (TypeError ("undefined variable: '" ^ v ^ "'"))
-        in
+        let t = get_var_type env ctx (Some TRowList) v in
         if t = TRowList then TRowList
         else raise (TypeError (Printf.sprintf "variable '%s' expected TRowList, but found %s" v (string_of_type t)))
     | RowFuncCall(f, args) -> 
@@ -234,38 +231,34 @@ let check_row_list_item env ctx = function
     | RowExpr(row_expr) -> check_row_expr env ctx row_expr
 
 let check_definition env ctx = function
-    | ExprDef(v, e) -> (
-        match e with
-        | Var(name) -> (
-            match Hashtbl.find_opt ctx name with
-                | Some(t_ref) -> 
-                    Hashtbl.add ctx v t_ref;
-                    env
-                | None ->
-                    let t = check_expr env ctx None e in
-                    Hashtbl.add env v t;
-                    env
+    | DefVar(v1, v2) -> (
+        match Hashtbl.find_opt env v2 with
+        | Some(t) -> Hashtbl.add env v1 t; env
+        | None -> (
+            match Hashtbl.find_opt ctx v2 with
+            | Some(t_ref) -> Hashtbl.add ctx v1 t_ref; env
+            | None -> raise (TypeError ("undefined variable: '" ^ v2 ^ "'"))
         )
-        | _ ->
-            let t = check_expr env ctx None e in
-            Hashtbl.add env v t;
-            env
     )
-    | StitchSeqDef(v, seq) -> 
+    | DefFuncCall(v, (f, args)) ->
+        let return_type = get_func_return_type env ctx f args in
+        Hashtbl.add env v return_type;
+        env
+    | DefExpr(v, e) ->
+        let t = check_expr env ctx None e in
+        Hashtbl.add env v t;
+        env
+    | DefStitchSeq(v, seq) -> 
         let t = check_stitch_seq env ctx TStitchSeq seq in
         Hashtbl.add env v t;
         env
-    | RowListDef(v, items) ->
+    | DefRowList(v, items) ->
         List.iter(fun item ->
             let t_item = check_row_list_item env ctx item in
             if t_item <> TRow then
                 raise (TypeError "row list definition expects TRow values")
         ) items;
         Hashtbl.add env v TRowList;
-        env
-    | FuncCallDef(v, f, args) ->
-        let return_type = get_func_return_type env ctx f args in
-        Hashtbl.add env v return_type;
         env
 
 let check_return_expr env ctx = function

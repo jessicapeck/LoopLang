@@ -36,13 +36,13 @@ pattern_item_list:
     | (* empty *)                                                                                                   { [] }
 
 pattern_item:
-    | DEF ID LPAREN param_list RPAREN COLON NEWLINE INDENT statement_list DEDENT                                    { FuncDef($2, $4, $9) }
-    | DEF ID LPAREN RPAREN COLON NEWLINE INDENT statement_list DEDENT                                               { FuncDef($2, [], $8) }
+    | DEF var LPAREN param_list RPAREN COLON NEWLINE INDENT statement_list DEDENT                                   { FuncDef($2, $4, $9) }
+    | DEF var LPAREN RPAREN COLON NEWLINE INDENT statement_list DEDENT                                              { FuncDef($2, [], $8) }
     | statement                                                                                                     { Stmt($1) }
 
 param_list:
-    | ID COMMA param_list                                                                                           { $1 :: $3 }
-    | ID                                                                                                            { [$1] }
+    | var COMMA param_list                                                                                          { $1 :: $3 }
+    | var                                                                                                           { [$1] }
 
 statement_list:
     | statement NEWLINE statement_list                                                                              { $1 :: $3 }
@@ -59,7 +59,7 @@ statement:
     | RETURN LPAREN return_expr RPAREN                                                                              { Return($3) }
     | IF expr COLON NEWLINE INDENT statement_list DEDENT                                                            { If($2, $6, []) }
     | IF expr COLON NEWLINE INDENT statement_list DEDENT NEWLINE ELSE COLON NEWLINE INDENT statement_list DEDENT    { If($2, $6, $13) }
-    | FOR ID ASSIGN expr TO expr COLON NEWLINE INDENT statement_list DEDENT                                         { For($2, $4, $6, $10) }
+    | FOR var ASSIGN expr TO expr COLON NEWLINE INDENT statement_list DEDENT                                        { For($2, $4, $6, $10) }
 
 return_expr:
     | expr                                                                                                          { ReturnExpr($1) }
@@ -67,12 +67,12 @@ return_expr:
     | row_list                                                                                                      { ReturnRowList($1) }
 
 definition:
-    | LET ID ASSIGN expr                                                                                            { ExprDef($2, $4) }
-    | LET ID ASSIGN stitch_seq                                                                                      { StitchSeqDef($2, $4) }
-    | LET ID ASSIGN row_list_item                                                                                   { RowListDef($2, [$4]) }
-    | LET ID ASSIGN LPAREN NEWLINE INDENT row_list DEDENT NEWLINE RPAREN                                            { RowListDef($2, $7) }
-    | LET ID ASSIGN ID LPAREN arg_list RPAREN                                                                       { FuncCallDef($2, $4, $6) }
-    | LET ID ASSIGN ID LPAREN RPAREN                                                                                { FuncCallDef($2, $4, []) }
+    | LET var ASSIGN var                                                                                            { DefVar($2, $4) }
+    | LET var ASSIGN func_call                                                                                      { DefFuncCall($2, $4) }
+    | LET var ASSIGN expr                                                                                           { DefExpr($2, $4) }
+    | LET var ASSIGN stitch_seq                                                                                     { DefStitchSeq($2, $4) }
+    | LET var ASSIGN row_list_item                                                                                  { DefRowList($2, [$4]) }
+    | LET var ASSIGN LPAREN NEWLINE INDENT row_list DEDENT NEWLINE RPAREN                                           { DefRowList($2, $7) }
 
 row_list:
     | row_list_item NEWLINE row_list                                                                                { $1 :: $3 }
@@ -99,28 +99,28 @@ row_lit:
     | ROWINTRANGE COLON stitch_seq                                                                                  { let (lower, upper) = $1 in RowRangeLit((Int(lower), Int(upper)), $3, None, None) }
 
 row_expr:
-    | ID LPAREN arg_list RPAREN                                                                                     { RowFuncCall($1, $3) }
-    | ID LPAREN RPAREN                                                                                              { RowFuncCall($1, []) }
-    | ID                                                                                                            { RowVar($1) }
+    | var                                                                                                           { RowVar($1) }
+    | func_call                                                                                                     { RowFuncCall($1) }
 
 arg_list:
     | arg COMMA arg_list                                                                                            { $1 :: $3 }
     | arg                                                                                                           { [$1] }
 
 arg:
-    | expr                                                                                                          { ExprArg($1) }
-    | LPAREN stitch_seq RPAREN                                                                                      { StitchSeqArg($2) }
-    | stitch_seq_expr                                                                                               { StitchSeqArg($1) }
-    | stitch_seq_item                                                                                               { StitchSeqArg(StitchSeq([$1])) }
+    | var                                                                                                           { ArgVar($1) }
+    | func_call                                                                                                     { ArgFuncCall($1) }
+    | expr                                                                                                          { ArgExpr($1) }
+    | LPAREN stitch_seq RPAREN                                                                                      { ArgStitchSeq($2) }
+    | stitch_seq_item                                                                                               { ArgStitchSeq(StitchSeq([$1])) }
+    | LPAREN row_lit RPAREN                                                                                         { ArgRowLit([$2]) }
 
 stitch_seq:
     | stitch_seq_item_list                                                                                          { StitchSeq($1) }
     | stitch_seq_expr                                                                                               { $1 }
 
 stitch_seq_expr:
-    | ID                                                                                                            { StitchSeqVar($1) }
-    | ID LPAREN arg_list RPAREN                                                                                     { StitchSeqFuncCall($1, $3) }
-    | ID LPAREN RPAREN                                                                                              { StitchSeqFuncCall($1, []) }
+    | var                                                                                                           { StitchSeqVar($1) }
+    | func_call                                                                                                     { StitchSeqFuncCall($1) }
 
 stitch_seq_item_list:
     | stitch_seq_item COMMA stitch_seq_item_list                                                                    { $1 :: $3 }
@@ -129,9 +129,8 @@ stitch_seq_item_list:
 stitch_seq_item:
     | mult_expr comment                                                                                             { StitchSeqItem($1, Some($2)) }
     | mult_expr                                                                                                     { StitchSeqItem($1, None) }
-    | ID                                                                                                            { StitchSeqItemVar($1) }
-    | ID LPAREN arg_list RPAREN                                                                                     { StitchSeqItemFuncCall($1, $3) }
-    | ID LPAREN RPAREN                                                                                              { StitchSeqItemFuncCall($1, []) }
+    | var                                                                                                           { StitchSeqItemVar($1) }
+    | func_call                                                                                                     { StitchSeqItemFuncCall($1) }
 
 mult_expr:
     | CH expr                                                                                                       { StitchMultExpr(CH, $2) }
@@ -167,7 +166,8 @@ mult_expr:
 expr:
     | INT                                                                                                           { Int($1) }
     | BOOL                                                                                                          { Bool($1) }
-    | ID                                                                                                            { Var($1) }
+    | var                                                                                                           { ExprVar($1) }
+    | func_call                                                                                                     { ExprFuncCall($1) }
     | expr ADD expr                                                                                                 { BinOp($1, ADD, $3) }
     | expr SUB expr                                                                                                 { BinOp($1, SUB, $3) }
     | expr MUL expr                                                                                                 { BinOp($1, MUL, $3) }
@@ -179,9 +179,14 @@ expr:
     | expr OR expr                                                                                                  { BinOp($1, OR, $3) }
     | SUB expr                                                                                                      { UnaryOp(NEG, $2) }
     | NOT expr                                                                                                      { UnaryOp(NOT, $2) }
-    | ID LPAREN arg_list RPAREN                                                                                     { ExprFuncCall($1, $3) }
-    | ID LPAREN RPAREN                                                                                              { ExprFuncCall($1, []) }
     | LPAREN expr RPAREN                                                                                            { $2 }
+
+var:
+    | ID                                                                                                            { $1 }
+
+func_call:
+    | var LPAREN arg_list RPAREN                                                                                    { ($1, $3) }
+    | var LPAREN RPAREN                                                                                             { ($1, []) }
 
 comment:
     | COMMENT                                                                                                       { Comment($1) }
