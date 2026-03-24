@@ -8,35 +8,63 @@
   <body class="bg-base-200 min-h-screen">
     <div class="flex flex-row gap-6 p-10 h-full">
 
-      <aside class="w-64 flex-none">
-        <ul class="menu bg-base-100 rounded-box w-56 shadow-lg border border-base-300">
-          <li>
-            <a href="index.html">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              Compiler
-            </a>
-          </li>
-          
-          <li>
-            <a href="docs.html" class="menu-active">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-              Documentation
-            </a>
-          </li>
-          
-          <li>
-            <a href="about.html">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              About
-            </a>
-          </li>
-        </ul>
+      <aside class="w-64 flex-none flex flex-col gap-6">
+        <div>
+          <ul class="menu bg-base-100 rounded-box w-56 shadow-lg border border-base-300">
+            <li>
+              <a href="index.html">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Compiler
+              </a>
+            </li>
+            
+            <li>
+              <a href="docs.html" class="menu-active">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                Documentation
+              </a>
+            </li>
+            
+            <li>
+              <a href="about.html">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                About
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <ul class="menu bg-base-200 rounded-box w-56">
+            <li>
+              <a href="#crochet-specific-syntax-and-semantics">Crochet-Specific Syntax and Semantics</a>
+              <ul>
+                <li><a href="#stitch-types">Stitch Types</a></li>
+                <li><a href="#row-identifiers">Row Identifiers</a></li>
+                <li><a href="#row-ranges">Row Ranges</a></li>
+                <li><a href="#multipliers">Multipliers</a></li>
+                <li><a href="#row-count">Row Count</a></li>
+                <li><a href="#comments">Comments</a></li>
+              </ul>
+            </li>
+            <li>
+              <a href="#additional-programming-constructs">Additional Programming Constructs</a>
+              <ul>
+                <li><a href="#variables">Variables</a></li>
+                <li><a href="#arithmetic-and-boolean-operations">Arithmetic and Boolean Operations</a></li>
+                <li><a href="#if-else-statements">If-Else Statements</a></li>
+                <li><a href="#for-loops">For-loops</a></li>
+                <li><a href="#function">Functions</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
       </aside>
 
       <main class="flex-1 h-full flex flex-col min-w-0">
@@ -45,9 +73,9 @@
 
           <h1 class="text-3xl font-bold text-primary mb-4">Documentation</h1>
 
-          <h2 class="text-xl font-bold text-secondary">Crochet-Specific Syntax and Semantics</h2>
+          <h2 id="crochet-specific-syntax-and-semantics" class="text-xl font-bold text-secondary">Crochet-Specific Syntax and Semantics</h2>
 
-          <h3 class="text-lg font-bold text-secondary-content">Stitch Types</h3>
+          <h3 id="stitch-types" class="text-lg font-bold text-secondary-content">Stitch Types</h3>
           <p>LoopLang supports the following stitch types:</p>
           <div class="mockup-code w-full" id="terminal">
             <pre><code>mr       &lt;&lt; magic ring &gt;&gt;  </code></pre>
@@ -61,7 +89,7 @@
             <pre><code>slst     &lt;&lt; slip stitch &gt;&gt;  </code></pre>
           </div>
 
-          <h3 class="text-lg font-bold text-secondary-content">Row Identifiers</h3>
+          <h3 id="row-identifiers" class="text-lg font-bold text-secondary-content">Row Identifiers</h3>
           <p>LoopLang supports the following ways of identifying the start of a new row:</p>
           <div class="mockup-code w-full" id="terminal">
             <pre><code>row 1: ...  </code></pre>
@@ -71,7 +99,7 @@
           </div>
           <p>Each row should be on a newline and begin with one of the four row identifiers specified above. If the row number is an integer literal, then the space following the row identifier is optional. For variable row numbers, the space is required unless the variable is enclosed within parentheses.</p>
 
-          <h3 class="text-lg font-bold text-secondary-content">Row Ranges</h3>
+          <h3 id="row-ranges" class="text-lg font-bold text-secondary-content">Row Ranges</h3>
           <p>The same stitch sequence can be repeated across multiple rows using the following notation:</p>
           <div class="mockup-code w-full" id="terminal">
             <pre><code>R1: ch 30  </code></pre>
@@ -80,7 +108,7 @@
           </div>
           <p>The upper and lower bounds of the row range are inclusive.</p>
 
-          <h3 class="text-lg font-bold text-secondary-content">Multipliers</h3>
+          <h3 id="multipliers" class="text-lg font-bold text-secondary-content">Multipliers</h3>
           <p>Multiple consecutive stitches of the same type are represented by specifying the stitch type and the number of repetitions, arranged in any order. A stitch type without a multiplier represents a single instance of that stitch.</p>
 
           <div class="mockup-code w-full" id="terminal">
@@ -101,14 +129,14 @@
             <pre><code>R10: sc, (dc, inc 2) x3, dec  </code></pre>
           </div>
         
-          <h3 class="text-lg font-bold text-secondary-content">Row Count</h3>
+          <h3 id="row-count" class="text-lg font-bold text-secondary-content">Row Count</h3>
           <p>The row count can optionally be specified at the end of the row using square brackets.</p>
           <div class="mockup-code w-full" id="terminal">
             <pre><code>R20: sc 30 [30]  </code></pre>
             <pre><code>R21: (sc 14, inc) x2 [32]  </code></pre>
           </div>
 
-          <h3 class="text-lg font-bold text-secondary-content">Comments</h3>
+          <h3 id="comments" class="text-lg font-bold text-secondary-content">Comments</h3>
           <p>Comments can be used to provide additional instructions within the pattern. Comments are enclosed within double angle brackets, and can be placed on their own line or within the items of a stitch sequence.</p>
           <div class="mockup-code w-full" id="terminal">
             <pre><code>&lt;&lt;starting with red yarn&gt;&gt;  </code></pre>
@@ -119,9 +147,9 @@
           </div>
           <p>Comments are preserved during compilation, and so will be present in the output crochet pattern.</p>
 
-          <h2 class="text-xl font-bold text-secondary">Additional Programming Constructs</h2>
+          <h2 id="additional-programming-constructs" class="text-xl font-bold text-secondary">Additional Programming Constructs</h2>
 
-          <h3 class="text-lg font-bold text-secondary-content">Variables</h3>
+          <h3 id="variables" class="text-lg font-bold text-secondary-content">Variables</h3>
           <p>Variables are defined using the <code>let</code> keyword. Variables can be used to store integers, booleans, sequences of stitches, rows, the results of function calls, and values from other variables. Where multiple rows are assigned to a variable, they should be enclosed within parentheses, indented, and each row show be on its own line.</p>
 
           <div class="mockup-code w-full" id="terminal">
@@ -148,7 +176,7 @@
 
           <p>These variables can then be used within the LoopLang program, and will be converted to their assigned values during compilation.</p>
 
-          <h3 class="text-lg font-bold text-secondary-content">Arithmetic and Boolean Operations</h3>
+          <h3 id="arithmetic-and-boolean-operations" class="text-lg font-bold text-secondary-content">Arithmetic and Boolean Operations</h3>
           <p>LoopLang supports the following arithemtic operations:</p>
           <div class="mockup-code w-full" id="terminal">
             <pre><code>n1 + n2       &lt;&lt;addition&gt;&gt;  </code></pre>
@@ -170,7 +198,7 @@
             <pre><code>not b         &lt;&lt;logical NOT&gt;&gt;  </code></pre>
           </div>
 
-          <h3 class="text-lg font-bold text-secondary-content">If-Else Statements</h3>
+          <h3 id="if-else-statements" class="text-lg font-bold text-secondary-content">If-Else Statements</h3>
           <p>If-else statements are control flow structures that determine which block of code to execute based on a boolean condition.</p>
 
           <div class="mockup-code w-full" id="terminal">
@@ -182,7 +210,7 @@
 
           <p>If-else statements can also be written without the <code>else</code> component.</p>
 
-          <h3 class="text-lg font-bold text-secondary-content">For-Loops</h3>
+          <h3 id="for-loops" class="text-lg font-bold text-secondary-content">For-Loops</h3>
           <p>For-loops are used to repeatedly execute a block of code a specific number of times by iterating over a counter. The syntax for a for-loop requires the definition of the counter variable that can be referenced within the for-loop body, and the specification of the lower and upper bounds of the values that the variable iterates over. The lower and upper bounds are inclusive, and the upper bound must be greater than or equal to the lower bound.</p>
 
           <div class="mockup-code w-full" id="terminal">
@@ -194,7 +222,7 @@
             <pre><code>R6: (sc 14, inc) x2  </code></pre>
           </div>
 
-          <h3 class="text-lg font-bold text-secondary-content">Functions</h3>
+          <h3 id="functions" class="text-lg font-bold text-secondary-content">Functions</h3>
           <p>Functions are defined used the <code>def</code> keyword, followed by the name of the function, and a list of its paramaters within parentheses. Within the function body, whatever is to be returned from the function should be written within the <code>return(...)</code> construct.</p>
 
           <div class="mockup-code w-full" id="terminal">
