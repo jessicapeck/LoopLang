@@ -47,7 +47,7 @@ let type_checker_error_tests = [
     ("Inconsistent type inference", "inconsistent_type_inference", Type_checker.TypeError "inconsistent type inference for parameter 'x'");
     ("Undefined function", "undefined_function", Type_checker.TypeError "undefined function: 'foo'");
     ("Incorrect number of arguments", "incorrect_number_of_arguments", Type_checker.TypeError "number of arguments passed and number of parameters expected do not match");
-    ("Incorrect argument types", "incorrect_argument_types", Type_checker.TypeError "argument types do not match expected parameter types");
+    ("Incorrect argument types", "incorrect_argument_types", Type_checker.TypeError "argument types do not match expected parameter types (TStitchSeq, TInt) for function 'foo'");
     ("Undefined variable", "undefined_variable", Type_checker.TypeError "undefined variable: 'seq'");
     ("Binary arithmetic operations", "binary_arithmetic_operations", Type_checker.TypeError "binary arithmetic operations expect TInt operands");
     ("Binary comparison operations", "binary_comparison_operations", Type_checker.TypeError "binary comparison operations expect TInt operands");
