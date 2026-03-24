@@ -341,7 +341,7 @@ and eval_argument env arg k =
     | ArgFuncCall(f, args) -> eval_function_call env f args k
     | ArgExpr(e) -> eval_expr env e k
     | ArgStitchSeq(seq) -> eval_stitch_seq env seq k
-    | ArgRowLit([row_lit]) -> 
+    | ArgRowLit(row_lit) -> 
         eval_row_lit env row_lit (fun row_lit_eval ->
             k (VRowList([row_lit_eval]))
         )

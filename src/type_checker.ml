@@ -178,7 +178,7 @@ and check_argument env ctx expected_t = function
     | ArgFuncCall(f, args) -> get_func_return_type env ctx f args
     | ArgExpr(e) -> check_expr env ctx (Some expected_t) e
     | ArgStitchSeq(seq) -> check_stitch_seq env ctx TStitchSeq seq
-    | ArgRowLit([row]) -> 
+    | ArgRowLit(row) -> 
         let t = check_row_lit env ctx row in
         if t = TRow then TRowList
         else raise (TypeError "function argument expects TRow value")

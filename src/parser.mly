@@ -112,7 +112,7 @@ arg:
     | expr                                                                                                          { ArgExpr($1) }
     | LPAREN stitch_seq RPAREN                                                                                      { ArgStitchSeq($2) }
     | stitch_seq_item                                                                                               { ArgStitchSeq(StitchSeq([$1])) }
-    | LPAREN row_lit RPAREN                                                                                         { ArgRowLit([$2]) }
+    | LPAREN row_lit RPAREN                                                                                         { ArgRowLit($2) }
 
 stitch_seq:
     | stitch_seq_item_list                                                                                          { StitchSeq($1) }

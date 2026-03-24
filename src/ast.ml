@@ -47,7 +47,7 @@ and argument =
     | ArgFuncCall of func_call
     | ArgExpr of expr
     | ArgStitchSeq of stitch_seq
-    | ArgRowLit of row_lit list
+    | ArgRowLit of row_lit
 
 and row_lit =
     | RowLit of expr * stitch_seq * expr option * comment option (* row number, stitch list, row count, comment *) (* TRow *)
@@ -152,7 +152,7 @@ and string_of_argument = function
     | ArgFuncCall(f, args) -> Printf.sprintf "ArgFuncCall(%s)" (string_of_func_call f args)
     | ArgExpr(n) -> Printf.sprintf "ArgExpr(%s)" (string_of_expr n)
     | ArgStitchSeq(seq) -> Printf.sprintf "ArgStitchSeq(%s)" (string_of_stitch_seq seq)
-    | ArgRowLit([r]) -> Printf.sprintf "ArgRowLit([%s])" (string_of_row_lit r) 
+    | ArgRowLit(r) -> Printf.sprintf "ArgRowLit(%s)" (string_of_row_lit r) 
 
 and string_of_row_lit = function
     | RowLit(n1, seq, count_opt, c_opt) -> Printf.sprintf "RowLit(%s, %s, %s, %s)" (string_of_expr n1) (string_of_stitch_seq seq) (string_of_option count_opt string_of_expr) (string_of_option c_opt string_of_comment)
