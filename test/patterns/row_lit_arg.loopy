@@ -1,0 +1,7 @@
+def foo(my_row_1, my_row_2):
+    return(
+        my_row_1
+        my_row_2
+    )
+
+foo((R1: ch 30), (R2: (sc 14, inc) x2))

@@ -38,7 +38,8 @@ let tests = [
     ("Stitch types", "stitch_types");
     ("Row range", "row_range");
     ("Variable definition in an if-else statement", "if_else_var_defs");
-    ("Unreturned row in function body", "row_not_returned")
+    ("Unreturned row in function body", "row_not_returned");
+    ("Passing a row argument", "row_lit_arg")
 ]
 
 
