@@ -1,0 +1,6 @@
+def foo(x):
+    return(x)
+
+R1: mr 4
+R2: foo((sc 3, dc))
+R(foo(3)): sc 4

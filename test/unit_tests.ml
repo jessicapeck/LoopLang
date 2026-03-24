@@ -40,7 +40,8 @@ let tests = [
     ("Variable definition in an if-else statement", "if_else_var_defs");
     ("Unreturned row in function body", "row_not_returned");
     ("Passing a row argument", "row_lit_arg");
-    ("Assigning a variable to another variable", "assign_var_to_var")
+    ("Assigning a variable to another variable", "assign_var_to_var");
+    ("Dynamic polymorphism", "dynamic_polymorphism")
 ]
 
 
