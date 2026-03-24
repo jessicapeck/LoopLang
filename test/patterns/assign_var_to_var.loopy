@@ -1,0 +1,7 @@
+let seq = ch 30
+let new_seq = seq
+
+let num = 1
+let new_num = num
+
+R(num): new_seq
