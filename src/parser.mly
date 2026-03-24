@@ -62,6 +62,8 @@ statement:
     | FOR var ASSIGN expr TO expr COLON NEWLINE INDENT statement_list DEDENT                                        { For($2, $4, $6, $10) }
 
 return_expr:
+    | var                                                                                                           { ReturnVar($1) }
+    | func_call                                                                                                     { ReturnFuncCall($1) }
     | expr                                                                                                          { ReturnExpr($1) }
     | stitch_seq                                                                                                    { ReturnStitchSeq($1) }
     | row_list                                                                                                      { ReturnRowList($1) }

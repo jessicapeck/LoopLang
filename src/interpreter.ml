@@ -419,6 +419,8 @@ and eval_definition env definition k =
 (* returns VInt, VBool, VStitchSeq, or VRowList *)
 and eval_return_expr env ret_expr k =
     match ret_expr with
+    | ReturnVar(var) -> k (Hashtbl.find env var)
+    | ReturnFuncCall(f, args) -> eval_function_call env f args k
     | ReturnExpr(e) -> eval_expr env e k
     | ReturnStitchSeq(seq) -> eval_stitch_seq env seq k
     | ReturnRowList(row_list) ->

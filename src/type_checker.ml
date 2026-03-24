@@ -269,6 +269,8 @@ let check_definition env ctx = function
         env
 
 let check_return_expr env ctx = function
+    | ReturnVar(v) -> get_var_type env ctx None v
+    | ReturnFuncCall(f, args) -> get_func_return_type env ctx f args
     | ReturnExpr(e) -> check_expr env ctx None e
     | ReturnStitchSeq(seq) -> check_stitch_seq env ctx TStitchSeq seq
     | ReturnRowList(items) ->

@@ -70,6 +70,8 @@ type definition =
     | DefRowList of var * row_list_item list
 
 type return_expr = 
+    | ReturnVar of var
+    | ReturnFuncCall of func_call
     | ReturnExpr of expr
     | ReturnStitchSeq of stitch_seq
     | ReturnRowList of row_list_item list
@@ -175,6 +177,8 @@ let string_of_definition = function
     | DefRowList(v, e) -> Printf.sprintf "DefRowList(%s, [%s])" v (String.concat ", " (List.map string_of_row_list_item e))
 
 let string_of_return_expr = function
+    | ReturnVar(v) -> Printf.sprintf "ReturnVar(%s)" v
+    | ReturnFuncCall(f, args) -> Printf.sprintf "ReturnFuncCall(%s)" (string_of_func_call f args)
     | ReturnExpr(n) -> Printf.sprintf "ReturnExpr(%s)" (string_of_expr n)
     | ReturnStitchSeq(seq) -> Printf.sprintf "ReturnStitchSeq(%s)" (string_of_stitch_seq seq)
     | ReturnRowList(e) -> Printf.sprintf "ReturnRowList([%s])" (String.concat ", " (List.map string_of_row_list_item e))
