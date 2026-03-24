@@ -7,6 +7,10 @@ Implemented stitch types include:
 - double crochet: `dc`
 - increase stitch: `inc`
 - decrease stitch: `dec`
+- half-double crochet `hdc`
+- treble crochet `tr`
+- slip stitch `slst`
+- magic ring `mr`
 
 ## Row identifiers
 `r1: ...`
@@ -16,6 +20,14 @@ Implemented stitch types include:
 - the start of a new row can be indicated using any of the above forms
 - a space between the row identifier and the row number is optional for all forms when the row number is a literal
 - when the row number is a variable, if the variable is in parentheses then the space is optional, otherwise the space is mandatory
+
+## Row ranges
+The same stitch sequence can be repeated across multiple rows using the following notation:
+```
+R1: ch 30
+R2-5: sc 30
+R6: dc 30
+```
 
 ## Multipliers
 `R1: sc 3, inc, sc 3` 
