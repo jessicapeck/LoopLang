@@ -5,15 +5,19 @@ exception TypeError of string
 type var_env = (var, t) Hashtbl.t
 type inference_ctx = (var, t option ref) Hashtbl.t
 
-let tvar_id = ref 0
 
+(* create new generic type with empty reference *)
 let get_new_tvar () =
-    tvar_id := !tvar_id + 1;
-    TVar(!tvar_id)
+    TVar(ref None)
+
 
 (* string of type function for error messages *)
 let rec string_of_type = function
-    | TVar(id) -> "TVar(%s)"
+    | TVar(r) -> (
+        match !r with
+        | Some(t) -> Printf.sprintf "TVar(Some(%s))" (string_of_type t)
+        | None -> "TVar(None)"
+    )
     | TInt -> "TInt"
     | TBool -> "TBool"
     | TStitch -> "TStitch"
@@ -26,6 +30,16 @@ let rec string_of_type = function
         "TFunc([" ^ param_types_str ^ "] -> " ^ string_of_type return_type ^ ")"
 
 
+(* helper function to unwrap generic types *)
+let unwrap_type = function
+| TVar(r) -> (
+    match !r with
+    | Some(t) -> t
+    | None -> TVar(r)
+)
+| t -> t
+
+
 (* type inference helper function to safely update context *)
 let update_ctx ctx name expected_type =
     match Hashtbl.find_opt ctx name with
@@ -35,7 +49,7 @@ let update_ctx ctx name expected_type =
             t_ref := Some expected_type;
             expected_type
         | Some(t) ->
-            if t <> expected_type then raise (TypeError ("inconsistent type inference for parameter '" ^ name ^ "'"))
+            if unwrap_type t <> expected_type then raise (TypeError ("inconsistent type inference for parameter '" ^ name ^ "'"))
             else expected_type
     )
     | None -> raise (TypeError ("undefined variable: '" ^ name ^ "'"))
@@ -67,22 +81,46 @@ let get_func_types env f =
     in
     (param_types, return_type)
 
+let copy_function_types param_types return_type =
+    let substitutions = ref [] in
+
+    let rec copy_aux = function
+        | TVar(r) -> (
+            match !r with
+            | Some(t) -> copy_aux t
+            | None -> 
+                if not (List.mem_assoc r !substitutions) then
+                    substitutions := (r, get_new_tvar ()) :: !substitutions;
+
+                List.assoc r !substitutions
+        )
+        | t -> t
+    in
+    (List.map copy_aux param_types, copy_aux return_type)
+
 let rec get_func_return_type env ctx f args =
     let check_arg_types env ctx param_types args =
         let correct_arg_types = ref true in
         try
             List.iter2(fun param_type arg ->
-                let t = check_argument env ctx param_type arg in
-                if t <> param_type then correct_arg_types := false
+                let arg_type = check_argument env ctx param_type arg in
+                match param_type with
+                | TVar(t_ref) -> (
+                    match !t_ref with
+                    | Some(inner_param_type) -> if arg_type <> inner_param_type then correct_arg_types := false
+                    | None -> t_ref := Some arg_type
+                )
+                | t -> if arg_type <> t then correct_arg_types := false
             ) param_types args;
             !correct_arg_types
         with Invalid_argument _ -> raise (TypeError "number of arguments passed and number of parameters expected do not match")
     in
     let param_types, return_type = get_func_types env f in
-        if check_arg_types env ctx param_types args then
-            return_type
-        else
-            raise (TypeError (Printf.sprintf "argument types do not match expected parameter types (%s) for function '%s'" (String.concat ", " (List.map string_of_type param_types)) f))
+    let copy_of_param_types, copy_of_return_type = copy_function_types param_types return_type in
+    if check_arg_types env ctx copy_of_param_types args then
+        unwrap_type copy_of_return_type
+    else
+        raise (TypeError (Printf.sprintf "argument types do not match expected parameter types (%s) for function '%s'" (String.concat ", " (List.map string_of_type param_types)) f))
 
 
 (* main type checking functions *)
@@ -91,17 +129,20 @@ and check_stitch env ctx = function
 
 and get_var_type env ctx expected_t_opt v = 
     match Hashtbl.find_opt env v with
-        | Some(t) -> t (* if v is in env, return its type*)
+        | Some(t) -> unwrap_type t (* if v is in env, return its type*)
         | None -> (
             match expected_t_opt with
-            | Some(expected_t) -> update_ctx ctx v expected_t (* return type inferred from context *)
+            | Some(expected_t) -> unwrap_type (update_ctx ctx v expected_t) (* return type inferred from context *)
             | None -> (
                 (* check if previously inferred *)
                 match Hashtbl.find_opt ctx v with
                 | Some(t_ref) -> (
                     match !t_ref with
-                    | Some(t) -> t
-                    | None -> raise (TypeError ("unable to infer type of variable '" ^ v ^ "'"))
+                    | Some(t) -> unwrap_type t
+                    | None ->
+                        let generic_type = get_new_tvar () in
+                        t_ref := Some generic_type;
+                        generic_type
                 )
                 | None -> raise (TypeError ("undefined variable: '" ^ v ^ "'"))
             )
@@ -377,9 +418,8 @@ let check_pattern_item env = function
                     let generic_type = get_new_tvar () in
                     t_ref := Some generic_type;
                     generic_type
-                    
             )
-            | None -> get_new_tvar ()
+            | None -> raise (TypeError ("unable to infer type of parameter '" ^ param ^ "' in function '" ^ f ^ "'"))
         ) params in
 
         (* update environment with function type *)
@@ -392,9 +432,6 @@ let check_pattern_item env = function
 
 let check_pattern = function
     | Pattern(items) ->
-        (* reset unique identifier for generic types *)
-        tvar_id := 0;
-
         let initial_env : var_env = Hashtbl.create 10 in
         List.fold_left(fun env_acc item ->
             check_pattern_item env_acc item

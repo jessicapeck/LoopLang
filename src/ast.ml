@@ -1,5 +1,5 @@
 type t = 
-    | TVar of int (* unique ID to represent generic type *)
+    | TVar of t option ref (* generic type *)
     | TInt 
     | TBool 
     | TStitch
