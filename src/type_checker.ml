@@ -5,8 +5,15 @@ exception TypeError of string
 type var_env = (var, t) Hashtbl.t
 type inference_ctx = (var, t option ref) Hashtbl.t
 
+let tvar_id = ref 0
+
+let get_new_tvar () =
+    tvar_id := !tvar_id + 1;
+    TVar(!tvar_id)
+
 (* string of type function for error messages *)
 let rec string_of_type = function
+    | TVar(id) -> "TVar(%s)"
     | TInt -> "TInt"
     | TBool -> "TBool"
     | TStitch -> "TStitch"
@@ -75,7 +82,7 @@ let rec get_func_return_type env ctx f args =
         if check_arg_types env ctx param_types args then
             return_type
         else
-            raise (TypeError (Printf.sprintf"argument types do not match expected parameter types (%s) for function '%s'" (String.concat ", " (List.map string_of_type param_types)) f))
+            raise (TypeError (Printf.sprintf "argument types do not match expected parameter types (%s) for function '%s'" (String.concat ", " (List.map string_of_type param_types)) f))
 
 
 (* main type checking functions *)
@@ -364,9 +371,13 @@ let check_pattern_item env = function
             | Some(t_ref) -> (
                 match !t_ref with
                 | Some(t) -> t
-                | None -> raise (TypeError ("unable to infer type of parameter '" ^ param ^ "' in function '" ^ f ^ "'"))
+                | None ->
+                    let generic_type = get_new_tvar () in
+                    t_ref := Some generic_type;
+                    generic_type
+                    
             )
-            | None -> raise (TypeError ("unable to infer type of parameter '" ^ param ^ "' in function '" ^ f ^ "'"))
+            | None -> get_new_tvar ()
         ) params in
 
         (* update environment with function type *)
@@ -379,6 +390,9 @@ let check_pattern_item env = function
 
 let check_pattern = function
     | Pattern(items) ->
+        (* reset unique identifier for generic types *)
+        tvar_id := 0;
+
         let initial_env : var_env = Hashtbl.create 10 in
         List.fold_left(fun env_acc item ->
             check_pattern_item env_acc item

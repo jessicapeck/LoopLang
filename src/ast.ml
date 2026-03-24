@@ -1,4 +1,5 @@
 type t = 
+    | TVar of int (* unique ID to represent generic type *)
     | TInt 
     | TBool 
     | TStitch
