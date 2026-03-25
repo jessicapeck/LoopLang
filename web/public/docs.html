@@ -55,8 +55,9 @@
               </ul>
             </li>
             <li>
-              <a href="#additional-programming-constructs"><strong>Additional Programming Constructs</strong></a>
+              <a href="#additional-features-and-programming-constructs"><strong>Additional Features and Programming Constructs</strong></a>
               <ul>
+                <li><a href="#sequence-mirroring">Sequence Mirroring</a></li>
                 <li><a href="#variables">Variables</a></li>
                 <li><a href="#arithmetic-and-boolean-operations">Arithmetic and Boolean Operations</a></li>
                 <li><a href="#if-else-statements">If-Else Statements</a></li>
@@ -148,7 +149,18 @@
           </div>
           <p>Comments are preserved during compilation, and so will be present in the output crochet pattern.</p>
 
-          <h2 id="additional-programming-constructs" class="text-xl font-bold text-secondary">Additional Programming Constructs</h2>
+          <h2 id="additional-features-and-programming-constructs" class="text-xl font-bold text-secondary">Additional Features and Programming Constructs</h2>
+
+          <h3 id="sequence-mirroring" class="text-lg font-bold text-secondary-content">Sequence Mirroring</h3>
+          <p>The <code>mirror( main_seq | middle_seq )</code> syntax can be used to represent a symmetrical sequence. This will result in the main sequence followed by the middle sequence followed by the reverse of the main sequence.</p>
+
+          <div class="mockup-code w-full" id="terminal">
+            <pre><code>R1: mr 15  </code></pre>
+            <pre><code>R2: mirror(sc 4, dc 3 | inc)  </code></pre>
+            <pre><code>R3: sc 16  </code></pre>
+          </div>
+
+          <p>Row 2 of the example above will compile to <code>R2: sc 4, dc 3, inc, dc 3, sc 4 [16]</code> .</p>
 
           <h3 id="variables" class="text-lg font-bold text-secondary-content">Variables</h3>
           <p>Variables are defined using the <code>let</code> keyword. Variables can be used to store integers, booleans, sequences of stitches, rows, the results of function calls, and values from other variables. Where multiple rows are assigned to a variable, they should be enclosed within parentheses, indented, and each row show be on its own line.</p>
