@@ -224,6 +224,11 @@ and check_mult_expr env ctx = function
             if t_e = TInt then (StitchSeqMultExpr(seq_ast, e_ast), TStitchSeqItem)
             else raise (TypeError "stitch sequence multiplier expression expects TInt")
         else raise (TypeError "stitch sequence multiplier expression expects TStitchSeq within parentheses")
+    | MirrorExpr(seq1, seq2) ->
+        let seq1_ast, t_seq1 = check_stitch_seq env ctx TStitchSeq seq1 in
+        let seq2_ast, t_seq2 = check_stitch_seq env ctx TStitchSeq seq2 in
+        if (t_seq1 = TStitchSeq && t_seq2 = TStitchSeq) then (MirrorExpr(seq1_ast, seq2_ast), TStitchSeqItem)
+        else raise (TypeError "mirror expressions expects two TStitchSeq values")
 and check_stitch_seq_item env ctx = function
     | StitchSeqItem(mexpr, c_opt) ->
         let mexpr_ast, t = check_mult_expr env ctx mexpr in

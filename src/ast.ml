@@ -34,6 +34,7 @@ and expr =
 and mult_expr = 
     | StitchMultExpr of stitch * expr (* TStitchSeqItem *)
     | StitchSeqMultExpr of stitch_seq * expr (* TStitchSeqItem *)
+    | MirrorExpr of stitch_seq * stitch_seq (* TStitchSeqItem *)
 (* comments are allowed after a StitchSeqItem *)
 and stitch_seq_item =
     | StitchSeqItem of mult_expr * comment option
@@ -142,6 +143,7 @@ and string_of_expr = function
 and string_of_mult_expr = function
     | StitchMultExpr(s, n) -> Printf.sprintf "StitchMultExpr(%s, %s)" (string_of_stitch s) (string_of_expr n)
     | StitchSeqMultExpr(seq, n) -> Printf.sprintf "StitchSeqMultExpr(%s, %s)" (string_of_stitch_seq seq) (string_of_expr n)
+    | MirrorExpr(seq1, seq2) -> Printf.sprintf "MirrorExpr(%s, %s)" (string_of_stitch_seq seq1) (string_of_stitch_seq seq2)
 and string_of_stitch_seq_item = function
     | StitchSeqItem(m, c_opt) -> Printf.sprintf "StitchSeqItem(%s, %s)" (string_of_mult_expr m) (string_of_option c_opt string_of_comment)
     | StitchSeqItemVar(v) -> Printf.sprintf "StitchSeqItemVar(%s)" v

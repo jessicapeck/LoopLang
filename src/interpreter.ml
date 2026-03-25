@@ -15,6 +15,7 @@ type value =
     | VBool of bool
     | VStitchMultExpr of stitch * int
     | VStitchSeqMultExpr of value * int (* value: VStitchSeq *)
+    | VMirrorExpr of value (* value: VStitchSeq *)
     | VStitchSeqItem of value * value option (* value 1: VStitchMultExpr, VStitchSeqMultExpr *) (* value 2: VComment *)
     | VStitchSeq of value list (* value: VStitchSeqItem *)
     | VRow of int * value * int option * value option (* value 1: VStitchSeq *) (* value 2: VComment *)
@@ -122,6 +123,8 @@ let rec calculate_mult_expr_count row_num = function
         let seq_results = calculate_stitch_seq_count row_num seq in
         let seq_row_count_change, seq_used_stitch_count = seq_results in
         (seq_row_count_change * n, seq_used_stitch_count * n)
+    | VMirrorExpr(seq) ->
+        calculate_stitch_seq_count row_num seq
     | _ -> raise (InternalInterpreterError "expected a multiplier expression, found a different type")
 and calculate_stitch_seq_count row_num seq =
     let seq_value = List.map (fun item -> 
@@ -174,6 +177,8 @@ let rec mult_expr_to_str = function
     | VStitchSeqMultExpr(seq, n) -> 
         if n = 1 then stitch_seq_to_str seq
         else (Printf.sprintf "(%s) x%d" (stitch_seq_to_str seq) n)
+    | VMirrorExpr(seq) ->
+        (stitch_seq_to_str seq)
     | _ -> raise (InternalInterpreterError "expected a multiplier expression, found a different type")
 and stitch_seq_to_str seq =
     String.concat ", " (List.map (fun item -> 
@@ -289,7 +294,7 @@ and eval_expr env e k =
         )
     )
 
-(* returns VStitchMultExpr or VStitchSeqMultExpr *)
+(* returns VStitchMultExpr or VStitchSeqMultExpr or VMirrorExpr *)
 and eval_mult_expr env mult_expr k =
     match mult_expr with
     | StitchMultExpr(st, n) ->
@@ -302,6 +307,15 @@ and eval_mult_expr env mult_expr k =
             eval_stitch_seq env seq (fun seq_eval ->
                 let n_value = unwrap_int n_eval in
                 k (VStitchSeqMultExpr(seq_eval, n_value))
+            )
+        )
+    | MirrorExpr(seq1, seq2) ->
+        eval_stitch_seq env seq1 (fun seq1_eval ->
+            eval_stitch_seq env seq2 (fun seq2_eval ->
+                let seq1_value = unwrap_stitch_seq seq1_eval in
+                let mirrored_seq1_value = List.rev seq1_value in
+                let seq2_value = unwrap_stitch_seq seq2_eval in
+                k (VMirrorExpr(VStitchSeq(seq1_value @ seq2_value @ mirrored_seq1_value)))
             )
         )
 

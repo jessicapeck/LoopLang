@@ -6,13 +6,13 @@
 %token<(int * int)> ROWINTRANGE
 %token<bool> BOOL
 %token<string> ID COMMENT
-%token ROW MULEXPR
+%token ROW MULEXPR MIRROR
 %token CH SC DC INC DEC MR HDC TR SLST
 %token ADD SUB MUL DIV
 %token LT GT EQ
 %token AND OR NOT
 %token IF ELSE LET DEF RETURN FOR TO ASSIGN
-%token LPAREN RPAREN LBRACKET RBRACKET COMMA COLON
+%token LPAREN RPAREN LBRACKET RBRACKET COMMA COLON PIPE
 %token NEWLINE
 %token INDENT DEDENT
 %token EOF
@@ -164,6 +164,7 @@ mult_expr:
     | SLST                                                                                                          { StitchMultExpr(SLST, Int(1)) }
     | LPAREN stitch_seq RPAREN MULINT                                                                               { StitchSeqMultExpr($2, Int($4)) }
     | LPAREN stitch_seq RPAREN MULEXPR expr RPAREN                                                                  { StitchSeqMultExpr($2, $5) }
+    | MIRROR LPAREN stitch_seq PIPE stitch_seq RPAREN                                                               { MirrorExpr($3, $5) }
 
 expr:
     | INT                                                                                                           { Int($1) }

@@ -94,6 +94,7 @@ rule token = parse
     | row_ident_regex ' '? (num_regex as num1) '-' (num_regex as num2)  { ROWINTRANGE ((int_of_string num1, int_of_string num2)) }
     | 'x' (num_regex as num)                                            { MULINT (int_of_string num)}
     | "x("                                                              { MULEXPR }
+    | "mirror"                                                          { MIRROR }
     | "if"                                                              { IF }
     | "else"                                                            { ELSE }
     | "let"                                                             { LET }
@@ -122,6 +123,7 @@ rule token = parse
     | ']'                                                               { RBRACKET }
     | ':'                                                               { COLON }
     | ','                                                               { COMMA }
+    | '|'                                                               { PIPE }
     | eof                                                               {
                                                                             begin
                                                                                 while (Stack.length indent_stack > 1) do
@@ -160,6 +162,7 @@ rule token = parse
     | ROWINTRANGE (num1, num2) -> Printf.sprintf "ROWINTRANGE(%d,%d)" num1 num2
     | MULINT num -> Printf.sprintf "MULINT(%d)" num
     | MULEXPR -> "MULEXPR"
+    | MIRROR -> "MIRROR"
     | IF -> "IF"
     | ELSE -> "ELSE"
     | LET -> "LET"
@@ -188,5 +191,6 @@ rule token = parse
     | RBRACKET -> "RBRACKET"
     | COLON -> "COLON"
     | COMMA -> "COMMA"
+    | PIPE -> "PIPE"
     | EOF -> "EOF"
 }
