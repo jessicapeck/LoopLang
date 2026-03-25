@@ -63,9 +63,9 @@ let () =
         let ast = Parser.pattern debug_lexer lexbuf in
         (* print_endline (Ast.string_of_pattern ast) *)
 
-        let _ = Type_checker.check_pattern ast in
+        let new_ast, _ = Type_checker.check_pattern ast in
 
-        let result = Interpreter.eval_pattern ast in
+        let result = Interpreter.eval_pattern new_ast in
         close_in in_channel;
 
         let name_no_ext = Filename.remove_extension filename in

@@ -36,9 +36,10 @@ let get_compile_results code_str =
     try
         let ast = Parser.pattern Lexer.next_token lexbuf in
 
-        let _ = Type_checker.check_pattern ast in
+        let new_ast, _ = Type_checker.check_pattern ast in
 
-        let result = Interpreter.eval_pattern ast in
+        let result = Interpreter.eval_pattern new_ast in
+
         let combined_result = String.concat "\n" result in
         let warnings = List.rev !Interpreter.warning_messages in
         Interpreter.warning_messages := [];
