@@ -7,8 +7,8 @@
     <link href="style.css" rel="stylesheet" type="text/css" />
     <title>LoopLang Compiler</title>
   </head>
-  <body class="bg-base-200 min-h-screen">
-    <div class="flex flex-row gap-6 p-10">
+  <body class="bg-base-200 min-h-screen flex flex-col">
+    <div class="flex flex-row gap-6 p-10 grow">
 
       <aside class="w-64 flex-none sticky flex flex-col gap-4 top-10 h-fit">
         <ul class="menu bg-base-100 rounded-box w-56 shadow-lg border border-base-300">
@@ -67,5 +67,14 @@
         </div>
       </main>
     </div>
+
+    <footer class="footer footer-center p-5 bg-base-200 text-base-content border-t border-base-300">
+      <aside>
+        <p>
+          Copyright © <span id="year"></span> Jessica Peck
+        </p>
+      </aside>
+    </footer>
+
   </body>
 </html>

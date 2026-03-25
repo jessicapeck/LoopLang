@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // copyright
+    document.getElementById('year').innerText = new Date().getFullYear();
+    
     // editor (input textarea)
     editor = document.getElementById('editor');
     editor.addEventListener('keydown', function(e) {
