@@ -41,7 +41,8 @@ let tests = [
     ("Unreturned row in function body", "row_not_returned");
     ("Passing a row argument", "row_lit_arg");
     ("Assigning a variable to another variable", "assign_var_to_var");
-    ("Dynamic polymorphism", "dynamic_polymorphism")
+    ("Dynamic polymorphism", "dynamic_polymorphism");
+    ("Static polymorphism", "static_polymorphism")
 ]
 
 

@@ -1,0 +1,8 @@
+def foo(z):
+	return(z+1)
+
+def foo(z):
+	return(R1: z)
+
+foo(ch 30)
+row 2: sc foo(29)
