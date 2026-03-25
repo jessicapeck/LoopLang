@@ -1,0 +1,3 @@
+r1: mr 15
+r2: mirror(sc 4, dc 3 | inc)
+r3: sc 16
