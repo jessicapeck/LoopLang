@@ -105,14 +105,13 @@ let rec check_arg_types env ctx param_types args =
     let correct_arg_types = ref true in
     List.iter2(fun param_type arg ->
         let _, arg_type = check_argument env ctx param_type arg in
-        (Printf.printf "arg: %s, param: %s\n" (string_of_type arg_type) (string_of_type param_type));
         match param_type with
         | TVar(t_ref) -> (
             match !t_ref with
             | Some(inner_param_type) -> if arg_type <> inner_param_type then correct_arg_types := false
             | None -> t_ref := Some arg_type
         )
-        | t -> (Printf.printf "arg: %s, param: %s\n" (string_of_type arg_type) (string_of_type t)); if arg_type <> t then correct_arg_types := false
+        | t -> if arg_type <> t then correct_arg_types := false
     ) param_types args;
     !correct_arg_types
 
@@ -136,7 +135,7 @@ and get_func_types env ctx f args =
             let num_params = List.length param_types in
             if num_args = num_params then
                 let copy_of_param_types, copy_of_return_type = copy_function_types param_types return_type in
-                if check_arg_types env ctx copy_of_param_types args then ((Printf.printf "mangled name: %s, params: %s, return type: %s\n" mangled_f (String.concat ", " (List.map string_of_type copy_of_param_types)) (string_of_type copy_of_return_type)); (mangled_f, List.map unwrap_type copy_of_param_types, unwrap_type copy_of_return_type))
+                if check_arg_types env ctx copy_of_param_types args then (mangled_f, List.map unwrap_type copy_of_param_types, unwrap_type copy_of_return_type)
                 else find_correct_type ts
             else find_correct_type ts
         )
