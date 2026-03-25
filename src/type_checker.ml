@@ -1,14 +1,10 @@
 open Ast
 
 exception TypeError of string
+exception InternalTypeError of string
 
 type var_env = (var, t) Hashtbl.t
 type inference_ctx = (var, t option ref) Hashtbl.t
-
-
-(* create new generic type with empty reference *)
-let get_new_tvar () =
-    TVar(ref None)
 
 
 (* string of type function for error messages *)
@@ -28,16 +24,28 @@ let rec string_of_type = function
     | TFunc(param_types, return_type) ->
         let param_types_str = String.concat ", " (List.map string_of_type param_types) in
         "TFunc([" ^ param_types_str ^ "] -> " ^ string_of_type return_type ^ ")"
+    | TFuncs(ts) ->
+        let func_types = String.concat ", " (List.map string_of_type !ts) in
+        "TFuncs([" ^ func_types ^ "])"
 
 
-(* helper function to unwrap generic types *)
-let unwrap_type = function
-| TVar(r) -> (
-    match !r with
-    | Some(t) -> t
-    | None -> TVar(r)
-)
-| t -> t
+(* helper functions to unwrap types *)
+let rec unwrap_type = function
+    | TVar(r) -> (
+        match !r with
+        | Some(t) -> unwrap_type t
+        | None -> TVar(r)
+    )
+    | t -> t
+
+let unwrap_tfuncs = function
+    | TFuncs(ts) -> ts
+    | _ -> raise (InternalTypeError "expected TFuncs, found a different type")
+
+
+(* create new generic type with empty reference *)
+let get_new_tvar () =
+    TVar(ref None)
 
 
 (* type inference helper function to safely update context *)
@@ -69,18 +77,6 @@ let rec get_env_intersection env1 env2 =
 
 
 (* set of functions to check and get function types *)
-let get_func_types env f =
-    let func_type =
-        try Hashtbl.find env f
-        with Not_found -> raise (TypeError ("undefined function: '" ^ f ^ "'"))
-    in
-    let (param_types, return_type) = 
-        match func_type with
-        | TFunc(p, r) -> (p, r)
-        | _ -> raise (TypeError ("'" ^ f ^"' must be of type TFunc"))
-    in
-    (param_types, return_type)
-
 let copy_function_types param_types return_type =
     let substitutions = ref [] in
 
@@ -98,29 +94,51 @@ let copy_function_types param_types return_type =
     in
     (List.map copy_aux param_types, copy_aux return_type)
 
-let rec get_func_return_type env ctx f args =
-    let check_arg_types env ctx param_types args =
-        let correct_arg_types = ref true in
-        try
-            List.iter2(fun param_type arg ->
-                let arg_type = check_argument env ctx param_type arg in
-                match param_type with
-                | TVar(t_ref) -> (
-                    match !t_ref with
-                    | Some(inner_param_type) -> if arg_type <> inner_param_type then correct_arg_types := false
-                    | None -> t_ref := Some arg_type
-                )
-                | t -> if arg_type <> t then correct_arg_types := false
-            ) param_types args;
-            !correct_arg_types
-        with Invalid_argument _ -> raise (TypeError "number of arguments passed and number of parameters expected do not match")
+let rec check_arg_types env ctx param_types args =
+    let correct_arg_types = ref true in
+    List.iter2(fun param_type arg ->
+        let arg_type = check_argument env ctx param_type arg in
+        (Printf.printf "arg: %s, param: %s\n" (string_of_type arg_type) (string_of_type param_type));
+        match param_type with
+        | TVar(t_ref) -> (
+            match !t_ref with
+            | Some(inner_param_type) -> if arg_type <> inner_param_type then correct_arg_types := false
+            | None -> t_ref := Some arg_type
+        )
+        | t -> (Printf.printf "arg: %s, param: %s\n" (string_of_type arg_type) (string_of_type t)); if arg_type <> t then correct_arg_types := false
+    ) param_types args;
+    !correct_arg_types
+
+and get_func_types env ctx f args =
+    let num_args = List.length args in
+
+    let tfuncs =
+        try Hashtbl.find env f
+        with Not_found -> raise (TypeError ("undefined function: '" ^ f ^ "'"))
     in
-    let param_types, return_type = get_func_types env f in
-    let copy_of_param_types, copy_of_return_type = copy_function_types param_types return_type in
-    if check_arg_types env ctx copy_of_param_types args then
-        unwrap_type copy_of_return_type
-    else
-        raise (TypeError (Printf.sprintf "argument types do not match expected parameter types (%s) for function '%s'" (String.concat ", " (List.map string_of_type param_types)) f))
+    let func_types = unwrap_tfuncs tfuncs in
+
+    let rec find_correct_type = function
+        | [] -> raise (TypeError ("there are no functions named '" ^ f ^ "' that match the number and type of arguments provided"))
+        | t :: ts -> (
+            let (param_types, return_type) =
+                match t with
+                | TFunc(p, r) -> (p, r)
+                | _ -> raise (TypeError ("'" ^ f ^"' must be of type TFunc"))
+            in
+            let num_params = List.length param_types in
+            if num_args = num_params then
+                let copy_of_param_types, copy_of_return_type = copy_function_types param_types return_type in
+                if check_arg_types env ctx copy_of_param_types args then ((Printf.printf "params: %s, return type: %s\n" (String.concat ", " (List.map string_of_type copy_of_param_types)) (string_of_type copy_of_return_type)); (copy_of_param_types, copy_of_return_type))
+                else find_correct_type ts
+            else find_correct_type ts
+        )
+    in
+    find_correct_type !func_types
+
+and get_func_return_type env ctx f args =
+    let _, return_type = get_func_types env ctx f args in
+    unwrap_type return_type
 
 
 (* main type checking functions *)
@@ -389,7 +407,7 @@ let check_pattern_item env = function
         let local_env : var_env = Hashtbl.create 10 in
         Hashtbl.iter (fun var_name var_type ->
             match var_type with
-            | TFunc(_, _) -> Hashtbl.add local_env var_name var_type
+            | TFuncs(_) -> Hashtbl.add local_env var_name var_type
             | _ -> ()
         ) env;
 
@@ -397,7 +415,7 @@ let check_pattern_item env = function
         let all_return_types = analyse_body local_env [] body in
 
         (* check return types are consistent to find overall return type *)
-        let return_type = 
+        let return_type =
             match all_return_types with
             | [] -> raise (TypeError ("function '" ^ f ^ "' does not return a value"))
             | t :: ts ->
@@ -423,7 +441,13 @@ let check_pattern_item env = function
         ) params in
 
         (* update environment with function type *)
-        Hashtbl.add env f (TFunc(param_types, return_type));
+        (
+            match Hashtbl.find_opt env f with
+            | Some(tfuncs) -> 
+                let ts = unwrap_tfuncs tfuncs in
+                ts := TFunc(param_types, return_type) :: !ts
+            | None -> Hashtbl.add env f (TFuncs(ref [TFunc(param_types, return_type)]))
+        );
         env
     | Stmt(stmt) -> 
         let dummy_ctx : inference_ctx = Hashtbl.create 0 in
