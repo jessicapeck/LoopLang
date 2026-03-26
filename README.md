@@ -1,8 +1,24 @@
 # LoopLang: A Language for Crochet Patterns
 
-## Setup and execution
+## Welcome to LoopLang!
 
-### Makefile commands
+LoopLang is a domain-specific language for crochet patterns.
+
+Despite traditionally being viewed as a purely artistic hobby, there are strong links between crochet and programming. LoopLang has been designed to exploit the similarities between crochet and programming to enable people to write crochet patterns more efficiently and with fewer mistakes.
+
+Navigate to the [documentation.md](documentation.md) file to learn about the LoopLang syntax!
+
+## The Compiler
+
+The LoopLang language comes with a compiler which validates the LoopLang program and converts it into a traditional crochet pattern.
+
+## The Website
+
+Play around with the LoopLang compiler online at [jessicapeck.github.io/LoopLang](https://jessicapeck.github.io/LoopLang/)!
+
+## Setup and Execution
+
+### Makefile Rules
 ```
 > make help
 Usage: make [target]
@@ -18,13 +34,13 @@ Targets:
   coverage        Run tests with coverage tracking and generate reports
 ```
 
-### Running the compiler
+### Running the Compiler
 Executing the following command will compile the given `.loopy` file into a `.txt` file of the same filename.
 ```
 ./loopycompiler ./test/patterns/<filename>.loopy
 ```
 
-### Running unit tests
+### Running Unit Tests
 ```
 eval $(opam env)
 ./test/unit_tests --show-errors
