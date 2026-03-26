@@ -116,4 +116,4 @@ coverage: ## Run tests with coverage tracking and generate reports
 	@echo "---------- REPORT SUMMARY ----------"
 	bisect-ppx-report summary --per-file $(TEST_COVERAGE_DIR)/*.coverage
 
-.PHONY: help compiler clean patterns-clean coverage
+.PHONY: help all compiler web-compiler test clean patterns-clean coverage
