@@ -49,7 +49,7 @@ help: ## Show help
 	@echo "Targets:"
 	@awk 'BEGIN {FS = ":.*?## "}; /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-all: ## Build the compiler and unit test executables
+all: ## Build the compilers and the unit test executable
 	make compiler
 	make web-compiler
 	make test

@@ -92,7 +92,7 @@ rule token = parse
     | row_ident_regex                                                   { ROW }
     | row_ident_regex ' '? (num_regex as num)                           { ROWINT (int_of_string num) }
     | row_ident_regex ' '? (num_regex as num1) '-' (num_regex as num2)  { ROWINTRANGE ((int_of_string num1, int_of_string num2)) }
-    | 'x' (num_regex as num)                                            { MULINT (int_of_string num)}
+    | 'x' (num_regex as num)                                            { MULINT (int_of_string num) }
     | "x("                                                              { MULEXPR }
     | "mirror"                                                          { MIRROR }
     | "if"                                                              { IF }

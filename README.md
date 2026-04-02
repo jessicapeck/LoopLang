@@ -20,12 +20,12 @@ Play around with the LoopLang compiler online at [jessicapeck.github.io/LoopLang
 
 ### Makefile Rules
 ```
-> make help
+>> make help
 Usage: make [target]
 
 Targets:
   help            Show help
-  all             Build the compiler and unit test executables
+  all             Build the compilers and the unit test executable
   compiler        Build the ./loopycompiler executable
   web-compiler    Build the ./web/public/loopycompiler.js file
   test            Build the ./test/unit_tests executable

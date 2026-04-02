@@ -121,12 +121,12 @@
             <pre><code>R6: 9 sc, inc  </code></pre>
           </div>
 
-          <p>To indicate the repetition of a sequence of stitches within a single row, the sequence should be enclosed within parentheses and this should be followed by the number of times the sequence should be performed.</p>
+          <p>To indicate the repetition of a sequence of stitches within a row, the sequence should be enclosed within parentheses and this should be followed by the number of times the sequence should be performed.</p>
           <div class="mockup-code w-full" id="terminal">
             <pre><code>R8: (sc 2, inc) x5  </code></pre>
           </div>
 
-          <p>This repetition can used be used within a larger sequence of stitches.</p>
+          <p>This repetition can be used within a larger sequence of stitches.</p>
           <div class="mockup-code w-full" id="terminal">
             <pre><code>R10: sc, (dc, inc 2) x3, dec  </code></pre>
           </div>
@@ -224,7 +224,7 @@
           <p>If-else statements can also be written without the <code>else</code> component.</p>
 
           <h3 id="for-loops" class="text-lg font-bold text-secondary-content">For-Loops</h3>
-          <p>For-loops are used to repeatedly execute a block of code a specific number of times by iterating over a counter. The syntax for a for-loop requires the definition of the counter variable that can be referenced within the for-loop body, and the specification of the lower and upper bounds of the values that the variable iterates over. The lower and upper bounds are inclusive, and the upper bound must be greater than or equal to the lower bound.</p>
+          <p>For-loops are used to repeatedly execute a block of code a specific number of times while iterating over a counter. The syntax for a for-loop requires the definition of the counter variable that can be referenced within the for-loop body, and the specification of the lower and upper bounds of the values that the variable iterates over. The lower and upper bounds are inclusive, and the upper bound must be greater than or equal to the lower bound.</p>
 
           <div class="mockup-code w-full" id="terminal">
             <pre><code>R1: ch 30  </code></pre>
@@ -236,7 +236,7 @@
           </div>
 
           <h3 id="functions" class="text-lg font-bold text-secondary-content">Functions</h3>
-          <p>Functions are defined used the <code>def</code> keyword, followed by the name of the function, and a list of its paramaters within parentheses. Within the function body, whatever is to be returned from the function should be written within the <code>return(...)</code> construct.</p>
+          <p>Functions are defined used the <code>def</code> keyword, followed by the name of the function, a list of its parameters within parentheses, and then in a colon at the end of the line. Within the function body, whatever is to be returned from the function should be written within the <code>return(...)</code> construct.</p>
 
           <div class="mockup-code w-full" id="terminal">
             <pre><code>def foo(i):  </code></pre>
