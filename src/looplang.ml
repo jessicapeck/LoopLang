@@ -65,7 +65,7 @@ let () =
 
         let new_ast, _ = Type_checker.check_pattern ast in
 
-        let result = Interpreter.eval_pattern new_ast in
+        let result = Backend.eval_pattern new_ast in
         close_in in_channel;
 
         let name_no_ext = Filename.remove_extension filename in
@@ -76,8 +76,8 @@ let () =
         let success_msg = (green "Compilation successful! ") ^ (Printf.sprintf "Result written to %s" output_filename) in
 
         (* print warnings if there are any *)
-        List.iter print_boxed_warning (List.rev !Interpreter.warning_messages);
-        Interpreter.warning_messages := [];
+        List.iter print_boxed_warning (List.rev !Backend.warning_messages);
+        Backend.warning_messages := [];
 
         (* print success message *)
         Printf.printf "%s\n" success_msg
@@ -94,31 +94,31 @@ let () =
         ) (List.rev !tokens); *)
     | Type_checker.TypeError msg ->
         close_in in_channel;
-        Interpreter.warning_messages := [];
+        Backend.warning_messages := [];
         print_boxed_error "TypeError" msg;
         exit 1
-    | Interpreter.RowNumberError msg ->
+    | Backend.RowNumberError msg ->
         close_in in_channel;
-        Interpreter.warning_messages := [];
+        Backend.warning_messages := [];
         print_boxed_error "RowNumberError" msg;
         exit 1
-    | Interpreter.RowOneError msg ->
+    | Backend.RowOneError msg ->
         close_in in_channel;
-        Interpreter.warning_messages := [];
+        Backend.warning_messages := [];
         print_boxed_error "RowOneError" msg;
         exit 1
-    | Interpreter.RowCountError msg ->
+    | Backend.RowCountError msg ->
         close_in in_channel;
-        Interpreter.warning_messages := [];
+        Backend.warning_messages := [];
         print_boxed_error "RowCountError" msg;
         exit 1
-    | Interpreter.ForLoopError msg ->
+    | Backend.ForLoopError msg ->
         close_in in_channel;
-        Interpreter.warning_messages := [];
+        Backend.warning_messages := [];
         print_boxed_error "ForLoopError" msg;
         exit 1
     | Failure msg ->
         close_in in_channel;
-        Interpreter.warning_messages := [];
+        Backend.warning_messages := [];
         print_boxed_error "Error" msg;
         exit 1

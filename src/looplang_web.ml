@@ -24,8 +24,8 @@ let construct_json result warnings error_msg =
     Printf.sprintf "%s\n" json_str
 
 let construct_err_json error_msg =
-    let warnings = !Interpreter.warning_messages in
-    Interpreter.warning_messages := [];
+    let warnings = !Backend.warning_messages in
+    Backend.warning_messages := [];
     construct_json "" warnings error_msg
 
 
@@ -38,11 +38,11 @@ let get_compile_results code_str =
 
         let new_ast, _ = Type_checker.check_pattern ast in
 
-        let result = Interpreter.eval_pattern new_ast in
+        let result = Backend.eval_pattern new_ast in
 
         let combined_result = String.concat "\n" result in
-        let warnings = List.rev !Interpreter.warning_messages in
-        Interpreter.warning_messages := [];
+        let warnings = List.rev !Backend.warning_messages in
+        Backend.warning_messages := [];
         construct_json combined_result warnings ""
 
     with
@@ -54,16 +54,16 @@ let get_compile_results code_str =
     | Type_checker.TypeError msg ->
         let error_msg = ("TypeError: " ^ msg) in
         construct_err_json error_msg
-    | Interpreter.RowNumberError msg ->
+    | Backend.RowNumberError msg ->
         let error_msg = ("RowNumberError: " ^ msg) in
         construct_err_json error_msg
-    | Interpreter.RowOneError msg ->
+    | Backend.RowOneError msg ->
         let error_msg = ("RowOneError: " ^ msg) in
         construct_err_json error_msg
-    | Interpreter.RowCountError msg ->
+    | Backend.RowCountError msg ->
         let error_msg = ("RowCountError: " ^ msg) in
         construct_err_json error_msg
-    | Interpreter.ForLoopError msg ->
+    | Backend.ForLoopError msg ->
         let error_msg = ("ForLoopError: " ^ msg) in
         construct_err_json error_msg
     | Failure msg ->

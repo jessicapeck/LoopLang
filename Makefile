@@ -15,7 +15,7 @@ TEST_COVERAGE = bisect_ppx
 JSOO = js_of_ocaml
 JSOO_PPX = js_of_ocaml-ppx
 
-ML_FILES = $(SRC)/ast.ml $(SRC)/parser.ml $(SRC)/lexer.ml $(SRC)/type_checker.ml $(SRC)/interpreter.ml
+ML_FILES = $(SRC)/ast.ml $(SRC)/parser.ml $(SRC)/lexer.ml $(SRC)/type_checker.ml $(SRC)/backend.ml
 CMO_FILES = $(ML_FILES:.ml=.cmo)
 
 MAIN_FILE = $(SRC)/looplang.ml

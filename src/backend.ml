@@ -1,7 +1,7 @@
 open Ast
 
 exception DivideByZero of string
-exception InternalInterpreterError of string
+exception InternalBackendError of string
 exception RowNumberError of string
 exception RowOneError of string
 exception RowCountError of string
@@ -50,45 +50,45 @@ let warning_messages = ref []
 
 let unwrap_int = function
     | VInt(n) -> n
-    | _ -> raise (InternalInterpreterError "expected an integer value, found a different type")
+    | _ -> raise (InternalBackendError "expected an integer value, found a different type")
 
 let unwrap_bool = function
     | VBool(b) -> b
-    | _ -> raise (InternalInterpreterError "expected a boolean value, found a different type")
+    | _ -> raise (InternalBackendError "expected a boolean value, found a different type")
 
 let unwrap_stitch_seq_item = function
     | VStitchSeqItem(item, c_opt) -> (item, c_opt)
-    | _ -> raise (InternalInterpreterError "expected a stitch sequence item, found a different type")
+    | _ -> raise (InternalBackendError "expected a stitch sequence item, found a different type")
 
 let unwrap_stitch_seq = function
     | VStitchSeq(seq) -> seq
-    | _ -> raise (InternalInterpreterError "expected a stitch sequence, found a different type")
+    | _ -> raise (InternalBackendError "expected a stitch sequence, found a different type")
 
 let unwrap_nested_stitch_seqs = function
     | VStitchSeqItem(item, c_opt) -> [VStitchSeqItem(item, c_opt)]
     | VStitchSeq(seq) -> seq
-    | _ -> raise (InternalInterpreterError "expected a stitch sequence item, found a different type")
+    | _ -> raise (InternalBackendError "expected a stitch sequence item, found a different type")
 
 let unwrap_row = function
     | VRow(n, seq, count_opt, c_opt) -> (n, seq, count_opt, c_opt)
-    | _ -> raise (InternalInterpreterError "expected a row, found a different type")
+    | _ -> raise (InternalBackendError "expected a row, found a different type")
 
 let unwrap_row_range = function
     | VRowRange((n1, n2), seq, count_opt, c_opt) -> ((n1, n2), seq, count_opt, c_opt)
-    | _ -> raise (InternalInterpreterError "expected a row range, found a different type")
+    | _ -> raise (InternalBackendError "expected a row range, found a different type")
 
 let unwrap_row_list = function
     | VRowList(row_list) -> row_list
-    | _ -> raise (InternalInterpreterError "expected a row list, found a different type")
+    | _ -> raise (InternalBackendError "expected a row list, found a different type")
 
 let unwrap_nested_rows = function
     | VRow(n, seq, count_opt, c_opt) -> [VRow(n, seq, count_opt, c_opt)]
     | VRowList(row_list) -> row_list
-    | _ -> raise (InternalInterpreterError "expected a row list item, found a different type")
+    | _ -> raise (InternalBackendError "expected a row list item, found a different type")
 
 let unwrap_comment = function
     | VComment(txt) -> txt
-    | _ -> raise (InternalInterpreterError "expected a comment, found a different type")
+    | _ -> raise (InternalBackendError "expected a comment, found a different type")
 
 
 (* ROW NUMBER / ROW COUNT VALIDATION FUNCTIONS *)
@@ -125,7 +125,7 @@ let rec calculate_mult_expr_count row_num = function
         (seq_row_count_change * n, seq_used_stitch_count * n)
     | VMirrorExpr(seq) ->
         calculate_stitch_seq_count row_num seq
-    | _ -> raise (InternalInterpreterError "expected a multiplier expression, found a different type")
+    | _ -> raise (InternalBackendError "expected a multiplier expression, found a different type")
 and calculate_stitch_seq_count row_num seq =
     let seq_value = List.map (fun item -> 
         let (item_value, _) = unwrap_stitch_seq_item item in
@@ -179,7 +179,7 @@ let rec mult_expr_to_str = function
         else (Printf.sprintf "(%s) x%d" (stitch_seq_to_str seq) n)
     | VMirrorExpr(seq) ->
         (stitch_seq_to_str seq)
-    | _ -> raise (InternalInterpreterError "expected a multiplier expression, found a different type")
+    | _ -> raise (InternalBackendError "expected a multiplier expression, found a different type")
 and stitch_seq_to_str seq =
     String.concat ", " (List.map (fun item -> 
         let (item_value, comment_opt) = unwrap_stitch_seq_item item in
@@ -192,7 +192,7 @@ let row_to_str row_eval row_count =
         (Printf.sprintf "R%d: %s [%d]%s" row_num (stitch_seq_to_str stitch_seq) row_count (string_of_optional_comment comment_opt))
     | VRowRange((lower_row_num, upper_row_num), stitch_seq, _, comment_opt) ->
         (Printf.sprintf "R%d-%d: %s [%d]%s" lower_row_num upper_row_num (stitch_seq_to_str stitch_seq) row_count (string_of_optional_comment comment_opt))
-    | _ -> raise (InternalInterpreterError "expected a row or row range, found a different type")
+    | _ -> raise (InternalBackendError "expected a row or row range, found a different type")
 
 
 (* CPS MAPPING FUNCTION *)
@@ -268,7 +268,7 @@ and eval_expr env e k =
                         | LT -> k (VBool(n1 < n2))
                         | GT -> k (VBool(n1 > n2))
                         | EQ -> k (VBool(n1 = n2))
-                        | _ -> raise (InternalInterpreterError "unreachable case in the evaluation of binary operations that expect integers")
+                        | _ -> raise (InternalBackendError "unreachable case in the evaluation of binary operations that expect integers")
                     )
                 | AND | OR ->
                     let b1 = unwrap_bool e1_eval in
@@ -277,7 +277,7 @@ and eval_expr env e k =
                         match op with
                         | AND -> k (VBool(b1 && b2))
                         | OR -> k (VBool(b1 || b2))
-                        | _ -> raise (InternalInterpreterError "unreachable case in the evaluation of binary operations that expect booleans")
+                        | _ -> raise (InternalBackendError "unreachable case in the evaluation of binary operations that expect booleans")
                     )
             )
         )
@@ -514,7 +514,7 @@ and eval_statement env stmt k_next k_ret =
                 (* return environment *)
                 k_next env
             )
-            | _ -> raise (InternalInterpreterError "expected a row or row range, found a different type")
+            | _ -> raise (InternalBackendError "expected a row or row range, found a different type")
         )
     )
     | RowList(row_expr) -> (
@@ -573,7 +573,7 @@ and eval_statement env stmt k_next k_ret =
                     result := row_str :: !result;
                     next_row_number := upper_row_num + 1;
                 )
-                | _ -> raise (InternalInterpreterError "expected a row or row range, found a different type")
+                | _ -> raise (InternalBackendError "expected a row or row range, found a different type")
             ) row_list_value;
 
             (* return environment *)
@@ -649,7 +649,7 @@ let eval_pattern_item env item k =
         let func_data = { params = params; body = filtered_body } in
         Hashtbl.add func_defs f func_data;
         k env
-    | Stmt(stmt) -> eval_statement env stmt (fun new_env -> k new_env) (fun _ -> raise (InternalInterpreterError "return statement not allowed at top level"))
+    | Stmt(stmt) -> eval_statement env stmt (fun new_env -> k new_env) (fun _ -> raise (InternalBackendError "return statement not allowed at top level"))
 
 let eval_pattern pattern =
     result := [];

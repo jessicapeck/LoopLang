@@ -51,20 +51,20 @@ let compile filename =
         let lexbuf = Lexing.from_channel channel in
         let ast = Parser.pattern Lexer.next_token lexbuf in
         let new_ast, _ = Type_checker.check_pattern ast in
-        let result = Interpreter.eval_pattern new_ast in
+        let result = Backend.eval_pattern new_ast in
         close_in channel;
         String.concat "\n" result
     with e ->
         close_in channel;
         raise e
 
-let run_interpreter filename =
+let run_Backend filename =
     let channel = open_in filename in
     try
         let lexbuf = Lexing.from_channel channel in
         let ast = Parser.pattern Lexer.next_token lexbuf in
         let new_ast, _ = Type_checker.check_pattern ast in
-        let _ = Interpreter.eval_pattern new_ast in
+        let _ = Backend.eval_pattern new_ast in
         close_in channel;
         ()
     with e ->

@@ -73,30 +73,30 @@ let type_checker_error_tests = [
 
 
 let row_number_error_tests = [
-    ("Literal integer row number", "literal_int_row_num", Interpreter.RowNumberError "expected row number 3, but found row number 4 in its place");
-    ("Calculated row number", "calculated_row_num", Interpreter.RowNumberError "expected row number 3, but found row number 10 in its place");
-    ("Row from function", "row_from_func", Interpreter.RowNumberError "expected row number 2, but found row number 3 in its place");
-    ("Not starting from one", "not_starting_from_one", Interpreter.RowNumberError "expected row number 1, but found row number 2 in its place");
-    ("Row number range not increasing", "range_not_inc", Interpreter.RowNumberError "lower bound row number (3) should be strictly less than upper bound row number (1)");
-    ("Incorrect lower bound row number", "lower_row_num", Interpreter.RowNumberError "expected row number 3, but found row number 4 in its place")
+    ("Literal integer row number", "literal_int_row_num", Backend.RowNumberError "expected row number 3, but found row number 4 in its place");
+    ("Calculated row number", "calculated_row_num", Backend.RowNumberError "expected row number 3, but found row number 10 in its place");
+    ("Row from function", "row_from_func", Backend.RowNumberError "expected row number 2, but found row number 3 in its place");
+    ("Not starting from one", "not_starting_from_one", Backend.RowNumberError "expected row number 1, but found row number 2 in its place");
+    ("Row number range not increasing", "range_not_inc", Backend.RowNumberError "lower bound row number (3) should be strictly less than upper bound row number (1)");
+    ("Incorrect lower bound row number", "lower_row_num", Backend.RowNumberError "expected row number 3, but found row number 4 in its place")
 ]
 
 
 let row_one_error_tests = [
-    ("No chains in R1", "no_chains", Interpreter.RowOneError "R1 of the pattern can only contain chain stitches or a magic ring");
-    ("Chains and other stitches in R1", "chains_and_other_stitches", Interpreter.RowOneError "R1 of the pattern can only contain chain stitches or a magic ring")
+    ("No chains in R1", "no_chains", Backend.RowOneError "R1 of the pattern can only contain chain stitches or a magic ring");
+    ("Chains and other stitches in R1", "chains_and_other_stitches", Backend.RowOneError "R1 of the pattern can only contain chain stitches or a magic ring")
 ]
 
 
 let row_count_error_tests = [
-    ("Increase stitch", "inc_stitch", Interpreter.RowCountError "row number 3 is built on top of 5 stitches which is inconsistent with the previous row count of 10");
-    ("Decrease stitch", "dec_stitch", Interpreter.RowCountError "row number 4 is built on top of 9 stitches which is inconsistent with the previous row count of 8");
-    ("Rows from function", "rows_from_function", Interpreter.RowCountError "row number 2 is built on top of 8 stitches which is inconsistent with the previous row count of 5")
+    ("Increase stitch", "inc_stitch", Backend.RowCountError "row number 3 is built on top of 5 stitches which is inconsistent with the previous row count of 10");
+    ("Decrease stitch", "dec_stitch", Backend.RowCountError "row number 4 is built on top of 9 stitches which is inconsistent with the previous row count of 8");
+    ("Rows from function", "rows_from_function", Backend.RowCountError "row number 2 is built on top of 8 stitches which is inconsistent with the previous row count of 5")
 ]
 
 
 let for_loop_error_tests = [
-    ("For-loop bounds", "for_loop_bounds", Interpreter.ForLoopError "the for-loop expects the lower bound to be less than or equal to the upper bound, but found a lower bound of 5 and an upper bound of 1 being used")
+    ("For-loop bounds", "for_loop_bounds", Backend.ForLoopError "the for-loop expects the lower bound to be less than or equal to the upper bound, but found a lower bound of 5 and an upper bound of 1 being used")
 ]
 
 
@@ -162,7 +162,7 @@ let compiler_test_suite =
 
 let create_row_number_error_test (test_name, filename, expected_error) =
     let test_fn () =
-        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_interpreter ("./test/error_patterns/row_number_errors/" ^ filename ^ ".loopy"))
+        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_Backend ("./test/error_patterns/row_number_errors/" ^ filename ^ ".loopy"))
     in
     Alcotest.test_case test_name `Quick test_fn
 
@@ -172,7 +172,7 @@ let row_number_error_test_suite =
 
 let create_row_one_error_test (test_name, filename, expected_error) =
     let test_fn () =
-        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_interpreter ("./test/error_patterns/row_one_errors/" ^ filename ^ ".loopy"))
+        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_Backend ("./test/error_patterns/row_one_errors/" ^ filename ^ ".loopy"))
     in
     Alcotest.test_case test_name `Quick test_fn
 
@@ -182,7 +182,7 @@ let row_one_error_test_suite =
 
 let create_row_count_error_test (test_name, filename, expected_error) =
     let test_fn () =
-        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_interpreter ("./test/error_patterns/row_count_errors/" ^ filename ^ ".loopy"))
+        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_Backend ("./test/error_patterns/row_count_errors/" ^ filename ^ ".loopy"))
     in
     Alcotest.test_case test_name `Quick test_fn
 
@@ -192,7 +192,7 @@ let row_count_error_test_suite =
 
 let create_for_loop_error_test (test_name, filename, expected_error) =
     let test_fn () =
-        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_interpreter ("./test/error_patterns/for_loop_errors/" ^ filename ^ ".loopy"))
+        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_Backend ("./test/error_patterns/for_loop_errors/" ^ filename ^ ".loopy"))
     in
     Alcotest.test_case test_name `Quick test_fn
 
@@ -210,6 +210,6 @@ let () =
         ("Row Number Error Test", row_number_error_test_suite);
         ("Row One Error Test", row_one_error_test_suite);
         ("Row Count Error Test", row_count_error_test_suite);
-        ("For-loop Error Test", for_loop_error_test_suite)
+        ("For-Loop Error Test", for_loop_error_test_suite)
     ] in
     run "LoopLang Compiler" test_suites
