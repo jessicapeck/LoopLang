@@ -1,5 +1,5 @@
 type t = 
-    | TVar of t option ref (* generic type *)
+    | TVar of t option ref (* type variable *)
     | TInt 
     | TBool 
     | TStitch
@@ -8,7 +8,7 @@ type t =
     | TRow
     | TRowList
     | TFunc of string * t list * t (* mangled name, param types, return type *)
-    | TFuncs of t list ref
+    | TFuncs of t list ref (* t is TFunc *)
 
 type env = (string * t) list
 

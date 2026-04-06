@@ -91,13 +91,13 @@ row_lit:
     | ROW expr COLON stitch_seq LBRACKET expr RBRACKET                                                              { RowLit($2, $4, Some($6), None) }
     | ROW expr COLON stitch_seq comment                                                                             { RowLit($2, $4, None, Some($5)) }
     | ROW expr COLON stitch_seq                                                                                     { RowLit($2, $4, None, None) }
-    | ROWINT COLON stitch_seq LBRACKET expr RBRACKET comment                                                        { RowLit(Int($1), $3, Some($5), Some($7))}
-    | ROWINT COLON stitch_seq LBRACKET expr RBRACKET                                                                { RowLit(Int($1), $3, Some($5), None)}
-    | ROWINT COLON stitch_seq comment                                                                               { RowLit(Int($1), $3, None, Some($4))}
-    | ROWINT COLON stitch_seq                                                                                       { RowLit(Int($1), $3, None, None)}
-    | ROWINTRANGE COLON stitch_seq LBRACKET expr RBRACKET comment                                                   { let (lower, upper) = $1 in RowRangeLit((Int(lower), Int(upper)), $3, Some($5), Some($7))}
-    | ROWINTRANGE COLON stitch_seq LBRACKET expr RBRACKET                                                           { let (lower, upper) = $1 in RowRangeLit((Int(lower), Int(upper)), $3, Some($5), None)}
-    | ROWINTRANGE COLON stitch_seq comment                                                                          { let (lower, upper) = $1 in RowRangeLit((Int(lower), Int(upper)), $3, None, Some($4))}
+    | ROWINT COLON stitch_seq LBRACKET expr RBRACKET comment                                                        { RowLit(Int($1), $3, Some($5), Some($7)) }
+    | ROWINT COLON stitch_seq LBRACKET expr RBRACKET                                                                { RowLit(Int($1), $3, Some($5), None) }
+    | ROWINT COLON stitch_seq comment                                                                               { RowLit(Int($1), $3, None, Some($4)) }
+    | ROWINT COLON stitch_seq                                                                                       { RowLit(Int($1), $3, None, None) }
+    | ROWINTRANGE COLON stitch_seq LBRACKET expr RBRACKET comment                                                   { let (lower, upper) = $1 in RowRangeLit((Int(lower), Int(upper)), $3, Some($5), Some($7)) }
+    | ROWINTRANGE COLON stitch_seq LBRACKET expr RBRACKET                                                           { let (lower, upper) = $1 in RowRangeLit((Int(lower), Int(upper)), $3, Some($5), None) }
+    | ROWINTRANGE COLON stitch_seq comment                                                                          { let (lower, upper) = $1 in RowRangeLit((Int(lower), Int(upper)), $3, None, Some($4)) }
     | ROWINTRANGE COLON stitch_seq                                                                                  { let (lower, upper) = $1 in RowRangeLit((Int(lower), Int(upper)), $3, None, None) }
 
 row_expr:
@@ -171,10 +171,10 @@ expr:
     | BOOL                                                                                                          { Bool($1) }
     | var                                                                                                           { ExprVar($1) }
     | func_call                                                                                                     { ExprFuncCall($1) }
-    | expr ADD expr                                                                                                 { BinOp($1, ADD, $3) }
-    | expr SUB expr                                                                                                 { BinOp($1, SUB, $3) }
     | expr MUL expr                                                                                                 { BinOp($1, MUL, $3) }
     | expr DIV expr                                                                                                 { BinOp($1, DIV, $3) }
+    | expr ADD expr                                                                                                 { BinOp($1, ADD, $3) }
+    | expr SUB expr                                                                                                 { BinOp($1, SUB, $3) }
     | expr LT expr                                                                                                  { BinOp($1, LT, $3) }
     | expr GT expr                                                                                                  { BinOp($1, GT, $3) }
     | expr EQ expr                                                                                                  { BinOp($1, EQ, $3) }
