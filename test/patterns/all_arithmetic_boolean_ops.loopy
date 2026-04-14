@@ -1,0 +1,12 @@
+R(0 + 1): ch 30
+R(5 - 3): sc 30
+R(9 / 3): dc 30
+R(2 * 2): sc 30
+R(16 / 3): dc 30
+
+if ((2 < 5) and (5 > 2)):
+    R6: sc 30
+
+let num = -30
+if ((4 == 2) or (not false)):
+    R7: dc -num

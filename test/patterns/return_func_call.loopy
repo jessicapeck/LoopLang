@@ -1,0 +1,7 @@
+def foo():
+    return(1)
+
+def goo():
+    return(foo())
+
+row goo(): mr 6

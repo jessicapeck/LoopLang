@@ -43,7 +43,10 @@ let tests = [
     ("Assigning a variable to another variable", "assign_var_to_var");
     ("Generic function", "generic_function");
     ("Function overloading", "function_overloading");
-    ("Sequence mirroring", "mirror")
+    ("Sequence mirroring", "mirror");
+    ("Function call as an argument", "arg_func_call");
+    ("Arithemtic and boolean operations", "all_arithmetic_boolean_ops");
+    ("Returning a function call", "return_func_call")
 ]
 
 

@@ -166,11 +166,15 @@ let stitch_to_str = function
 let rec mult_expr_to_str = function
     | VStitchMultExpr(st, n) -> 
         let st_str = stitch_to_str st in
-        if n = 1 then st_str
-        else (Printf.sprintf "%s %d" st_str n)
+        if n = 0 then ""
+        else
+            if n = 1 then st_str
+            else (Printf.sprintf "%s %d" st_str n)
     | VStitchSeqMultExpr(seq, n) -> 
-        if n = 1 then stitch_seq_to_str seq
-        else (Printf.sprintf "(%s) x%d" (stitch_seq_to_str seq) n)
+        if n = 0 then ""
+        else
+            if n = 1 then stitch_seq_to_str seq
+            else (Printf.sprintf "(%s) x%d" (stitch_seq_to_str seq) n)
     | VMirrorExpr(seq) ->
         (stitch_seq_to_str seq)
     | _ -> raise (InternalBackendError "expected a multiplier expression, found a different type")
