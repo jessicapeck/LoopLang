@@ -58,7 +58,7 @@ statement:
     | RETURN LPAREN NEWLINE INDENT return_expr DEDENT NEWLINE RPAREN                                                { Return($5) }
     | RETURN LPAREN return_expr RPAREN                                                                              { Return($3) }
     | IF expr COLON NEWLINE INDENT statement_list DEDENT                                                            { If($2, $6, []) }
-    | IF expr COLON NEWLINE INDENT statement_list DEDENT NEWLINE ELSE COLON NEWLINE INDENT statement_list DEDENT    { If($2, $6, $13) }
+    | IF expr COLON NEWLINE INDENT statement_list DEDENT ELSE COLON NEWLINE INDENT statement_list DEDENT            { If($2, $6, $12) }
     | FOR var ASSIGN expr TO expr COLON NEWLINE INDENT statement_list DEDENT                                        { For($2, $4, $6, $10) }
 
 return_expr:

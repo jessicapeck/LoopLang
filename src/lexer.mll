@@ -72,6 +72,13 @@ let comment_text = [^ '<' '>']*
 
 
 rule token = parse
+    | '\n'+ ((' '*) | ('\t'*) as seq) "else"                            { 
+                                                                          next_line lexbuf; 
+                                                                          match process_indentation seq with
+                                                                          | Indent -> ELSE
+                                                                          | Dedent -> Queue.add ELSE pending_tokens; Queue.take pending_tokens
+                                                                          | Skip -> ELSE
+                                                                        }
     | '\n'+ ((' '*) | ('\t'*) as seq)                                   { 
                                                                           next_line lexbuf; 
                                                                           match process_indentation seq with
@@ -96,7 +103,6 @@ rule token = parse
     | "x("                                                              { MULEXPR }
     | "mirror"                                                          { MIRROR }
     | "if"                                                              { IF }
-    | "else"                                                            { ELSE }
     | "let"                                                             { LET }
     | "def"                                                             { DEF }
     | "return"                                                          { RETURN } 
