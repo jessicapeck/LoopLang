@@ -42,8 +42,8 @@ and stitch_seq_item =
     | StitchSeqItemFuncCall of func_call (* for functions that return: TStitchSeq, but are used within another stitch seq *)
 and stitch_seq =
     | StitchSeq of stitch_seq_item list (* TStitchSeq *)
-    | StitchSeqVar of var
-    | StitchSeqFuncCall of func_call (* for functions that return: TStitchSeq *)
+    | StitchSeqVar of var (* for variables of type TStitchSeq*)
+    | StitchSeqFuncCall of func_call (* for functions with return type TStitchSeq *)
 
 and argument = 
     | ArgVar of var
