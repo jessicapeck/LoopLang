@@ -83,6 +83,7 @@ let unwrap_row_list = function
 
 let unwrap_nested_rows = function
     | VRow(n, seq, count_opt, c_opt) -> [VRow(n, seq, count_opt, c_opt)]
+    | VRowRange((n1, n2), seq, count_opt, c_opt) -> [VRowRange((n1, n2), seq, count_opt, c_opt)]
     | VRowList(row_list) -> row_list
     | _ -> raise (InternalBackendError "expected a row list item, found a different type")
 
