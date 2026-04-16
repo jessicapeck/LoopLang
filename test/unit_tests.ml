@@ -46,7 +46,10 @@ let tests = [
     ("Sequence mirroring", "mirror");
     ("Function call as an argument", "arg_func_call");
     ("Arithemtic and boolean operations", "all_arithmetic_boolean_ops");
-    ("Returning a function call", "return_func_call")
+    ("Returning a function call", "return_func_call");
+    ("Different orderings of stitch type and multiplier", "stitch_type_ordering");
+    ("Multipliers of zero and one", "zero_one_multipliers");
+    ("Row range in a variable", "row_range_var")
 ]
 
 

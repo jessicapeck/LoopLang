@@ -1,0 +1,4 @@
+let my_rows = R2-5: sc 30
+
+R1: ch 30
+my_rows
