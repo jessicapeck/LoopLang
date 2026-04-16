@@ -179,9 +179,14 @@ let rec mult_expr_to_str = function
         (stitch_seq_to_str seq)
     | _ -> raise (InternalBackendError "expected a multiplier expression, found a different type")
 and stitch_seq_to_str seq =
-    String.concat ", " (List.map (fun item -> 
+    String.concat ", " (List.filter_map (fun item ->
         let (item_value, comment_opt) = unwrap_stitch_seq_item item in
-        (Printf.sprintf "%s%s" (mult_expr_to_str item_value) (string_of_optional_comment comment_opt))
+        let mult_expr_str = mult_expr_to_str item_value in
+
+        if mult_expr_str = "" then
+            None
+        else
+            Some((Printf.sprintf "%s%s" mult_expr_str (string_of_optional_comment comment_opt)))
     ) (unwrap_stitch_seq seq))
 
 let row_to_str row_eval row_count =
