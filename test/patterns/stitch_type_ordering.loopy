@@ -4,3 +4,4 @@ R3: dc 4, 2 inc, 4 dc
 R4: hdc 6, tr 6, ch 2
 R5: 6 hdc, 6 tr, dec, 2 ch
 R6: 6 slst, 2 dec, slst 5
+R7: dec 6, sc
