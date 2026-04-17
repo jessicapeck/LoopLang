@@ -1,0 +1,10 @@
+def foo(b):
+    if b:
+        return(10)
+    else:
+        return(true)
+
+let a = (3 > 2)
+
+r1: ch 30
+r2: (sc, inc, sc) x(foo(a))

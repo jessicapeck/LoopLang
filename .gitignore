@@ -22,3 +22,5 @@ _coverage/*
 
 _coverage_data
 _coverage_data/*
+
+parser_rule_coverage.txt

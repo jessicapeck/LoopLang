@@ -1,0 +1,5 @@
+let lower = true
+
+r1: ch 30
+for i = lower to 5:
+    r(i): sc 30

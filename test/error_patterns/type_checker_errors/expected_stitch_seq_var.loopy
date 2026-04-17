@@ -1,0 +1,4 @@
+let seq = true
+
+r1: ch 30
+r2: (seq) x3

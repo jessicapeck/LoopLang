@@ -146,9 +146,6 @@ and get_func_types env i_env f args =
 
 
 (* main type checking functions *)
-and check_stitch env i_env = function
-    | CH | SC | DC | INC | DEC | MR | HDC | TR | SLST -> TStitch
-
 and get_var_type env i_env expected_t_opt v = 
     match Hashtbl.find_opt env v with
         | Some(t) -> unwrap_type t (* if v is in env, return its type*)
@@ -219,17 +216,14 @@ and check_mult_expr env i_env = function
         if t = TInt then (StitchMultExpr(st, e_ast), TStitchSeqItem)
         else raise (TypeError "stitch multiplier expression expects TInt")
     | StitchSeqMultExpr(seq, e) ->
-        let seq_ast, t_seq = check_stitch_seq env i_env TStitchSeq seq in
-        if t_seq = TStitchSeq then
-            let e_ast, t_e = check_expr env i_env (Some TInt) e in
-            if t_e = TInt then (StitchSeqMultExpr(seq_ast, e_ast), TStitchSeqItem)
-            else raise (TypeError "stitch sequence multiplier expression expects TInt")
-        else raise (TypeError "stitch sequence multiplier expression expects TStitchSeq within parentheses")
+        let seq_ast, t_seq = check_stitch_seq env i_env TStitchSeq seq in (* this enforces TStitchSeq *)
+        let e_ast, t_e = check_expr env i_env (Some TInt) e in
+        if t_e = TInt then (StitchSeqMultExpr(seq_ast, e_ast), TStitchSeqItem)
+        else raise (TypeError "stitch sequence multiplier expression expects TInt")
     | MirrorExpr(seq1, seq2) ->
-        let seq1_ast, t_seq1 = check_stitch_seq env i_env TStitchSeq seq1 in
-        let seq2_ast, t_seq2 = check_stitch_seq env i_env TStitchSeq seq2 in
-        if (t_seq1 = TStitchSeq && t_seq2 = TStitchSeq) then (MirrorExpr(seq1_ast, seq2_ast), TStitchSeqItem)
-        else raise (TypeError "mirror expressions expects two TStitchSeq values")
+        let seq1_ast, t_seq1 = check_stitch_seq env i_env TStitchSeq seq1 in (* this enforces TStitchSeq *)
+        let seq2_ast, t_seq2 = check_stitch_seq env i_env TStitchSeq seq2 in (* this enforces TStitchSeq *)
+        (MirrorExpr(seq1_ast, seq2_ast), TStitchSeqItem)
 and check_stitch_seq_item env i_env = function
     | StitchSeqItem(mexpr, c_opt) ->
         let mexpr_ast, t = check_mult_expr env i_env mexpr in
@@ -307,9 +301,8 @@ and check_row_lit env i_env = function
                 else raise (TypeError "row count expects TInt")
             else raise (TypeError "row content expects TStitchSeq")
         else raise (TypeError "row number expects TInt")
-    | RowRangeLit((e1, e2), seq, count, c_opt) ->
-        let e1_ast, t_e1 = check_expr env i_env (Some TInt) e1 in
-        let e2_ast, t_e2 = check_expr env i_env (Some TInt) e2 in
+    | RowRangeLit((n1, n2), seq, count, c_opt) ->
+        (* n1 and n2 are forced to be integers in the lexer *)
         let seq_ast, t_seq = check_stitch_seq env i_env TStitchSeq seq in
         let count_ast, t_count = (
             match count with
@@ -318,14 +311,10 @@ and check_row_lit env i_env = function
                 (Some e_ast, t_e)
             | None -> (None, TInt)
         ) in
-        if t_e1 = TInt then
-            if t_e2 = TInt then
-                if t_seq = TStitchSeq then
-                    if t_count = TInt then (RowRangeLit((e1_ast, e2_ast), seq_ast, count_ast, c_opt), TRow)
-                    else raise (TypeError "row count expects TInt")
-                else raise (TypeError "row content expects TStitchSeq")
-            else raise (TypeError "upper bound row number expects TInt")
-        else raise (TypeError "lower bound row number expects TInt")
+        if t_seq = TStitchSeq then
+            if t_count = TInt then (RowRangeLit((n1, n2), seq_ast, count_ast, c_opt), TRow)
+            else raise (TypeError "row count expects TInt")
+        else raise (TypeError "row content expects TStitchSeq")
 
 let check_row_expr env i_env = function
     | RowVar(v) ->

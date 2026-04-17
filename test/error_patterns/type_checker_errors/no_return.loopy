@@ -1,0 +1,5 @@
+def foo():
+    let seq = sc, inc, sc
+
+R1: ch 30
+R2: (foo()) x10

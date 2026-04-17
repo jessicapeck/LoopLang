@@ -75,7 +75,13 @@ let type_checker_error_tests = [
     ("If-else statement condition", "if_else_condition", Type_checker.TypeError "if-else statement condition expects TBool");
     ("Row count", "row_count", Type_checker.TypeError "row count expects TInt");
     ("Antisymmetric variable definition", "if_else_antisymmetric_var_def", Type_checker.TypeError "undefined variable: 'seq1'");
-    ("Variable definition outside of function body", "out_of_scope_var", Type_checker.TypeError "undefined variable: 'seq1'")
+    ("Variable definition outside of function body", "out_of_scope_var", Type_checker.TypeError "undefined variable: 'seq1'");
+    ("Function without a return statement", "no_return", Type_checker.TypeError "function 'foo' does not return a value");
+    ("Inconsistent return types", "inconsistent_return_types", Type_checker.TypeError "function 'foo' has inconsistent return types");
+    ("For-loop upper bound", "for_loop_upper", Type_checker.TypeError "upper bound of for-loop expects TInt");
+    ("For-loop lower bound", "for_loop_lower", Type_checker.TypeError "lower bound of for-loop expects TInt");
+    ("Expected stitch sequence variable", "expected_stitch_seq_var", Type_checker.TypeError "variable 'seq' expected TStitchSeq, but found TBool");
+    ("Expected row list variable", "expected_row_list_var", Type_checker.TypeError "variable 'row_list' expected TRowList, but found TInt")
 ]
 
 
