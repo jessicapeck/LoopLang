@@ -1,7 +1,11 @@
 R1: ch 20 [20]
 R2: sc 20 [20] << comment at end of row 2 >>
 R3: dc 20 [20]
-R4: sc 20 << comment attached to sc 20 >> [20] << comment at end of row 4 >>
+R4: sc 20 << comment attached to sc 20 in row 4 >> [20] << comment at end of row 4 >>
 R5-6: dc 20 [20] << comment at end of rows 5 to 6 >>
 R7-8: sc 20 [20]
-R9-10: dc 20 << comment attached to dc 20 >> [20] << comment at end of rows 9 to 10 >>
+R9-10: dc 20 << comment attached to dc 20 in rows 9 to 10 >> [20] << comment at end of rows 9 to 10 >>
+R11: dc 20 [20]
+R12: sc 20 [20] << comment at end of row 12 >>
+R13: dc 20 [20]
+R14: sc 20 << comment attached to sc 20 in row 14 >> [20] << comment at the end of row 14 >>

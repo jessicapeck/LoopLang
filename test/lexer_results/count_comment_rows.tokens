@@ -3,14 +3,26 @@ ID(seq1)
 ASSIGN
 SC
 INT(20)
-COMMENT( comment attached to sc 20 )
+COMMENT( comment attached to sc 20 in row 4 )
 NEWLINE
 LET
 ID(seq2)
 ASSIGN
 DC
 INT(20)
-COMMENT( comment attached to dc 20 )
+COMMENT( comment attached to dc 20 in rows 9 to 10 )
+NEWLINE
+LET
+ID(seq3)
+ASSIGN
+SC
+INT(20)
+COMMENT( comment attached to sc 20 in row 14 )
+NEWLINE
+LET
+ID(n)
+ASSIGN
+INT(11)
 NEWLINE
 ROWINT(1)
 COLON
@@ -60,4 +72,49 @@ ROWINTRANGE(9,10)
 COLON
 ID(seq2)
 COMMENT( comment at end of rows 9 to 10 )
+NEWLINE
+ROW
+LPAREN
+ID(n)
+RPAREN
+COLON
+DC
+INT(20)
+NEWLINE
+ROW
+LPAREN
+ID(n)
+ADD
+INT(1)
+RPAREN
+COLON
+SC
+INT(20)
+LBRACKET
+INT(20)
+RBRACKET
+COMMENT( comment at end of row 12 )
+NEWLINE
+ROW
+LPAREN
+ID(n)
+ADD
+INT(2)
+RPAREN
+COLON
+DC
+INT(20)
+LBRACKET
+INT(20)
+RBRACKET
+NEWLINE
+ROW
+LPAREN
+ID(n)
+ADD
+INT(3)
+RPAREN
+COLON
+ID(seq3)
+COMMENT( comment at the end of row 14 )
 EOF
