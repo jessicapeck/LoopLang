@@ -65,6 +65,12 @@
                 <li><a href="#functions">Functions</a></li>
               </ul>
             </li>
+              <a href="#debugging"><strong>Debugging</strong></a>
+              <ul>
+                <li><a href="#common-errors">Common Error Messages</a></li>
+                <li><a href="#common-warnings">Common Warning Messages</a></li>
+              </ul>
+            </li>
           </ul>
         </div>
       </aside>
@@ -256,6 +262,59 @@
             <pre><code>        R(row_num + 1): seq2  </code></pre>
             <pre><code>    )  </code></pre>
           </div>
+
+          <h2 id="debugging" class="text-xl font-bold text-secondary">Debugging</h2>
+          <h3 id="common-errors" class="text-lg font-bold text-secondary-content">Common Error Messages</h3>
+
+          <code><span class="text-error font-bold">ERROR</span> SyntaxError: syntax error at line 3, column 11</code>
+          <p>This will mean that there is something wrong with the keywords you have written. The line number (number of lines down the page) and the column number (number of character across that line) should direct you to the rough location of the error (possibly just after the incorrect keyword). Then you should check the documentation to make sure you have written everything correctly.</p>
+
+          <br>
+
+          <code><span class="text-error font-bold">ERROR</span> TypeError: undefined variable: 'seq'</code>
+          <p>This means that you have used a variables before defining it. The name of the undefined variable will be specified in the error message. Make sure that you have written <code>let seq = ...</code> before using <code>seq</code> later on in the program.</p>
+
+          <br>
+
+          <code><span class="text-error font-bold">ERROR</span> TypeError: stitch sequence multiplier expression expects an Integer multiplier</code>
+          <p>When using variables, make sure that the value assigned to that variable makes sense in the location it is being used. For example, make sure that variables that hold integers are only used where an should would normally expect to see an integer.</p>
+
+          <br>
+
+          <code><span class="text-error font-bold">ERROR</span> RowOneError: R1 of the pattern can only contain chain stitches or a magic ring</code>
+          <p>This error message means that there are stitch types other than chain stitches or a magic ring in the first row. Crochet patterns need a foundational base to work from, and this base can only be created using chain stitches or a magic ring.</p>
+
+          <br>
+
+          <code><span class="text-error font-bold">ERROR</span> RowNumberError: expected row number 6, but found row number 7 in its place</code>
+          <p>This type of error message is produced when a row is missing from the pattern. Row numbers should start from 1 and increment by 1 with each new row. This message is particular is telling you that row 6 is missing.</p>
+
+          <br>
+
+          <code><span class="text-error font-bold">ERROR</span> RowCountError: row number 5 is built on top of 10 stitches which is inconsistent with the previous row count of 12</code>
+          <p>This means that the compiler has detected an inconsistent row count relationship. If you encounter this message, make sure that each row uses the same number of stitches as the row count from the previous row. The error message will tell you which row number contains the wrong number of stitches, how many stitches it currently uses, and how many stitches it should be using.</p>
+
+          <br>
+
+          <code><span class="text-error font-bold">ERROR</span> ForLoopError: the for-loop expects the lower bound to be less than or equal to the upper bound, but found a lower bound of 5 and an upper bound of 2 being used</code>
+          <p>When writing a for-loop, ensure that the <code>n1</code> and <code>n2</code> in <code>for i = n1 to n2:</code> are such that <code>n2</code> is greater than or equal to <code>n1</code>.</p>
+
+          <br>
+
+          <code><span class="text-error font-bold">ERROR</span> DivideByZeroError: division by zero encountered during expression evaluation</code>
+          <p>This means that a calculation within the program contains a division by zero, which is not allowed.</p>
+
+          <br>
+
+          <h3 id="common-warnings" class="text-lg font-bold text-secondary-content">Common Warning Messages</h3>
+
+          <code><span class="text-warning font-bold">WARNING</span> the function foo(Integer->StitchSequence) contains rows that are not returned</code>
+          <p>This warning means that there are rows within the function body that are not placed within the <code>return(...)</code> construct. These rows are being ignored, and have no affect on the final pattern.</p>
+
+          <br>
+
+          <code><span class="text-warning font-bold">WARNING</span> the given row count for row number 2 was incorrect, this has been corrected in the result</code>
+          <p>This warning means that a row count annotation provided by the user in the LoopLang program is incorrect, but the pattern itself and its row count relationships is still valid. In this scenario, the compiler will calculate the correct row count, and write this instead of the incorrect row count in the output pattern.</p>
 
         </div>
       </main>
