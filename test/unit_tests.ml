@@ -61,27 +61,27 @@ let type_checker_error_tests = [
     ("Incorrect number of arguments", "incorrect_number_of_arguments", Type_checker.TypeError "there are no functions named 'foo' that match the number and type of arguments provided");
     ("Incorrect argument types", "incorrect_argument_types", Type_checker.TypeError "there are no functions named 'foo' that match the number and type of arguments provided");
     ("Undefined variable", "undefined_variable", Type_checker.TypeError "undefined variable: 'seq'");
-    ("Binary arithmetic operations", "binary_arithmetic_operations", Type_checker.TypeError "binary arithmetic operations expect TInt operands");
-    ("Binary comparison operations", "binary_comparison_operations", Type_checker.TypeError "binary comparison operations expect TInt operands");
-    ("Binary logial operations", "binary_logical_operations", Type_checker.TypeError "binary logical operations expect TBool operands");
-    ("Unary arithmetic operations", "unary_arithmetic_operations", Type_checker.TypeError "unary arithmetic operations expect a TInt operand");
-    ("Unary logical operations", "unary_logical_operations", Type_checker.TypeError "unary logical operations expect a TBool operand");
-    ("Stitch multiplier", "stitch_multiplier", Type_checker.TypeError "stitch multiplier expression expects TInt");
-    ("Stitch sequence multiplier (number)", "stitch_sequence_multiplier_number", Type_checker.TypeError "stitch sequence multiplier expression expects TInt");
-    ("Stitch sequence multiplier (sequence)", "stitch_sequence_multiplier_seq", Type_checker.TypeError "variable 'myrow' expected TStitchSeq, but found TRowList");
-    ("Stitch sequence item", "stitch_seq_item", Type_checker.TypeError "function 'foo' expected to return TStitchSeq, but found TBool");
-    ("Row number", "row_number", Type_checker.TypeError "row number expects TInt");
-    ("Row content", "row_content", Type_checker.TypeError "variable 'z' expected TStitchSeq, but found TInt");
-    ("If-else statement condition", "if_else_condition", Type_checker.TypeError "if-else statement condition expects TBool");
-    ("Row count", "row_count", Type_checker.TypeError "row count expects TInt");
+    ("Binary arithmetic operations", "binary_arithmetic_operations", Type_checker.TypeError "binary arithmetic operations expect Integer operands");
+    ("Binary comparison operations", "binary_comparison_operations", Type_checker.TypeError "binary comparison operations expect Integer operands");
+    ("Binary logial operations", "binary_logical_operations", Type_checker.TypeError "binary logical operations expect Boolean operands");
+    ("Unary arithmetic operations", "unary_arithmetic_operations", Type_checker.TypeError "unary arithmetic operations expect an Integer operand");
+    ("Unary logical operations", "unary_logical_operations", Type_checker.TypeError "unary logical operations expect a Boolean operand");
+    ("Stitch multiplier", "stitch_multiplier", Type_checker.TypeError "stitch multiplier expression expects an Integer multiplier");
+    ("Stitch sequence multiplier (number)", "stitch_sequence_multiplier_number", Type_checker.TypeError "stitch sequence multiplier expression expects an Integer multiplier");
+    ("Stitch sequence multiplier (sequence)", "stitch_sequence_multiplier_seq", Type_checker.TypeError "variable 'myrow' expected to be a StitchSequence, but found RowList");
+    ("Stitch sequence item", "stitch_seq_item", Type_checker.TypeError "function 'foo' expected to return a StitchSequence, but found Boolean");
+    ("Row number", "row_number", Type_checker.TypeError "row number expects an Integer");
+    ("Row content", "row_content", Type_checker.TypeError "variable 'z' expected to be a StitchSequence, but found Integer");
+    ("If-else statement condition", "if_else_condition", Type_checker.TypeError "if-else statement condition expected to be a Boolean");
+    ("Row count", "row_count", Type_checker.TypeError "row count expects an Integer");
     ("Antisymmetric variable definition", "if_else_antisymmetric_var_def", Type_checker.TypeError "undefined variable: 'seq1'");
     ("Variable definition outside of function body", "out_of_scope_var", Type_checker.TypeError "undefined variable: 'seq1'");
     ("Function without a return statement", "no_return", Type_checker.TypeError "function 'foo' does not return a value");
     ("Inconsistent return types", "inconsistent_return_types", Type_checker.TypeError "function 'foo' has inconsistent return types");
-    ("For-loop upper bound", "for_loop_upper", Type_checker.TypeError "upper bound of for-loop expects TInt");
-    ("For-loop lower bound", "for_loop_lower", Type_checker.TypeError "lower bound of for-loop expects TInt");
-    ("Expected stitch sequence variable", "expected_stitch_seq_var", Type_checker.TypeError "variable 'seq' expected TStitchSeq, but found TBool");
-    ("Expected row list variable", "expected_row_list_var", Type_checker.TypeError "variable 'row_list' expected TRowList, but found TInt")
+    ("For-loop upper bound", "for_loop_upper", Type_checker.TypeError "upper bound of for-loop expects an Integer");
+    ("For-loop lower bound", "for_loop_lower", Type_checker.TypeError "lower bound of for-loop expects an Integer");
+    ("Expected stitch sequence variable", "expected_stitch_seq_var", Type_checker.TypeError "variable 'seq' expected to be a StitchSequence, but found Boolean");
+    ("Expected row list variable", "expected_row_list_var", Type_checker.TypeError "variable 'row_list' expected to be a RowList, but found Integer")
 ]
 
 
@@ -110,6 +110,10 @@ let row_count_error_tests = [
 
 let for_loop_error_tests = [
     ("For-loop bounds", "for_loop_bounds", Backend.ForLoopError "the for-loop expects the lower bound to be less than or equal to the upper bound, but found a lower bound of 5 and an upper bound of 1 being used")
+]
+
+let divide_by_zero_error_tests = [
+    ("Division by zero", "divide_by_zero", Backend.DivideByZeroError "division by zero encountered during expression evaluation")
 ]
 
 
@@ -213,6 +217,16 @@ let for_loop_error_test_suite =
     List.map create_for_loop_error_test for_loop_error_tests
 
 
+let create_divide_by_zer_error_test (test_name, filename, expected_error) =
+    let test_fn () =
+        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_Backend ("./test/error_patterns/divide_by_zero_errors/" ^ filename ^ ".loopy"))
+    in
+    Alcotest.test_case test_name `Quick test_fn
+
+let divide_by_zero_error_test_suite =
+    List.map create_divide_by_zer_error_test divide_by_zero_error_tests
+
+
 let () =
     let test_suites = [
         ("Token Stream Conversion Test", token_stream_test_suite);
@@ -223,6 +237,7 @@ let () =
         ("Row Number Error Test", row_number_error_test_suite);
         ("Row One Error Test", row_one_error_test_suite);
         ("Row Count Error Test", row_count_error_test_suite);
-        ("For-Loop Error Test", for_loop_error_test_suite)
+        ("For-Loop Error Test", for_loop_error_test_suite);
+        ("Divide By Zero Error Test", divide_by_zero_error_test_suite)
     ] in
     run "LoopLang Compiler" test_suites

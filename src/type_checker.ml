@@ -13,22 +13,22 @@ type inference_env = (var, t option ref) Hashtbl.t
 let rec string_of_type = function
     | TVar(r) -> (
         match !r with
-        | Some(t) -> Printf.sprintf "TVar(Some(%s))" (string_of_type t)
-        | None -> "TVar(None)"
+        | Some(t) -> Printf.sprintf "Var(Some(%s))" (string_of_type t)
+        | None -> "Var(None)"
     )
-    | TInt -> "TInt"
-    | TBool -> "TBool"
-    | TStitch -> "TStitch"
-    | TStitchSeqItem -> "TStitchSeqItem"
-    | TStitchSeq -> "TStitchSeq"
-    | TRow -> "TRow"
-    | TRowList -> "TRowList"
+    | TInt -> "Integer"
+    | TBool -> "Boolean"
+    | TStitch -> "Stitch"
+    | TStitchSeqItem -> "StitchSequenceItem"
+    | TStitchSeq -> "StitchSequence"
+    | TRow -> "Row"
+    | TRowList -> "RowList"
     | TFunc(mangled_f, param_types, return_type) ->
         let param_types_str = String.concat ", " (List.map string_of_type param_types) in
-        Printf.sprintf "TFunc(%s, [%s] -> %s)" mangled_f param_types_str (string_of_type return_type)
+        Printf.sprintf "Func(%s, [%s] -> %s)" mangled_f param_types_str (string_of_type return_type)
     | TFuncs(ts) ->
         let func_types = String.concat ", " (List.map string_of_type !ts) in
-        Printf.sprintf "TFuncs([%s])" func_types
+        Printf.sprintf "Funcs([%s])" func_types
 
 
 (* helper functions to unwrap types *)
@@ -42,14 +42,17 @@ let rec unwrap_type = function
 
 let unwrap_tfuncs = function
     | TFuncs(ts) -> ts
-    | _ -> raise (InternalTypeError "expected TFuncs, found a different type")
+    | _ -> raise (InternalTypeError "expected Funcs, found a different type")
 
 
 (* name mangling function *)
 let mangle f param_types return_type =
     let param_types_str = String.concat "_" (List.map string_of_type param_types) in
     let return_type_str = string_of_type return_type in
-    Printf.sprintf "%s_%s->%s" f param_types_str return_type_str
+    if String.length param_types_str = 0 then
+        Printf.sprintf "%s(None->%s)" f return_type_str
+    else
+        Printf.sprintf "%s(%s->%s)" f param_types_str return_type_str
 
 
 (* create new type variable with empty reference *)
@@ -132,7 +135,7 @@ and get_func_types env i_env f args =
             let (mangled_f, param_types, return_type) =
                 match t with
                 | TFunc(m, p, r) -> (m, p, r)
-                | _ -> raise (InternalTypeError ("'" ^ f ^"' must be of type TFunc"))
+                | _ -> raise (InternalTypeError ("'" ^ f ^"' must be of type Func"))
             in
             let num_params = List.length param_types in
             if num_args = num_params then
@@ -186,40 +189,40 @@ and check_expr env i_env expected_t_opt = function
             let e1_ast, t1 = check_expr env i_env (Some TInt) e1 in
             let e2_ast, t2 = check_expr env i_env (Some TInt) e2 in
             if t1 = TInt && t2 = TInt then (BinOp(e1_ast, op, e2_ast), TInt)
-            else raise (TypeError "binary arithmetic operations expect TInt operands")
+            else raise (TypeError "binary arithmetic operations expect Integer operands")
         | LT | GT | EQ ->
             let e1_ast, t1 = check_expr env i_env (Some TInt) e1 in
             let e2_ast, t2 = check_expr env i_env (Some TInt) e2 in
             if t1 = TInt && t2 = TInt then (BinOp(e1_ast, op, e2_ast), TBool)
-            else raise (TypeError "binary comparison operations expect TInt operands")
+            else raise (TypeError "binary comparison operations expect Integer operands")
         | AND | OR ->
             let e1_ast, t1 = check_expr env i_env (Some TBool) e1 in
             let e2_ast, t2 = check_expr env i_env (Some TBool) e2 in
             if t1 = TBool && t2 = TBool then (BinOp(e1_ast, op, e2_ast), TBool)
-            else raise (TypeError "binary logical operations expect TBool operands")
+            else raise (TypeError "binary logical operations expect Boolean operands")
     )
     | UnaryOp(op, e) -> (
         match op with
         | NEG ->
             let e_ast, t = check_expr env i_env (Some TInt) e in
             if t = TInt then (UnaryOp(op, e_ast), TInt)
-            else raise (TypeError "unary arithmetic operations expect a TInt operand")
+            else raise (TypeError "unary arithmetic operations expect an Integer operand")
         | NOT ->
             let e_ast, t = check_expr env i_env (Some TBool) e in
             if t = TBool then (UnaryOp(op, e_ast), TBool)
-            else raise (TypeError "unary logical operations expect a TBool operand")
+            else raise (TypeError "unary logical operations expect a Boolean operand")
     )
 
 and check_mult_expr env i_env = function
     | StitchMultExpr(st, e) ->
         let e_ast, t = check_expr env i_env (Some TInt) e in
         if t = TInt then (StitchMultExpr(st, e_ast), TStitchSeqItem)
-        else raise (TypeError "stitch multiplier expression expects TInt")
+        else raise (TypeError "stitch multiplier expression expects an Integer multiplier")
     | StitchSeqMultExpr(seq, e) ->
         let seq_ast, t_seq = check_stitch_seq env i_env TStitchSeq seq in (* this enforces TStitchSeq *)
         let e_ast, t_e = check_expr env i_env (Some TInt) e in
         if t_e = TInt then (StitchSeqMultExpr(seq_ast, e_ast), TStitchSeqItem)
-        else raise (TypeError "stitch sequence multiplier expression expects TInt")
+        else raise (TypeError "stitch sequence multiplier expression expects an Integer multiplier")
     | MirrorExpr(seq1, seq2) ->
         let seq1_ast, t_seq1 = check_stitch_seq env i_env TStitchSeq seq1 in (* this enforces TStitchSeq *)
         let seq2_ast, t_seq2 = check_stitch_seq env i_env TStitchSeq seq2 in (* this enforces TStitchSeq *)
@@ -231,7 +234,7 @@ and check_stitch_seq_item env i_env = function
     | StitchSeqItemVar(v) ->
         let t = get_var_type env i_env (Some TStitchSeq) v in
         if t = TStitchSeq then (StitchSeqItemVar(v), TStitchSeqItem)
-        else raise (TypeError (Printf.sprintf "variable '%s' expected TStitchSeq, but found %s" v (string_of_type t)))
+        else raise (TypeError (Printf.sprintf "variable '%s' expected to be a StitchSequence, but found %s" v (string_of_type t)))
     | StitchSeqItemFuncCall(f, args) ->
         let mangled_f, param_types, return_type = get_func_types env i_env f args in
         if return_type = TStitchSeq then
@@ -240,19 +243,19 @@ and check_stitch_seq_item env i_env = function
                 arg_ast
             ) param_types args in
             (StitchSeqItemFuncCall(mangled_f, args_ast), TStitchSeqItem)
-        else raise (TypeError (Printf.sprintf "function '%s' expected to return TStitchSeq, but found %s" f (string_of_type return_type)))
+        else raise (TypeError (Printf.sprintf "function '%s' expected to return a StitchSequence, but found %s" f (string_of_type return_type)))
 and check_stitch_seq env i_env expected_t = function
     | StitchSeq(seq) ->
         let seq_ast = List.map (fun item ->
             let item_ast, t_item = check_stitch_seq_item env i_env item in
             if t_item = TStitchSeqItem then item_ast
-            else raise (TypeError "stitch sequence expects TStitchSeqItem values")
+            else raise (TypeError "stitch sequence expects StitchSequenceItem values")
         ) seq in
         (StitchSeq(seq_ast), TStitchSeq)
     | StitchSeqVar(v) ->
         let t = get_var_type env i_env (Some TStitchSeq) v in
         if t = TStitchSeq then (StitchSeqVar(v), TStitchSeq)
-        else raise (TypeError (Printf.sprintf "variable '%s' expected TStitchSeq, but found %s" v (string_of_type t)))
+        else raise (TypeError (Printf.sprintf "variable '%s' expected to be a StitchSequence, but found %s" v (string_of_type t)))
     | StitchSeqFuncCall(f, args) ->  
         let mangled_f, param_types, return_type = get_func_types env i_env f args in
         if return_type = TStitchSeq then 
@@ -261,7 +264,7 @@ and check_stitch_seq env i_env expected_t = function
                 arg_ast
             ) param_types args in
             (StitchSeqFuncCall(mangled_f, args_ast), TStitchSeq)
-        else raise (TypeError (Printf.sprintf "function '%s' expected to return TStitchSeq, but found %s" f (string_of_type return_type)))
+        else raise (TypeError (Printf.sprintf "function '%s' expected to return a StitchSequence, but found %s" f (string_of_type return_type)))
 and check_argument env i_env expected_t = function
     | ArgVar(v) -> 
         let t = get_var_type env i_env (Some expected_t) v in
@@ -282,7 +285,7 @@ and check_argument env i_env expected_t = function
     | ArgRowLit(row) -> 
         let row_ast, t = check_row_lit env i_env row in
         if t = TRow then (ArgRowLit(row_ast), TRowList)
-        else raise (TypeError "function argument expects TRow value")
+        else raise (TypeError "function argument expects Row value")
 
 and check_row_lit env i_env = function
     | RowLit(e1, seq, count, c_opt) ->
@@ -298,9 +301,9 @@ and check_row_lit env i_env = function
         if t_e1 = TInt then
             if t_seq = TStitchSeq then
                 if t_count = TInt then (RowLit(e1_ast, seq_ast, count_ast, c_opt), TRow)
-                else raise (TypeError "row count expects TInt")
-            else raise (TypeError "row content expects TStitchSeq")
-        else raise (TypeError "row number expects TInt")
+                else raise (TypeError "row count expects an Integer")
+            else raise (TypeError "row content expects a StitchSequence")
+        else raise (TypeError "row number expects an Integer")
     | RowRangeLit((n1, n2), seq, count, c_opt) ->
         (* n1 and n2 are forced to be integers in the lexer *)
         let seq_ast, t_seq = check_stitch_seq env i_env TStitchSeq seq in
@@ -313,14 +316,14 @@ and check_row_lit env i_env = function
         ) in
         if t_seq = TStitchSeq then
             if t_count = TInt then (RowRangeLit((n1, n2), seq_ast, count_ast, c_opt), TRow)
-            else raise (TypeError "row count expects TInt")
-        else raise (TypeError "row content expects TStitchSeq")
+            else raise (TypeError "row count expects an Integer")
+        else raise (TypeError "row content expects a StitchSequence")
 
 let check_row_expr env i_env = function
     | RowVar(v) ->
         let t = get_var_type env i_env (Some TRowList) v in
         if t = TRowList then (RowVar(v), TRowList)
-        else raise (TypeError (Printf.sprintf "variable '%s' expected TRowList, but found %s" v (string_of_type t)))
+        else raise (TypeError (Printf.sprintf "variable '%s' expected to be a RowList, but found %s" v (string_of_type t)))
     | RowFuncCall(f, args) -> 
         let mangled_f, param_types, return_type = get_func_types env i_env f args in
         if return_type = TRowList then
@@ -329,7 +332,7 @@ let check_row_expr env i_env = function
                 arg_ast
             ) param_types args in
             (RowFuncCall(mangled_f, args_ast), TRowList)
-        else raise (TypeError (Printf.sprintf "function '%s' expected to return TRowList, but found %s" f (string_of_type return_type)))
+        else raise (TypeError (Printf.sprintf "function '%s' expected to return a RowList, but found %s" f (string_of_type return_type)))
 
 let check_row_list_item env i_env = function
     | RowLitItem(row) ->
@@ -369,7 +372,7 @@ let check_definition env i_env = function
         let items_ast = List.map(fun item ->
             let item_ast, t_item = check_row_list_item env i_env item in
             if t_item = TRow then item_ast
-            else raise (TypeError "row list definition expects TRow values")
+            else raise (TypeError "row list definition expects Row values")
         ) items in
         Hashtbl.add env v TRowList;
         (DefRowList(v, items_ast), env)
@@ -395,7 +398,7 @@ let check_return_expr env i_env = function
         let items_ast = List.map (fun item ->
             let item_ast, t_item = check_row_list_item env i_env item in
             if (t_item = TRow || t_item = TRowList) then item_ast
-            else raise (TypeError "row list return expression expects TRow values")
+            else raise (TypeError "row list return expression expects Row values")
         ) items in
         (ReturnRowList(items_ast), TRowList)
 
@@ -432,7 +435,7 @@ let rec check_statement env i_env = function
             in
             (If(cond_ast, then_branch_ast, else_branch_ast), get_env_intersection env_after_then env_after_else, ret_exprs_in_then @ ret_exprs_in_else)
         else
-            raise (TypeError "if-else statement condition expects TBool")
+            raise (TypeError "if-else statement condition expected to be a Boolean")
     | For(v, lower, upper, stmts) ->
         let lower_ast, t_lower = check_expr env i_env (Some TInt) lower in
         let upper_ast, t_upper = check_expr env i_env (Some TInt) upper in
@@ -448,8 +451,8 @@ let rec check_statement env i_env = function
                 in
                 (* return original env, local env in for-loop is not carried out into the wider program *)
                 (For(v, lower_ast, upper_ast, stmts_ast), env, ret_exprs_in_for_loop)
-            else raise (TypeError "upper bound of for-loop expects TInt")
-        else raise (TypeError "lower bound of for-loop expects TInt")
+            else raise (TypeError "upper bound of for-loop expects an Integer")
+        else raise (TypeError "lower bound of for-loop expects an Integer")
 
 let check_pattern_item env = function
     | FuncDef(f, params, body) -> 
