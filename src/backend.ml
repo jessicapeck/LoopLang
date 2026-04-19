@@ -1,6 +1,6 @@
 open Ast
 
-exception DivideByZero of string
+exception DivideByZeroError of string
 exception InternalBackendError of string
 exception RowNumberError of string
 exception RowOneError of string
@@ -265,9 +265,13 @@ and eval_expr env e k =
                         | SUB -> k (VInt(n1 - n2))
                         | MUL -> k (VInt(n1 * n2))
                         | DIV -> (
-                            try
-                                k (VInt(n1 / n2))
-                            with Division_by_zero -> raise (DivideByZero "division by zero encountered in expression evaluation")
+                            let result =
+                                try
+                                    VInt(n1 / n2)
+                                with Division_by_zero -> 
+                                    raise (DivideByZeroError "division by zero encountered during expression evaluation")
+                            in
+                            k result
                         )
                         | LT -> k (VBool(n1 < n2))
                         | GT -> k (VBool(n1 > n2))

@@ -97,6 +97,11 @@ let () =
         Backend.warning_messages := [];
         print_boxed_error "TypeError" msg;
         exit 1
+    | Backend.DivideByZeroError msg ->
+        close_in in_channel;
+        Backend.warning_messages := [];
+        print_boxed_error "DivideByZeroError" msg;
+        exit 1
     | Backend.RowNumberError msg ->
         close_in in_channel;
         Backend.warning_messages := [];

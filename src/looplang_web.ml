@@ -54,6 +54,9 @@ let get_compile_results code_str =
     | Type_checker.TypeError msg ->
         let error_msg = ("TypeError: " ^ msg) in
         construct_err_json error_msg
+    | Backend.DivideByZeroError msg ->
+        let error_msg = ("DivideByZeroError: " ^ msg) in
+        construct_err_json error_msg
     | Backend.RowNumberError msg ->
         let error_msg = ("RowNumberError: " ^ msg) in
         construct_err_json error_msg
