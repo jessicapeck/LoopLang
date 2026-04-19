@@ -72,15 +72,15 @@ let comment_text = [^ '<' '>']*
 
 
 rule token = parse
-    | '\n'+ ((' '*) | ('\t'*) as seq) "else"                            { 
-                                                                          next_line lexbuf; 
+    | ('\n'+ as nls) ((' '*) | ('\t'*) as seq) "else"                   {
+                                                                          String.iter (fun _ -> next_line lexbuf) nls;
                                                                           match process_indentation seq with
                                                                           | Indent -> ELSE
                                                                           | Dedent -> Queue.add ELSE pending_tokens; Queue.take pending_tokens
                                                                           | Skip -> ELSE
                                                                         }
-    | '\n'+ ((' '*) | ('\t'*) as seq)                                   { 
-                                                                          next_line lexbuf; 
+    | ('\n'+ as nls) ((' '*) | ('\t'*) as seq)                          { 
+                                                                          String.iter (fun _ -> next_line lexbuf) nls;
                                                                           match process_indentation seq with
                                                                           | Indent -> NEWLINE
                                                                           | Dedent -> Queue.add NEWLINE pending_tokens; Queue.take pending_tokens
