@@ -50,7 +50,8 @@ let tests = [
     ("Different orderings of stitch type and multiplier", "stitch_type_ordering");
     ("Multipliers of zero and one", "zero_one_multipliers");
     ("Row range in a variable", "row_range_var");
-    ("Rows with row count and comment combinations", "count_comment_rows")
+    ("Rows with row count and comment combinations", "count_comment_rows");
+    ("Sphere", "sphere")
 ]
 
 

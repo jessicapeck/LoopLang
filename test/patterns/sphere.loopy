@@ -1,0 +1,8 @@
+R1: mr 6
+R2: inc 6
+for n = 3 to 6:
+    R n: (sc n-2, inc) x6
+R7-13: sc 36
+for m = 14 to 17:
+    R m: (sc 18-m, dec) x6
+R18: dec 6

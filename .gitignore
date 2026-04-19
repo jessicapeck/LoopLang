@@ -24,3 +24,5 @@ _coverage_data
 _coverage_data/*
 
 parser_rule_coverage.txt
+
+line_count.txt
