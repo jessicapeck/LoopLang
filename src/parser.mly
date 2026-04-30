@@ -41,8 +41,7 @@ pattern_item:
     | statement                                                                                                     { Stmt($1) }
 
 param_list:
-    | var COMMA param_list                                                                                          { $1 :: $3 }
-    | var                                                                                                           { [$1] }
+    | separated_nonempty_list(COMMA, var)                                                                           { $1 }
 
 statement_list:
     | statement NEWLINE statement_list                                                                              { $1 :: $3 }
@@ -87,26 +86,16 @@ row_list_item:
     | row_expr                                                                                                      { RowExpr($1) }
 
 row_lit:
-    | ROW expr COLON stitch_seq LBRACKET expr RBRACKET comment                                                      { RowLit($2, $4, Some($6), Some($8)) }
-    | ROW expr COLON stitch_seq LBRACKET expr RBRACKET                                                              { RowLit($2, $4, Some($6), None) }
-    | ROW expr COLON stitch_seq comment                                                                             { RowLit($2, $4, None, Some($5)) }
-    | ROW expr COLON stitch_seq                                                                                     { RowLit($2, $4, None, None) }
-    | ROWINT COLON stitch_seq LBRACKET expr RBRACKET comment                                                        { RowLit(Int($1), $3, Some($5), Some($7)) }
-    | ROWINT COLON stitch_seq LBRACKET expr RBRACKET                                                                { RowLit(Int($1), $3, Some($5), None) }
-    | ROWINT COLON stitch_seq comment                                                                               { RowLit(Int($1), $3, None, Some($4)) }
-    | ROWINT COLON stitch_seq                                                                                       { RowLit(Int($1), $3, None, None) }
-    | ROWINTRANGE COLON stitch_seq LBRACKET expr RBRACKET comment                                                   { let (lower, upper) = $1 in RowRangeLit((Int(lower), Int(upper)), $3, Some($5), Some($7)) }
-    | ROWINTRANGE COLON stitch_seq LBRACKET expr RBRACKET                                                           { let (lower, upper) = $1 in RowRangeLit((Int(lower), Int(upper)), $3, Some($5), None) }
-    | ROWINTRANGE COLON stitch_seq comment                                                                          { let (lower, upper) = $1 in RowRangeLit((Int(lower), Int(upper)), $3, None, Some($4)) }
-    | ROWINTRANGE COLON stitch_seq                                                                                  { let (lower, upper) = $1 in RowRangeLit((Int(lower), Int(upper)), $3, None, None) }
+    | ROW expr COLON stitch_seq option(delimited(LBRACKET, expr, RBRACKET)) option(comment)                         { RowLit($2, $4, $5, $6) }
+    | ROWINT COLON stitch_seq option(delimited(LBRACKET, expr, RBRACKET)) option(comment)                           { RowLit(Int($1), $3, $4, $5) }
+    | ROWINTRANGE COLON stitch_seq option(delimited(LBRACKET, expr, RBRACKET)) option(comment)                      { let (lower, upper) = $1 in RowRangeLit((Int(lower), Int(upper)), $3, $4, $5) }
 
 row_expr:
     | var                                                                                                           { RowVar($1) }
     | func_call                                                                                                     { RowFuncCall($1) }
 
 arg_list:
-    | arg COMMA arg_list                                                                                            { $1 :: $3 }
-    | arg                                                                                                           { [$1] }
+    | separated_nonempty_list(COMMA, arg)                                                                           { $1 }
 
 arg:
     | var                                                                                                           { ArgVar($1) }
@@ -125,12 +114,10 @@ stitch_seq_expr:
     | func_call                                                                                                     { StitchSeqFuncCall($1) }
 
 stitch_seq_item_list:
-    | stitch_seq_item COMMA stitch_seq_item_list                                                                    { $1 :: $3 }
-    | stitch_seq_item                                                                                               { [$1] }
+    | separated_nonempty_list(COMMA, stitch_seq_item)                                                               { $1 }
 
 stitch_seq_item:
-    | mult_expr comment                                                                                             { StitchSeqItem($1, Some($2)) }
-    | mult_expr                                                                                                     { StitchSeqItem($1, None) }
+    | mult_expr option(comment)                                                                                     { StitchSeqItem($1, $2) }
     | var                                                                                                           { StitchSeqItemVar($1) }
     | func_call                                                                                                     { StitchSeqItemFuncCall($1) }
 
