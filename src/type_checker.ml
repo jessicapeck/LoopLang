@@ -23,9 +23,9 @@ let rec string_of_type = function
     | TStitchSeq -> "StitchSequence"
     | TRow -> "Row"
     | TRowList -> "RowList"
-    | TFunc(mangled_f, param_types, return_type) ->
+    | TFunc {mangled_name; param_types; return_type} ->
         let param_types_str = String.concat ", " (List.map string_of_type param_types) in
-        Printf.sprintf "Func(%s, [%s] -> %s)" mangled_f param_types_str (string_of_type return_type)
+        Printf.sprintf "Func(%s, [%s] -> %s)" mangled_name param_types_str (string_of_type return_type)
     | TFuncs(ts) ->
         let func_types = String.concat ", " (List.map string_of_type !ts) in
         Printf.sprintf "Funcs([%s])" func_types
@@ -134,7 +134,7 @@ and get_func_types env i_env f args =
         | t :: ts -> (
             let (mangled_f, param_types, return_type) =
                 match t with
-                | TFunc(m, p, r) -> (m, p, r)
+                | TFunc {mangled_name; param_types; return_type} -> (mangled_name, param_types, return_type)
                 | _ -> raise (InternalTypeError ("'" ^ f ^"' must be of type Func"))
             in
             let num_params = List.length param_types in
@@ -507,12 +507,17 @@ let check_pattern_item env = function
 
         (* update environment with function type *)
         let mangled_f = mangle f param_types return_type in
+        let new_func = TFunc {
+            mangled_name = mangled_f;
+            param_types = param_types;
+            return_type = return_type
+        } in
         (
             match Hashtbl.find_opt env f with
             | Some(tfuncs) -> 
                 let ts = unwrap_tfuncs tfuncs in
-                ts := TFunc(mangled_f, param_types, return_type) :: !ts
-            | None -> Hashtbl.add env f (TFuncs(ref [TFunc(mangled_f, param_types, return_type)]))
+                ts := new_func :: !ts
+            | None -> Hashtbl.add env f (TFuncs(ref [new_func]))
         );
         (FuncDef(mangled_f, params, body_ast), env)
     | Stmt(stmt) -> 

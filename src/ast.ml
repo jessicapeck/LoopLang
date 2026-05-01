@@ -7,7 +7,7 @@ type t =
     | TStitchSeq
     | TRow
     | TRowList
-    | TFunc of string * t list * t (* mangled name, param types, return type *)
+    | TFunc of {mangled_name: string; param_types: t list; return_type: t} (* mangled name, param types, return type *)
     | TFuncs of t list ref (* t is TFunc *)
 
 type env = (string * t) list

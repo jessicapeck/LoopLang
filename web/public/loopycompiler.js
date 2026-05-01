@@ -5358,7 +5358,7 @@ b=ew(a);return l(e(nq),b)},b)),f=l(e(ns),d),g=ew(c),h=ew(a),i=bI(e(nt),h,f,g);re
 bF(a){var
 b=aI[1];aI[1]=0;return gn(nv,b,a)}function
 nw(a){var
-W=ft,X=ft,c=[0,function(a){a[9]=1;return 0},fr(bk(a)),F(a),0,0,0,0,0,1,[0],X,W];try{var
+X=ft,Y=ft,c=[0,function(a){a[9]=1;return 0},fr(bk(a)),F(a),0,0,0,0,0,1,[0],Y,X];try{var
 k=0,j=0,o=aa(c);a:{if(typeof
 o==="number")switch(o){case
 6:var
@@ -5376,8 +5376,8 @@ b=f_(k,j);break a;case
 31:var
 b=f9(k,c,aa,j);break a;case
 12:var
-M=k,L=j;for(;;){var
-f=[0,M,L],h=47,n=aa(c);if(typeof
+K=k,J=j;for(;;){var
+f=[0,K,J],h=47,n=aa(c);if(typeof
 n==="number")switch(n){case
 6:var
 b=f4(f,c,aa,h);break a;case
@@ -5393,7 +5393,7 @@ b=f8(f,c,aa,h);break a;case
 b=f_(f,h);break a;case
 31:var
 b=f9(f,c,aa,h);break a;case
-12:M=f;L=h;continue}else
+12:K=f;J=h;continue}else
 switch(n[0]){case
 0:var
 b=f0(f,c,aa,n[1],h);break a;case
@@ -5414,34 +5414,34 @@ b=f1(k,c,aa,o[1],j);break a;case
 5:var
 b=f3(k,c,aa,o[1],j);break a}var
 b=m(0)}var
-ad=b[1],u=[0,0,bA(0,10)],t=ad;for(;;){if(!t)break;var
-q=t[1],s=u[2],V=t[2],ae=u[1];if(0===q[0]){var
-A=q[2],p=q[1],Y=q[3],B=bA(0,10),y=A;for(;;){if(!y)break;var
-an=y[2];ar(B,y[1],[0,0]);y=an}var
-Q=bA(0,10);let
-c=Q;fN(function(a,b){if(typeof
+ae=b[1],u=[0,0,bA(0,10)],t=ae;for(;;){if(!t)break;var
+q=t[1],s=u[2],W=t[2],af=u[1];if(0===q[0]){var
+z=q[2],p=q[1],Z=q[3],A=bA(0,10),x=z;for(;;){if(!x)break;var
+ao=x[2];ar(A,x[1],[0,0]);x=ao}var
+O=bA(0,10);let
+c=O;fN(function(a,b){if(typeof
 b!=="number"&&2===b[0])return ar(c,a,b);return 0},s);var
-P=Q,r=0,v=Y,C=0;for(;;){if(!v)break;var
-Z=v[2],D=cq(P,B,v[1]),_=D[3],$=D[2],ab=aF(C,[0,D[1],0]);P=$;r=aF(r,_);v=Z;C=ab}if(!r)throw g([0,i,cF+p+"' does not return a value"],1);var
-w=r[1],x=r[2];for(;;){if(!x)break;var
-am=x[2];if(bw(x[1],w))throw g([0,i,cF+p+"' has inconsistent return types"],1);x=am}let
-f=p,h=B;var
-E=aA(function(a){var
+N=O,r=0,v=Z,B=0;for(;;){if(!v)break;var
+_=v[2],C=cq(N,A,v[1]),$=C[3],ab=C[2],ac=aF(B,[0,C[1],0]);N=ab;r=aF(r,$);v=_;B=ac}if(!r)throw g([0,i,cF+p+"' does not return a value"],1);var
+D=r[1],w=r[2];for(;;){if(!w)break;var
+an=w[2];if(bw(w[1],D))throw g([0,i,cF+p+"' has inconsistent return types"],1);w=an}let
+f=p,h=A;var
+P=aA(function(a){var
 b=bN(h,a);if(!b)throw g([0,ep,"parameter '"+a+"' in function '"+f+"' not found in inference environment"],1);var
 c=b[1],d=c[1];if(d)return d[1];var
-e=eq(0);c[1]=[0,e];return e},A),N=b0(lA,aA(aT,E)),O=aT(w),H=0===F(N)?G(e(lB),p,O):bI(e(lC),p,N,O),R=bN(s,p);if(R){var
-S=gb(R[1]);S[1]=[0,[1,H,E,w],S[1]]}else
-ar(s,p,[2,[0,[0,[1,H,E,w],0]]]);var
-I=[0,[0,H,A,C],s]}else
+e=eq(0);c[1]=[0,e];return e},z),L=b0(lA,aA(aT,P)),M=aT(D),Q=0===F(L)?G(e(lB),p,M):bI(e(lC),p,L,M),R=[1,Q,P,D],S=bN(s,p);if(S){var
+T=gb(S[1]);T[1]=[0,R,T[1]]}else
+ar(s,p,[2,[0,[0,R,0]]]);var
+E=[0,[0,Q,z,B],s]}else
 var
-ac=q[1],T=cq(s,bA(0,0),ac),I=[0,[1,T[1]],T[2]];var
-af=I[2];u=[0,aF(ae,[0,I[1],0]),af];t=V}var
-ag=u[1];aH[1]=0;aU[1]=1;aC[1]=0;a:if(0<b7[1]){b7[1]=0;var
-z=b7[2].length-1,K=b7[2];if(0<=z&&(K.length-1-z|0)>=0){nL(K,0,z,0);break a}aP(iL)}var
-U=function(a,b,c){if(!b)return l(c,a);var
-d=b[2];return ni(a,b[1],function(a){return U(a,d,c)})},aj=b0(ny,U(bA(0,10),ag,function(a){aH[1]=cV(aH[1]);return aH[1]})),ak=cV(aI[1]);aI[1]=0;var
-al=gn(aj,ak,nz);return al}catch(f){var
+ad=q[1],U=cq(s,bA(0,0),ad),E=[0,[1,U[1]],U[2]];var
+ag=E[2];u=[0,aF(af,[0,E[1],0]),ag];t=W}var
+ah=u[1];aH[1]=0;aU[1]=1;aC[1]=0;a:if(0<b7[1]){b7[1]=0;var
+y=b7[2].length-1,I=b7[2];if(0<=y&&(I.length-1-y|0)>=0){nL(I,0,y,0);break a}aP(iL)}var
+V=function(a,b,c){if(!b)return l(c,a);var
+d=b[2];return ni(a,b[1],function(a){return V(a,d,c)})},ak=b0(ny,V(bA(0,10),ah,function(a){aH[1]=cV(aH[1]);return aH[1]})),al=cV(aI[1]);aI[1]=0;var
+am=gn(ak,al,nz);return am}catch(f){var
 d=a2(f);if(d===fQ){var
-J=c[12],ah=(J[4]-J[3]|0)+1|0,ai=J[2];return bF("SyntaxError: "+G(e(nx),ai,ah))}if(d[1]===i)return bF("TypeError: "+d[2]);if(d[1]===ge)return bF("DivideByZeroError: "+d[2]);if(d[1]===bP)return bF("RowNumberError: "+d[2]);if(d[1]===gf)return bF("RowOneError: "+d[2]);if(d[1]===cr)return bF("RowCountError: "+d[2]);if(d[1]===gg)return bF("ForLoopError: "+d[2]);if(d[1]===d$)return bF("Error: "+d[2]);throw g(d,0)}}var
+H=c[12],ai=(H[4]-H[3]|0)+1|0,aj=H[2];return bF("SyntaxError: "+G(e(nx),aj,ai))}if(d[1]===i)return bF("TypeError: "+d[2]);if(d[1]===ge)return bF("DivideByZeroError: "+d[2]);if(d[1]===bP)return bF("RowNumberError: "+d[2]);if(d[1]===gf)return bF("RowOneError: "+d[2]);if(d[1]===cr)return bF("RowCountError: "+d[2]);if(d[1]===gg)return bF("ForLoopError: "+d[2]);if(d[1]===d$)return bF("Error: "+d[2]);throw g(d,0)}}var
 cw={compile:on(function(a,b){return d4(nw(aD(b)))})},la=aD(typeof
 cw)==="function"?0<cw.length?e8(cw):cw:cw;oQ.LoopyCompiler=la;eb(0);return}(globalThis));
