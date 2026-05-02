@@ -60,8 +60,8 @@ let get_compile_results code_str =
     | Backend.RowNumberError msg ->
         let error_msg = ("RowNumberError: " ^ msg) in
         construct_err_json error_msg
-    | Backend.RowOneError msg ->
-        let error_msg = ("RowOneError: " ^ msg) in
+    | Backend.StitchError msg ->
+        let error_msg = ("StitchError: " ^ msg) in
         construct_err_json error_msg
     | Backend.RowCountError msg ->
         let error_msg = ("RowCountError: " ^ msg) in

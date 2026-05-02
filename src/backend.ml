@@ -3,7 +3,7 @@ open Ast
 exception DivideByZeroError of string
 exception InternalBackendError of string
 exception RowNumberError of string
-exception RowOneError of string
+exception StitchError of string
 exception RowCountError of string
 exception ForLoopError of string
 
@@ -105,13 +105,14 @@ let rec calculate_mult_expr_count row_num = function
             match st with
             | CH -> (n, 0)
             | MR -> (n, 0)
-            | _ -> raise (RowOneError "R1 of the pattern can only contain chain stitches or a magic ring")
+            | _ -> raise (StitchError "R1 of the pattern can only contain chain stitches or a magic ring")
         )
         else (
             match st with
             | INC -> (n, n)
             | DEC -> (-n, n * 2)
             | CH -> (n, 0)
+            | MR -> raise (StitchError "magic rings are only valid in R1 of the pattern")
             | _ -> (0, n)
         )
     )

@@ -96,9 +96,10 @@ let row_number_error_tests = [
 ]
 
 
-let row_one_error_tests = [
-    ("No chains in R1", "no_chains", Backend.RowOneError "R1 of the pattern can only contain chain stitches or a magic ring");
-    ("Chains and other stitches in R1", "chains_and_other_stitches", Backend.RowOneError "R1 of the pattern can only contain chain stitches or a magic ring")
+let stitch_error_tests = [
+    ("No chains in R1", "no_chains", Backend.StitchError "R1 of the pattern can only contain chain stitches or a magic ring");
+    ("Chains and other stitches in R1", "chains_and_other_stitches", Backend.StitchError "R1 of the pattern can only contain chain stitches or a magic ring");
+    ("Magic ring not in R1", "magic_ring", Backend.StitchError "magic rings are only valid in R1 of the pattern")
 ]
 
 
@@ -188,14 +189,14 @@ let row_number_error_test_suite =
     List.map create_row_number_error_test row_number_error_tests
 
 
-let create_row_one_error_test (test_name, filename, expected_error) =
+let create_stitch_error_test (test_name, filename, expected_error) =
     let test_fn () =
-        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_Backend ("./test/error_patterns/row_one_errors/" ^ filename ^ ".loopy"))
+        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_Backend ("./test/error_patterns/stitch_errors/" ^ filename ^ ".loopy"))
     in
     Alcotest.test_case test_name `Quick test_fn
 
-let row_one_error_test_suite =
-    List.map create_row_one_error_test row_one_error_tests
+let stitch_error_test_suite =
+    List.map create_stitch_error_test stitch_error_tests
 
 
 let create_row_count_error_test (test_name, filename, expected_error) =
@@ -236,7 +237,7 @@ let () =
         ("Type Checker Error Test", type_checker_error_test_suite);
         ("Compiled Pattern", compiler_test_suite);
         ("Row Number Error Test", row_number_error_test_suite);
-        ("Row One Error Test", row_one_error_test_suite);
+        ("Stitch Error Test", stitch_error_test_suite);
         ("Row Count Error Test", row_count_error_test_suite);
         ("For-Loop Error Test", for_loop_error_test_suite);
         ("Divide By Zero Error Test", divide_by_zero_error_test_suite)

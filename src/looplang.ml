@@ -107,10 +107,10 @@ let () =
         Backend.warning_messages := [];
         print_boxed_error "RowNumberError" msg;
         exit 1
-    | Backend.RowOneError msg ->
+    | Backend.StitchError msg ->
         close_in in_channel;
         Backend.warning_messages := [];
-        print_boxed_error "RowOneError" msg;
+        print_boxed_error "StitchError" msg;
         exit 1
     | Backend.RowCountError msg ->
         close_in in_channel;
