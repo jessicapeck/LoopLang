@@ -59,6 +59,7 @@ function displayWarnings(warnings) {
 }
 
 function displaySuccessMessage() {
+    // display the success message in the terminal
     const formattedMessage = `<span class="text-success font-bold">Compilation successful!</span>`;
     addTerminalLine(formattedMessage);
 }
