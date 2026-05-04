@@ -71,6 +71,7 @@ let () =
         let name_no_ext = Filename.remove_extension filename in
         let output_filename = name_no_ext ^ ".txt" in
         write_result_to_file output_filename result;
+        (* UNCOMMENT LINE BELOW TO DEBUG *)
         (* List.iter print_string result *)
 
         let success_msg = (green "Compilation successful! ") ^ (Printf.sprintf "Result written to %s" output_filename) in
@@ -87,6 +88,7 @@ let () =
         let pos = lexbuf.lex_curr_p in
         let msg = Printf.sprintf "Syntax error at line %d, column %d" pos.pos_lnum (pos.pos_cnum - pos.pos_bol + 1) in
         print_boxed_error "SyntaxError" msg;
+        (* UNCOMMENT LINES BELOW TO DEBUG *)
         (* Printf.eprintf "--- Tokens seen up to error ---\n";
         List.iter (fun token ->
             Printf.eprintf "%s\n" (Lexer.string_of_token token)

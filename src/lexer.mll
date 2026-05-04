@@ -149,7 +149,8 @@ rule token = parse
         else
             token lexbuf
 
-
+    (* string conversion function *)
+    
     let string_of_token = function
     | INDENT -> "INDENT"
     | DEDENT -> "DEDENT"

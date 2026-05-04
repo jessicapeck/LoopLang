@@ -7,10 +7,12 @@ type t =
     | TStitchSeq
     | TRow
     | TRowList
-    | TFunc of {mangled_name: string; param_types: t list; return_type: t} (* mangled name, param types, return type *)
+    | TFunc of {
+        mangled_name: string;
+        param_types: t list;
+        return_type: t
+    }
     | TFuncs of t list ref (* t is TFunc *)
-
-type env = (string * t) list
 
 
 type comment =
@@ -28,22 +30,24 @@ and expr =
     | Int of int (* TInt *)
     | Bool of bool (* TBool *)
     | ExprVar of var
-    | ExprFuncCall of func_call (* for functions that return: TInt, TBool, TStitch *)
+    | ExprFuncCall of func_call
     | BinOp of expr * bin_op * expr
     | UnaryOp of unary_op * expr
+
 and mult_expr = 
     | StitchMultExpr of stitch * expr (* TStitchSeqItem *)
     | StitchSeqMultExpr of stitch_seq * expr (* TStitchSeqItem *)
     | MirrorExpr of stitch_seq * stitch_seq (* TStitchSeqItem *)
-(* comments are allowed after a StitchSeqItem *)
+
 and stitch_seq_item =
     | StitchSeqItem of mult_expr * comment option
     | StitchSeqItemVar of var
-    | StitchSeqItemFuncCall of func_call (* for functions that return: TStitchSeq, but are used within another stitch seq *)
+    | StitchSeqItemFuncCall of func_call
+
 and stitch_seq =
     | StitchSeq of stitch_seq_item list (* TStitchSeq *)
-    | StitchSeqVar of var (* for variables of type TStitchSeq*)
-    | StitchSeqFuncCall of func_call (* for functions with return type TStitchSeq *)
+    | StitchSeqVar of var
+    | StitchSeqFuncCall of func_call
 
 and argument = 
     | ArgVar of var
@@ -53,12 +57,12 @@ and argument =
     | ArgRowLit of row_lit
 
 and row_lit =
-    | RowLit of expr * stitch_seq * expr option * comment option (* row number, stitch list, row count, comment *) (* TRow *)
-    | RowRangeLit of (expr * expr) * stitch_seq * expr option * comment option (* (lower bound row number, upper bound row number), stitch list, row count, comment *) (* TRow *)
+    | RowLit of expr * stitch_seq * expr option * comment option (* TRow *) (* row number, stitch list, row count, comment *)
+    | RowRangeLit of (expr * expr) * stitch_seq * expr option * comment option (* TRow *) (* (lower bound row number, upper bound row number), stitch list, row count, comment *)
 
 type row_expr =
     | RowVar of var (* TRowList *)
-    | RowFuncCall of func_call (* for functions that return: TRowList *)
+    | RowFuncCall of func_call (* for functions that return TRowList *)
 
 type row_list_item =
     | RowLitItem of row_lit
@@ -66,7 +70,7 @@ type row_list_item =
 
 type definition =
     | DefVar of var * var
-    | DefFuncCall of var * func_call (* variable name, func name, args *)
+    | DefFuncCall of var * func_call
     | DefExpr of var * expr
     | DefStitchSeq of var * stitch_seq
     | DefRowList of var * row_list_item list
@@ -78,7 +82,6 @@ type return_expr =
     | ReturnStitchSeq of stitch_seq
     | ReturnRowList of row_list_item list
 
-(* comments are allowed at the end of rows *)
 type statement =
     | CommentStmt of comment
     | LetDef of definition
@@ -96,7 +99,7 @@ type pattern =
     | Pattern of pattern_item list
 
 
-(* string conversions for debugging *)
+(* string conversion functions *)
 
 let string_of_option x f =
     match x with
@@ -133,6 +136,7 @@ let string_of_unary_op = function
     | NOT -> "NOT"
 
 let rec string_of_func_call f args = Printf.sprintf "%s, [%s]" f (String.concat ", " (List.map string_of_argument args))
+
 and string_of_expr = function
     | Int(n) -> Printf.sprintf "Int(%d)" n
     | Bool(b) -> Printf.sprintf "Bool(%b)" b
@@ -140,14 +144,17 @@ and string_of_expr = function
     | ExprFuncCall(f, args) -> Printf.sprintf "ExprFuncCall(%s)" (string_of_func_call f args)
     | BinOp(left, op, right) -> Printf.sprintf "BinOp(%s, %s, %s)" (string_of_expr left) (string_of_bin_op op) (string_of_expr right)
     | UnaryOp(op, e) -> Printf.sprintf "UnaryOp(%s, %s)" (string_of_unary_op op) (string_of_expr e)
+
 and string_of_mult_expr = function
     | StitchMultExpr(s, n) -> Printf.sprintf "StitchMultExpr(%s, %s)" (string_of_stitch s) (string_of_expr n)
     | StitchSeqMultExpr(seq, n) -> Printf.sprintf "StitchSeqMultExpr(%s, %s)" (string_of_stitch_seq seq) (string_of_expr n)
     | MirrorExpr(seq1, seq2) -> Printf.sprintf "MirrorExpr(%s, %s)" (string_of_stitch_seq seq1) (string_of_stitch_seq seq2)
+
 and string_of_stitch_seq_item = function
     | StitchSeqItem(m, c_opt) -> Printf.sprintf "StitchSeqItem(%s, %s)" (string_of_mult_expr m) (string_of_option c_opt string_of_comment)
     | StitchSeqItemVar(v) -> Printf.sprintf "StitchSeqItemVar(%s)" v
     | StitchSeqItemFuncCall(f, args) -> Printf.sprintf "StitchSeqItemFuncCall(%s)" (string_of_func_call f args)
+
 and string_of_stitch_seq = function
     | StitchSeq(seq) -> Printf.sprintf "StitchSeq([%s])" (String.concat ", " (List.map string_of_stitch_seq_item seq))
     | StitchSeqVar(v) -> Printf.sprintf "StitchSeqVar(%s)" v

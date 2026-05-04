@@ -627,11 +627,13 @@ and eval_statement env stmt k_next k_ret =
             )
         )
 
+(* evaluate statements in a block *)
 and eval_statement_list env stmts k_next k_ret =
     match stmts with
     | [] -> k_next env
     | stmt::rest -> eval_statement env stmt (fun new_env -> eval_statement_list new_env rest k_next k_ret) k_ret
 
+(* remove unreturned rows from function body *)
 let rec filter_rows body =
     match body with
     | [] -> ([], false)
@@ -663,12 +665,14 @@ let eval_pattern_item env item k =
     | Stmt(stmt) -> eval_statement env stmt (fun new_env -> k new_env) (fun _ -> raise (InternalBackendError "return statement not allowed at top level"))
 
 let eval_pattern pattern =
+    (* reset variables *)
     result := [];
     next_row_number := 1;
     prev_row_count := 0;
     Hashtbl.clear func_defs;
     let env : var_env = Hashtbl.create 10 in
 
+    (* evaluate pattern *)
     let rec eval_pattern_item_list env items k = 
             match items with
             | [] -> k env

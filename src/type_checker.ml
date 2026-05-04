@@ -88,7 +88,7 @@ let rec get_env_intersection env1 env2 =
     intersection_env
 
 
-(* set of functions to check and get function types *)
+(* functions to check and get function types *)
 let copy_function_types param_types return_type =
     let substitutions = ref [] in
 
@@ -227,6 +227,7 @@ and check_mult_expr env i_env = function
         let seq1_ast, t_seq1 = check_stitch_seq env i_env TStitchSeq seq1 in (* this enforces TStitchSeq *)
         let seq2_ast, t_seq2 = check_stitch_seq env i_env TStitchSeq seq2 in (* this enforces TStitchSeq *)
         (MirrorExpr(seq1_ast, seq2_ast), TStitchSeqItem)
+
 and check_stitch_seq_item env i_env = function
     | StitchSeqItem(mexpr, c_opt) ->
         let mexpr_ast, t = check_mult_expr env i_env mexpr in
@@ -244,6 +245,7 @@ and check_stitch_seq_item env i_env = function
             ) param_types args in
             (StitchSeqItemFuncCall(mangled_f, args_ast), TStitchSeqItem)
         else raise (TypeError (Printf.sprintf "function '%s' expected to return a StitchSequence, but found %s" f (string_of_type return_type)))
+
 and check_stitch_seq env i_env expected_t = function
     | StitchSeq(seq) ->
         let seq_ast = List.map (fun item ->
@@ -265,6 +267,7 @@ and check_stitch_seq env i_env expected_t = function
             ) param_types args in
             (StitchSeqFuncCall(mangled_f, args_ast), TStitchSeq)
         else raise (TypeError (Printf.sprintf "function '%s' expected to return a StitchSequence, but found %s" f (string_of_type return_type)))
+
 and check_argument env i_env expected_t = function
     | ArgVar(v) -> 
         let t = get_var_type env i_env (Some expected_t) v in

@@ -58,7 +58,8 @@ let compile filename =
         close_in channel;
         raise e
 
-let run_Backend filename =
+
+let run_backend filename =
     let channel = open_in filename in
     try
         let lexbuf = Lexing.from_channel channel in

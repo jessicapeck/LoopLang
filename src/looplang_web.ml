@@ -80,4 +80,5 @@ let () =
             let ocaml_code_str = Js.to_string code_str in
             let json_result = get_compile_results ocaml_code_str in
             Js.string json_result
-        end)
+        end
+    )

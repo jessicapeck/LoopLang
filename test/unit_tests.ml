@@ -9,7 +9,7 @@ let read_file filename =
     contents
 
 
-(* list of (test_name, filename) pairs *)
+(* compiler tests (all pipeline stages) *)
 let tests = [
     ("Empty pattern", "empty_pattern");
     ("Empty pattern (with newlines)", "empty_pattern_with_newlines");
@@ -55,7 +55,7 @@ let tests = [
 ]
 
 
-(* list of (test_name, filename, expected_error) *)
+(* type checker error tests *)
 let type_checker_error_tests = [
     ("Inconsistent type inference", "inconsistent_type_inference", Type_checker.TypeError "inconsistent type inference for parameter 'x'");
     ("Undefined function", "undefined_function", Type_checker.TypeError "undefined function: 'foo'");
@@ -86,6 +86,7 @@ let type_checker_error_tests = [
 ]
 
 
+(* row number error tests *)
 let row_number_error_tests = [
     ("Literal integer row number", "literal_int_row_num", Backend.RowNumberError "expected row number 3, but found row number 4 in its place");
     ("Calculated row number", "calculated_row_num", Backend.RowNumberError "expected row number 3, but found row number 10 in its place");
@@ -96,6 +97,7 @@ let row_number_error_tests = [
 ]
 
 
+(* stitch error tests *)
 let stitch_error_tests = [
     ("No chains in R1", "no_chains", Backend.StitchError "R1 of the pattern can only contain chain stitches or a magic ring");
     ("Chains and other stitches in R1", "chains_and_other_stitches", Backend.StitchError "R1 of the pattern can only contain chain stitches or a magic ring");
@@ -103,6 +105,7 @@ let stitch_error_tests = [
 ]
 
 
+(* row count error tests *)
 let row_count_error_tests = [
     ("Increase stitch", "inc_stitch", Backend.RowCountError "row number 3 is built on top of 5 stitches which is inconsistent with the previous row count of 10");
     ("Decrease stitch", "dec_stitch", Backend.RowCountError "row number 4 is built on top of 9 stitches which is inconsistent with the previous row count of 8");
@@ -110,14 +113,19 @@ let row_count_error_tests = [
 ]
 
 
+(* for loop error tests *)
 let for_loop_error_tests = [
     ("For-loop bounds", "for_loop_bounds", Backend.ForLoopError "the for-loop expects the lower bound to be less than or equal to the upper bound, but found a lower bound of 5 and an upper bound of 1 being used")
 ]
 
+
+(* divide by zero error tests *)
 let divide_by_zero_error_tests = [
     ("Division by zero", "divide_by_zero", Backend.DivideByZeroError "division by zero encountered during expression evaluation")
 ]
 
+
+(* TEST SUITES *)
 
 let create_token_stream_test (test_name, filename) = 
     let test_fn () =
@@ -181,7 +189,7 @@ let compiler_test_suite =
 
 let create_row_number_error_test (test_name, filename, expected_error) =
     let test_fn () =
-        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_Backend ("./test/error_patterns/row_number_errors/" ^ filename ^ ".loopy"))
+        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_backend ("./test/error_patterns/row_number_errors/" ^ filename ^ ".loopy"))
     in
     Alcotest.test_case test_name `Quick test_fn
 
@@ -191,7 +199,7 @@ let row_number_error_test_suite =
 
 let create_stitch_error_test (test_name, filename, expected_error) =
     let test_fn () =
-        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_Backend ("./test/error_patterns/stitch_errors/" ^ filename ^ ".loopy"))
+        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_backend ("./test/error_patterns/stitch_errors/" ^ filename ^ ".loopy"))
     in
     Alcotest.test_case test_name `Quick test_fn
 
@@ -201,7 +209,7 @@ let stitch_error_test_suite =
 
 let create_row_count_error_test (test_name, filename, expected_error) =
     let test_fn () =
-        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_Backend ("./test/error_patterns/row_count_errors/" ^ filename ^ ".loopy"))
+        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_backend ("./test/error_patterns/row_count_errors/" ^ filename ^ ".loopy"))
     in
     Alcotest.test_case test_name `Quick test_fn
 
@@ -211,7 +219,7 @@ let row_count_error_test_suite =
 
 let create_for_loop_error_test (test_name, filename, expected_error) =
     let test_fn () =
-        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_Backend ("./test/error_patterns/for_loop_errors/" ^ filename ^ ".loopy"))
+        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_backend ("./test/error_patterns/for_loop_errors/" ^ filename ^ ".loopy"))
     in
     Alcotest.test_case test_name `Quick test_fn
 
@@ -221,13 +229,15 @@ let for_loop_error_test_suite =
 
 let create_divide_by_zer_error_test (test_name, filename, expected_error) =
     let test_fn () =
-        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_Backend ("./test/error_patterns/divide_by_zero_errors/" ^ filename ^ ".loopy"))
+        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_backend ("./test/error_patterns/divide_by_zero_errors/" ^ filename ^ ".loopy"))
     in
     Alcotest.test_case test_name `Quick test_fn
 
 let divide_by_zero_error_test_suite =
     List.map create_divide_by_zer_error_test divide_by_zero_error_tests
 
+
+(* RUN TESTS *)
 
 let () =
     let test_suites = [
