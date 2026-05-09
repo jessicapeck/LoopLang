@@ -96,7 +96,7 @@ R3: sc 16
 Row 2 of the example above will compile to `R2: sc 4, dc 3, inc, dc 3, sc 4 [16]` .
 
 ### Variables
-Variables are defined using the `let` keyword. Variables can be used to store integers, booleans, sequences of stitches, rows, the results of function calls, and values from other variables. Where multiple rows are assigned to a variable, they should be enclosed within parentheses, indented, and each row show be on its own line.
+Variables are defined using the `let` keyword. Variables can be used to store integers, booleans, sequences of stitches, rows, the results of function calls, and values from other variables. Where multiple rows are assigned to a variable, they should be enclosed within parentheses, indented, and each row should be on its own line.
 
 ```
 <<integer and boolean definitions>>
@@ -184,3 +184,49 @@ def foo(row_num, seq1, seq2):
         R(row_num + 1): seq2
     )
 ```
+
+## Debugging
+
+### Common Error Messages
+
+`ERROR SyntaxError: syntax error at line 3, column 11`
+
+This will mean that there is something wrong with the keywords you have written. The line number (number of lines down the file) and the column number (number of character across that line) should direct you to the location of the error (possibly just after the incorrect keyword). Then you should check the documentation to make sure you have written everything correctly.
+
+`ERROR TypeError: undefined variable: 'seq'`
+
+This means that you have used a variable before defining it. The name of the undefined variable will be specified in the error message. Make sure that you have written `let seq = ...` before using seq later on in the program.
+
+`ERROR TypeError: stitch sequence multiplier expression expects an Integer multiplier`
+
+When using variables, make sure that the value assigned to that variable makes sense in the location it is being used. For example, make sure that variables that hold integers are only used where you would normally expect to see an integer.
+
+`ERROR StitchError: R1 of the pattern can only contain chain stitches or a magic ring`
+
+This error message means that a stitch has been used somewhere that it is not allowed to be used. Either there are stitch types other than chain stitches or a magic ring in the first row, or a stitch such as a magic ring has been used someone other than the first row.
+
+`ERROR RowNumberError: expected row number 6, but found row number 7 in its place`
+
+This type of error message is produced when a row is missing from the pattern. Row numbers should start from 1 and increment by 1 with each new row. This example message above is telling you that row 6 is missing.
+
+`ERROR StitchCountError: row number 5 is built on top of 10 stitches which is inconsistent with the previous stitch count of 12`
+
+This means that the compiler has detected an inconsistent stitch count relationship. If you encounter this message, make sure that each row uses the same number of stitches as the stitch count from the previous row. The error message will tell you which row number contains the wrong number of stitches, how many stitches it currently uses, and how many stitches it should be using.
+
+`ERROR ForLoopError: the for-loop expects the lower bound to be less than or equal to the upper bound, but found a lower bound of 5 and an upper bound of 2 being used`
+
+When writing a for-loop, ensure that the `n1` and `n2` in `for i = n1 to n2:` are such that `n2` is greater than or equal to `n1`.
+
+`ERROR DivideByZeroError: division by zero encountered during expression evaluation`
+
+This means that a calculation within the program contains a division by zero, which is not allowed.
+
+### Common Warning Messages
+
+`WARNING the function foo(Integer->StitchSequence) contains rows that are not returned`
+
+This warning means that there are rows within the function body that are not placed within the `return(...)` construct. These rows will be ignored, and have no effect on the final pattern.
+
+`WARNING the given stitch count for row number 2 was incorrect, this has been corrected in the result`
+
+This warning means that a stitch count annotation provided by the user in the LoopLang program is incorrect, but the pattern itself and its stitch count relationships are still valid. In this scenario, the compiler will calculate the correct stitch count, and write this instead of the incorrect stitch count in the output pattern.
