@@ -304,7 +304,7 @@ and check_row_lit env i_env = function
         if t_e1 = TInt then
             if t_seq = TStitchSeq then
                 if t_count = TInt then (RowLit(e1_ast, seq_ast, count_ast, c_opt), TRow)
-                else raise (TypeError "row count expects an Integer")
+                else raise (TypeError "stitch count expects an Integer")
             else raise (TypeError "row content expects a StitchSequence")
         else raise (TypeError "row number expects an Integer")
     | RowRangeLit((n1, n2), seq, count, c_opt) ->
@@ -319,7 +319,7 @@ and check_row_lit env i_env = function
         ) in
         if t_seq = TStitchSeq then
             if t_count = TInt then (RowRangeLit((n1, n2), seq_ast, count_ast, c_opt), TRow)
-            else raise (TypeError "row count expects an Integer")
+            else raise (TypeError "stitch count expects an Integer")
         else raise (TypeError "row content expects a StitchSequence")
 
 let check_row_expr env i_env = function

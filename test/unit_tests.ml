@@ -29,8 +29,8 @@ let tests = [
     ("Newlines at the start and end of constructs", "newline_at_start_and_end");
     ("Nested rows", "nested_rows");
     ("Nested stitch sequences", "nested_stitch_seqs");
-    ("Given row counts", "given_row_counts");
-    ("Incorrect given row counts", "incorrect_given_row_counts");
+    ("Given stitch counts", "given_stitch_counts");
+    ("Incorrect given stitch counts", "incorrect_given_stitch_counts");
     ("For-loop to generate rows", "for_loop_rows");
     ("For-loop to perform calculations", "for_loop_calculations");
     ("Comment on its own line", "comment_statement");
@@ -50,7 +50,7 @@ let tests = [
     ("Different orderings of stitch type and multiplier", "stitch_type_ordering");
     ("Multipliers of zero and one", "zero_one_multipliers");
     ("Row range in a variable", "row_range_var");
-    ("Rows with row count and comment combinations", "count_comment_rows");
+    ("Rows with stitch count and comment combinations", "count_comment_rows");
     ("Sphere", "sphere")
 ]
 
@@ -74,7 +74,7 @@ let type_checker_error_tests = [
     ("Row number", "row_number", Type_checker.TypeError "row number expects an Integer");
     ("Row content", "row_content", Type_checker.TypeError "variable 'z' expected to be a StitchSequence, but found Integer");
     ("If-else statement condition", "if_else_condition", Type_checker.TypeError "if-else statement condition expected to be a Boolean");
-    ("Row count", "row_count", Type_checker.TypeError "row count expects an Integer");
+    ("Stitch count", "stitch_count", Type_checker.TypeError "stitch count expects an Integer");
     ("Antisymmetric variable definition", "if_else_antisymmetric_var_def", Type_checker.TypeError "undefined variable: 'seq1'");
     ("Variable definition outside of function body", "out_of_scope_var", Type_checker.TypeError "undefined variable: 'seq1'");
     ("Function without a return statement", "no_return", Type_checker.TypeError "function 'foo' does not return a value");
@@ -105,11 +105,11 @@ let stitch_error_tests = [
 ]
 
 
-(* row count error tests *)
-let row_count_error_tests = [
-    ("Increase stitch", "inc_stitch", Backend.RowCountError "row number 3 is built on top of 5 stitches which is inconsistent with the previous row count of 10");
-    ("Decrease stitch", "dec_stitch", Backend.RowCountError "row number 4 is built on top of 9 stitches which is inconsistent with the previous row count of 8");
-    ("Rows from function", "rows_from_function", Backend.RowCountError "row number 2 is built on top of 8 stitches which is inconsistent with the previous row count of 5")
+(* stitch count error tests *)
+let stitch_count_error_tests = [
+    ("Increase stitch", "inc_stitch", Backend.StitchCountError "row number 3 is built on top of 5 stitches which is inconsistent with the previous stitch count of 10");
+    ("Decrease stitch", "dec_stitch", Backend.StitchCountError "row number 4 is built on top of 9 stitches which is inconsistent with the previous stitch count of 8");
+    ("Rows from function", "rows_from_function", Backend.StitchCountError "row number 2 is built on top of 8 stitches which is inconsistent with the previous stitch count of 5")
 ]
 
 
@@ -207,14 +207,14 @@ let stitch_error_test_suite =
     List.map create_stitch_error_test stitch_error_tests
 
 
-let create_row_count_error_test (test_name, filename, expected_error) =
+let create_stitch_count_error_test (test_name, filename, expected_error) =
     let test_fn () =
-        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_backend ("./test/error_patterns/row_count_errors/" ^ filename ^ ".loopy"))
+        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_backend ("./test/error_patterns/stitch_count_errors/" ^ filename ^ ".loopy"))
     in
     Alcotest.test_case test_name `Quick test_fn
 
-let row_count_error_test_suite =
-    List.map create_row_count_error_test row_count_error_tests
+let stitch_count_error_test_suite =
+    List.map create_stitch_count_error_test stitch_count_error_tests
 
 
 let create_for_loop_error_test (test_name, filename, expected_error) =
@@ -248,7 +248,7 @@ let () =
         ("Compiled Pattern", compiler_test_suite);
         ("Row Number Error Test", row_number_error_test_suite);
         ("Stitch Error Test", stitch_error_test_suite);
-        ("Row Count Error Test", row_count_error_test_suite);
+        ("Stitch Count Error Test", stitch_count_error_test_suite);
         ("For-Loop Error Test", for_loop_error_test_suite);
         ("Divide By Zero Error Test", divide_by_zero_error_test_suite)
     ] in

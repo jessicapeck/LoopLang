@@ -4,7 +4,7 @@ exception DivideByZeroError of string
 exception InternalBackendError of string
 exception RowNumberError of string
 exception StitchError of string
-exception RowCountError of string
+exception StitchCountError of string
 exception ForLoopError of string
 
 (* the resulting code should only consists of rows and comments *)
@@ -39,8 +39,8 @@ let result = ref []
 (* next_row_number keeps track of the next expected row number *)
 let next_row_number = ref 1
 
-(* prev_row_count keeps track of the row count of the previous row *)
-let prev_row_count = ref 0
+(* prev_stitch_count keeps track of the stitch count of the previous row *)
+let prev_stitch_count = ref 0
 
 (* holds warning messages *)
 let warning_messages = ref []
@@ -92,7 +92,7 @@ let unwrap_comment = function
     | _ -> raise (InternalBackendError "expected a comment, found a different type")
 
 
-(* ROW NUMBER / ROW COUNT VALIDATION FUNCTIONS *)
+(* ROW NUMBER / STITCH COUNT VALIDATION FUNCTIONS *)
 
 let check_row_num row_num = (row_num = !next_row_number)
 
@@ -117,8 +117,8 @@ let rec calculate_mult_expr_count row_num = function
         )
     )
     | VStitchSeqMultExpr(seq, n) ->
-        let seq_row_count_change, seq_used_stitch_count = calculate_stitch_seq_count row_num seq in
-        (seq_row_count_change * n, seq_used_stitch_count * n)
+        let seq_stitch_count_change, seq_used_stitch_count = calculate_stitch_seq_count row_num seq in
+        (seq_stitch_count_change * n, seq_used_stitch_count * n)
     | VMirrorExpr(seq) ->
         calculate_stitch_seq_count row_num seq
     | _ -> raise (InternalBackendError "expected a multiplier expression, found a different type")
@@ -128,17 +128,17 @@ and calculate_stitch_seq_count row_num seq =
         item_value
     ) (unwrap_stitch_seq seq) in
     let results = List.map (calculate_mult_expr_count row_num) seq_value in
-    let row_count_changes, used_stitch_counts = List.split results in
-    (List.fold_left (+) 0 row_count_changes, List.fold_left (+) 0 used_stitch_counts)
+    let stitch_count_changes, used_stitch_counts = List.split results in
+    (List.fold_left (+) 0 stitch_count_changes, List.fold_left (+) 0 used_stitch_counts)
 
-let calculate_row_count row_num stitch_seq =
+let calculate_stitch_count row_num stitch_seq =
     let change, used_stitch_count = calculate_stitch_seq_count row_num stitch_seq in
-    (!prev_row_count + change, used_stitch_count)
+    (!prev_stitch_count + change, used_stitch_count)
 
 
-let given_row_count_correct count_opt expected_row_count =
+let given_stitch_count_correct count_opt expected_stitch_count =
     match count_opt with
-    | Some(count_value) -> (count_value = expected_row_count)
+    | Some(count_value) -> (count_value = expected_stitch_count)
     | None -> true
 
 
@@ -191,12 +191,12 @@ and stitch_seq_to_str seq =
             Some((Printf.sprintf "%s%s" mult_expr_str (string_of_optional_comment comment_opt)))
     ) (unwrap_stitch_seq seq))
 
-let row_to_str row_eval row_count =
+let row_to_str row_eval stitch_count =
     match row_eval with
     | VRow(row_num, stitch_seq, _, comment_opt) ->
-        (Printf.sprintf "R%d: %s [%d]%s" row_num (stitch_seq_to_str stitch_seq) row_count (string_of_optional_comment comment_opt))
+        (Printf.sprintf "R%d: %s [%d]%s" row_num (stitch_seq_to_str stitch_seq) stitch_count (string_of_optional_comment comment_opt))
     | VRowRange((lower_row_num, upper_row_num), stitch_seq, _, comment_opt) ->
-        (Printf.sprintf "R%d-%d: %s [%d]%s" lower_row_num upper_row_num (stitch_seq_to_str stitch_seq) row_count (string_of_optional_comment comment_opt))
+        (Printf.sprintf "R%d-%d: %s [%d]%s" lower_row_num upper_row_num (stitch_seq_to_str stitch_seq) stitch_count (string_of_optional_comment comment_opt))
     | _ -> raise (InternalBackendError "expected a row or row range, found a different type")
 
 
@@ -473,19 +473,19 @@ and eval_statement env stmt k_next k_ret =
                 if not row_num_correct then 
                     raise (RowNumberError (Printf.sprintf "expected row number %d, but found row number %d in its place" !next_row_number row_num));
 
-                (* validate row count, and compare given row count against true row count *)
-                let row_count, used_stitch_count = calculate_row_count row_num stitch_seq in
+                (* validate stitch count, and compare given stitch count against true stitch count *)
+                let stitch_count, used_stitch_count = calculate_stitch_count row_num stitch_seq in
 
-                if used_stitch_count <> !prev_row_count then
-                    raise (RowCountError (Printf.sprintf "row number %d is built on top of %d stitches which is inconsistent with the previous row count of %d" row_num used_stitch_count !prev_row_count));
+                if used_stitch_count <> !prev_stitch_count then
+                    raise (StitchCountError (Printf.sprintf "row number %d is built on top of %d stitches which is inconsistent with the previous stitch count of %d" row_num used_stitch_count !prev_stitch_count));
 
-                if not (given_row_count_correct count_opt row_count) then
-                    warning_messages := (Printf.sprintf "the given row count for row number %d was incorrect, this has been corrected in the result" row_num) :: !warning_messages;
+                if not (given_stitch_count_correct count_opt stitch_count) then
+                    warning_messages := (Printf.sprintf "the given stitch count for row number %d was incorrect, this has been corrected in the result" row_num) :: !warning_messages;
 
-                (* update result, row count, and row number states *)
-                let row_str = row_to_str row_eval row_count in
+                (* update result, stitch count, and row number states *)
+                let row_str = row_to_str row_eval stitch_count in
                 result := row_str :: !result;
-                prev_row_count := row_count;
+                prev_stitch_count := stitch_count;
                 next_row_number := !next_row_number + 1;
 
                 (* return environment *)
@@ -501,23 +501,23 @@ and eval_statement env stmt k_next k_ret =
                 if not increasing then
                     raise (RowNumberError (Printf.sprintf "lower bound row number (%d) should be strictly less than upper bound row number (%d)" lower_row_num upper_row_num));
 
-                (* validate row count *)
+                (* validate stitch count *)
                 for row_num = lower_row_num to upper_row_num do
-                    let row_count, used_stitch_count = calculate_row_count row_num stitch_seq in
+                    let stitch_count, used_stitch_count = calculate_stitch_count row_num stitch_seq in
 
-                    if used_stitch_count <> !prev_row_count then
-                        raise (RowCountError (Printf.sprintf "row number %d is built on top of %d stitches which is inconsistent with the previous row count of %d" row_num used_stitch_count !prev_row_count));
+                    if used_stitch_count <> !prev_stitch_count then
+                        raise (StitchCountError (Printf.sprintf "row number %d is built on top of %d stitches which is inconsistent with the previous stitch count of %d" row_num used_stitch_count !prev_stitch_count));
 
-                    if not (given_row_count_correct count_opt row_count) then
-                        warning_messages := (Printf.sprintf "the given row count for row number %d was incorrect, this has been corrected in the result" row_num) :: !warning_messages; 
+                    if not (given_stitch_count_correct count_opt stitch_count) then
+                        warning_messages := (Printf.sprintf "the given stitch count for row number %d was incorrect, this has been corrected in the result" row_num) :: !warning_messages; 
 
-                    (* update row count *)
-                    prev_row_count := row_count;
+                    (* update stitch count *)
+                    prev_stitch_count := stitch_count;
                 done;
 
                 (* update result and row number states *)
-                let row_count = !prev_row_count in
-                let row_str = row_to_str row_eval row_count in
+                let stitch_count = !prev_stitch_count in
+                let row_str = row_to_str row_eval stitch_count in
                 result := row_str :: !result;
                 next_row_number := upper_row_num + 1;
 
@@ -539,19 +539,19 @@ and eval_statement env stmt k_next k_ret =
                     if not row_num_correct then 
                         raise (RowNumberError (Printf.sprintf "expected row number %d, but found row number %d in its place" !next_row_number row_num));
 
-                    (* validate row count, and compare given row count against true row count *)
-                    let row_count, used_stitch_count = calculate_row_count row_num stitch_seq in
+                    (* validate stitch count, and compare given stitch count against true stitch count *)
+                    let stitch_count, used_stitch_count = calculate_stitch_count row_num stitch_seq in
 
-                    if used_stitch_count <> !prev_row_count then
-                        raise (RowCountError (Printf.sprintf "row number %d is built on top of %d stitches which is inconsistent with the previous row count of %d" row_num used_stitch_count !prev_row_count));
+                    if used_stitch_count <> !prev_stitch_count then
+                        raise (StitchCountError (Printf.sprintf "row number %d is built on top of %d stitches which is inconsistent with the previous stitch count of %d" row_num used_stitch_count !prev_stitch_count));
 
-                    if not (given_row_count_correct count_opt row_count) then 
-                        warning_messages := (Printf.sprintf "the given row count for row number %d was incorrect, this has been corrected in the result" row_num) :: !warning_messages;
+                    if not (given_stitch_count_correct count_opt stitch_count) then 
+                        warning_messages := (Printf.sprintf "the given stitch count for row number %d was incorrect, this has been corrected in the result" row_num) :: !warning_messages;
 
-                    (* update result, row count, and row number states *)
-                    let row_str = row_to_str row_eval row_count in
+                    (* update result, stitch count, and row number states *)
+                    let row_str = row_to_str row_eval stitch_count in
                     result := row_str :: !result;
-                    prev_row_count := row_count;
+                    prev_stitch_count := stitch_count;
                     next_row_number := !next_row_number + 1;
                 )
                 | VRowRange((lower_row_num, upper_row_num), stitch_seq, count_opt, comment_opt) -> (
@@ -564,23 +564,23 @@ and eval_statement env stmt k_next k_ret =
                     if not increasing then
                         raise (RowNumberError (Printf.sprintf "lower bound row number (%d) should be strictly less than upper bound row number (%d)" lower_row_num upper_row_num));
 
-                    (* validate row count *)
+                    (* validate stitch count *)
                     for row_num = lower_row_num to upper_row_num do
-                        let row_count, used_stitch_count = calculate_row_count row_num stitch_seq in
+                        let stitch_count, used_stitch_count = calculate_stitch_count row_num stitch_seq in
 
-                        if used_stitch_count <> !prev_row_count then
-                            raise (RowCountError (Printf.sprintf "row number %d is built on top of %d stitches which is inconsistent with the previous row count of %d" row_num used_stitch_count !prev_row_count));
+                        if used_stitch_count <> !prev_stitch_count then
+                            raise (StitchCountError (Printf.sprintf "row number %d is built on top of %d stitches which is inconsistent with the previous stitch count of %d" row_num used_stitch_count !prev_stitch_count));
 
-                        if not (given_row_count_correct count_opt row_count) then 
-                            warning_messages := (Printf.sprintf "the given row count for row number %d was incorrect, this has been corrected in the result" row_num) :: !warning_messages;
+                        if not (given_stitch_count_correct count_opt stitch_count) then 
+                            warning_messages := (Printf.sprintf "the given stitch count for row number %d was incorrect, this has been corrected in the result" row_num) :: !warning_messages;
 
-                        (* update row count *)
-                        prev_row_count := row_count;
+                        (* update stitch count *)
+                        prev_stitch_count := stitch_count;
                     done;
 
                     (* update result and row number states *)
-                    let row_count = !prev_row_count in
-                    let row_str = row_to_str row_eval row_count in
+                    let stitch_count = !prev_stitch_count in
+                    let row_str = row_to_str row_eval stitch_count in
                     result := row_str :: !result;
                     next_row_number := upper_row_num + 1;
                 )
@@ -668,7 +668,7 @@ let eval_pattern pattern =
     (* reset variables *)
     result := [];
     next_row_number := 1;
-    prev_row_count := 0;
+    prev_stitch_count := 0;
     Hashtbl.clear func_defs;
     let env : var_env = Hashtbl.create 10 in
 

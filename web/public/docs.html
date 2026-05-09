@@ -50,7 +50,7 @@
                 <li><a href="#row-identifiers">Row Identifiers</a></li>
                 <li><a href="#row-ranges">Row Ranges</a></li>
                 <li><a href="#multipliers">Multipliers</a></li>
-                <li><a href="#row-count">Row Count</a></li>
+                <li><a href="#stitch-count">Stitch Count</a></li>
                 <li><a href="#comments">Comments</a></li>
               </ul>
             </li>
@@ -137,8 +137,8 @@
             <pre><code>R10: sc, (dc, inc 2) x3, dec  </code></pre>
           </div>
         
-          <h3 id="row-count" class="text-lg font-bold text-secondary-content">Row Count</h3>
-          <p>The row count can optionally be specified at the end of the row using square brackets.</p>
+          <h3 id="stitch-count" class="text-lg font-bold text-secondary-content">Stitch Count</h3>
+          <p>The stitch count can optionally be specified at the end of the row using square brackets.</p>
           <div class="mockup-code w-full" id="terminal">
             <pre><code>R20: sc 30 [30]  </code></pre>
             <pre><code>R21: (sc 14, inc) x2 [32]  </code></pre>
@@ -291,8 +291,8 @@
 
           <br>
 
-          <code><span class="text-error font-bold">ERROR</span> RowCountError: row number 5 is built on top of 10 stitches which is inconsistent with the previous row count of 12</code>
-          <p>This means that the compiler has detected an inconsistent row count relationship. If you encounter this message, make sure that each row uses the same number of stitches as the row count from the previous row. The error message will tell you which row number contains the wrong number of stitches, how many stitches it currently uses, and how many stitches it should be using.</p>
+          <code><span class="text-error font-bold">ERROR</span> StitchCountError: row number 5 is built on top of 10 stitches which is inconsistent with the previous stitch count of 12</code>
+          <p>This means that the compiler has detected an inconsistent stitch count relationship. If you encounter this message, make sure that each row uses the same number of stitches as the stitch count from the previous row. The error message will tell you which row number contains the wrong number of stitches, how many stitches it currently uses, and how many stitches it should be using.</p>
 
           <br>
 
@@ -313,8 +313,8 @@
 
           <br>
 
-          <code><span class="text-warning font-bold">WARNING</span> the given row count for row number 2 was incorrect, this has been corrected in the result</code>
-          <p>This warning means that a row count annotation provided by the user in the LoopLang program is incorrect, but the pattern itself and its row count relationships is still valid. In this scenario, the compiler will calculate the correct row count, and write this instead of the incorrect row count in the output pattern.</p>
+          <code><span class="text-warning font-bold">WARNING</span> the given stitch count for row number 2 was incorrect, this has been corrected in the result</code>
+          <p>This warning means that a stitch count annotation provided by the user in the LoopLang program is incorrect, but the pattern itself and its stitch count relationships is still valid. In this scenario, the compiler will calculate the correct stitch count, and write this instead of the incorrect stitch count in the output pattern.</p>
 
         </div>
       </main>

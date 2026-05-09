@@ -61,8 +61,8 @@ This repetition can used be used within a larger sequence of stitches.
 
 R10: sc, (dc, inc 2) x3, dec
 
-### Row Count
-The row count can optionally be specified at the end of the row using square brackets.
+### Stitch Count
+The stitch count can optionally be specified at the end of the row using square brackets.
 
 ```
 R20: sc 30 [30]

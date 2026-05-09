@@ -63,8 +63,8 @@ let get_compile_results code_str =
     | Backend.StitchError msg ->
         let error_msg = ("StitchError: " ^ msg) in
         construct_err_json error_msg
-    | Backend.RowCountError msg ->
-        let error_msg = ("RowCountError: " ^ msg) in
+    | Backend.StitchCountError msg ->
+        let error_msg = ("StitchCountError: " ^ msg) in
         construct_err_json error_msg
     | Backend.ForLoopError msg ->
         let error_msg = ("ForLoopError: " ^ msg) in

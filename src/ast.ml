@@ -57,8 +57,8 @@ and argument =
     | ArgRowLit of row_lit
 
 and row_lit =
-    | RowLit of expr * stitch_seq * expr option * comment option (* TRow *) (* row number, stitch list, row count, comment *)
-    | RowRangeLit of (expr * expr) * stitch_seq * expr option * comment option (* TRow *) (* (lower bound row number, upper bound row number), stitch list, row count, comment *)
+    | RowLit of expr * stitch_seq * expr option * comment option (* TRow *) (* row number, stitch list, stitch count, comment *)
+    | RowRangeLit of (expr * expr) * stitch_seq * expr option * comment option (* TRow *) (* (lower bound row number, upper bound row number), stitch list, stitch count, comment *)
 
 type row_expr =
     | RowVar of var (* TRowList *)
