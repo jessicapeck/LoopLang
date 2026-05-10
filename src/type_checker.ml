@@ -49,10 +49,7 @@ let unwrap_tfuncs = function
 let mangle f param_types return_type =
     let param_types_str = String.concat "_" (List.map string_of_type param_types) in
     let return_type_str = string_of_type return_type in
-    if String.length param_types_str = 0 then
-        Printf.sprintf "%s(None->%s)" f return_type_str
-    else
-        Printf.sprintf "%s(%s->%s)" f param_types_str return_type_str
+    Printf.sprintf "%s__%s__%s" f param_types_str return_type_str
 
 
 (* create new type variable with empty reference *)
