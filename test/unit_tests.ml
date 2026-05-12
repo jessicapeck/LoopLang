@@ -6,7 +6,7 @@ let read_file filename =
     let length = in_channel_length channel in
     let contents = really_input_string channel length in
     close_in channel;
-    contents
+    String.trim contents
 
 
 (* compiler tests (all pipeline stages) *)
