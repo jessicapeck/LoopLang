@@ -191,7 +191,7 @@ def foo(row_num, seq1, seq2):
 
 `ERROR SyntaxError: syntax error at line 3, column 11`
 
-This will mean that there is something wrong with the keywords you have written. The line number (number of lines down the file) and the column number (number of character across that line) should direct you to the location of the error (possibly just after the incorrect keyword). Then you should check the documentation to make sure you have written everything correctly.
+This will mean that there is something wrong with the keywords you have written. The line number (number of lines down the file) and the column number (number of characters across that line) should direct you to the location of the error (possibly just after the incorrect keyword). Then you should check the documentation to make sure you have written everything correctly.
 
 `ERROR TypeError: undefined variable: 'seq'`
 
