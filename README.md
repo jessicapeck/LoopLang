@@ -12,10 +12,6 @@ Navigate to the [documentation.md](documentation.md) file to learn about the Loo
 
 The LoopLang language comes with a compiler which validates the LoopLang program and converts it into a traditional crochet pattern.
 
-## The Website
-
-Play around with the LoopLang compiler online at [jessicapeck.github.io/LoopLang](https://jessicapeck.github.io/LoopLang/)!
-
 ## Setup and Execution
 
 ### Makefile Rules
