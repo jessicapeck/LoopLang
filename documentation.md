@@ -120,7 +120,7 @@ let i = a
 These variables can then be used within the LoopLang program, and will be converted to their assigned values during compilation.
 
 ### Arithmetic and Boolean Operations
-LoopLang supports the following arithemtic operations:
+LoopLang supports the following arithmetic operations:
 
 ```
 n1 + n2       <<addition>>
@@ -203,7 +203,7 @@ When using variables, make sure that the value assigned to that variable makes s
 
 `ERROR StitchError: R1 of the pattern can only contain chain stitches or a magic ring`
 
-This error message means that a stitch has been used somewhere that it is not allowed to be used. Either there are stitch types other than chain stitches or a magic ring in the first row, or a stitch such as a magic ring has been used someone other than the first row.
+This error message means that a stitch has been used somewhere that it is not allowed to be used. Either there are stitch types other than chain stitches or a magic ring in the first row, or a stitch such as a magic ring has been used somewhere other than the first row.
 
 `ERROR RowNumberError: expected row number 6, but found row number 7 in its place`
 
