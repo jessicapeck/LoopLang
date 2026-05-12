@@ -165,7 +165,7 @@ R6: (sc 14, inc) x2
 ```
 
 ### Functions
-Functions are defined used the `def` keyword, followed by the name of the function, and a list of its paramaters within parentheses. Within the function body, whatever is to be returned from the function should be written within the `return(...)` construct.
+Functions are defined using the `def` keyword, followed by the name of the function, and a list of its paramaters within parentheses. Within the function body, whatever is to be returned from the function should be written within the `return(...)` construct.
 
 ```
 def foo(i):
