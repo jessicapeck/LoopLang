@@ -88,7 +88,9 @@ let type_checker_error_tests = [
     ("For-loop upper bound", "for_loop_upper", Type_checker.TypeError "upper bound of for-loop expects an Integer");
     ("For-loop lower bound", "for_loop_lower", Type_checker.TypeError "lower bound of for-loop expects an Integer");
     ("Expected stitch sequence variable", "expected_stitch_seq_var", Type_checker.TypeError "variable 'seq' expected to be a StitchSequence, but found Boolean");
-    ("Expected row list variable", "expected_row_list_var", Type_checker.TypeError "variable 'row_list' expected to be a RowList, but found Integer")
+    ("Expected stitch sequence function", "expected_stitch_seq_func", Type_checker.TypeError "function 'foo' expected to return a StitchSequence, but found RowList");
+    ("Expected row list variable", "expected_row_list_var", Type_checker.TypeError "variable 'row_list' expected to be a RowList, but found Integer");
+    ("Expected row list function", "expected_row_list_func", Type_checker.TypeError "function 'foo' expected to return a RowList, but found StitchSequence");
 ]
 
 

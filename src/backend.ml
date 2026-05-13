@@ -69,14 +69,6 @@ let unwrap_nested_stitch_seqs = function
     | VStitchSeq(seq) -> seq
     | _ -> raise (InternalBackendError "expected a stitch sequence item, found a different type")
 
-let unwrap_row = function
-    | VRow(n, seq, count_opt, c_opt) -> (n, seq, count_opt, c_opt)
-    | _ -> raise (InternalBackendError "expected a row, found a different type")
-
-let unwrap_row_range = function
-    | VRowRange((n1, n2), seq, count_opt, c_opt) -> ((n1, n2), seq, count_opt, c_opt)
-    | _ -> raise (InternalBackendError "expected a row range, found a different type")
-
 let unwrap_row_list = function
     | VRowList(row_list) -> row_list
     | _ -> raise (InternalBackendError "expected a row list, found a different type")
