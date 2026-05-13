@@ -138,7 +138,7 @@ let divide_by_zero_error_tests = [
 (* lexer error tests *)
 let lexer_error_tests = [
     ("Unexpected character", "unexpected_character", Failure "unexpected character: #");
-    ("Expected dedentation", "expected_dedent", Failure "expected dedentation before 'else'")
+    ("Expected dedentation for 'else'", "expected_dedent", Failure "expected dedentation before 'else'")
 ]
 
 
