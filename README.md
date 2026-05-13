@@ -10,7 +10,10 @@ Navigate to the [documentation.md](documentation.md) file to learn about the Loo
 
 ## The Compiler
 
-The LoopLang language comes with a compiler which validates the LoopLang program and converts it into a traditional crochet pattern.
+The LoopLang compiler translates LoopLang programs into traditional crochet patterns. The compiler also performs crochet-specific tasks, including:
+- adding stitch counts to the end of each row
+- ensuring the structural correctess of crochet patterns by verifying that neighbouring stitch count relationships are consistent
+- verifying that only certain stitch types appear in row 1
 
 ## The Website
 
