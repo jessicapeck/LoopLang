@@ -79,6 +79,7 @@ let type_checker_error_tests = [
     ("Stitch sequence item from variable", "stitch_seq_item_var", Type_checker.TypeError "variable 'x' expected to be a StitchSequence, but found Boolean");
     ("Row number", "row_number", Type_checker.TypeError "row number expects an Integer");
     ("Row content", "row_content", Type_checker.TypeError "variable 'z' expected to be a StitchSequence, but found Integer");
+    ("Row range content", "row_range_content", Type_checker.TypeError "variable 'x' expected to be a StitchSequence, but found Boolean");
     ("If-else statement condition", "if_else_condition", Type_checker.TypeError "if-else statement condition expected to be a Boolean");
     ("Stitch count", "stitch_count", Type_checker.TypeError "stitch count expects an Integer");
     ("Antisymmetric variable definition", "if_else_antisymmetric_var_def", Type_checker.TypeError "undefined variable: 'seq1'");
