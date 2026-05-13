@@ -75,9 +75,8 @@ rule token = parse
     | ('\n'+ as nls) ((' '*) | ('\t'*) as seq) "else"                   {
                                                                           String.iter (fun _ -> next_line lexbuf) nls;
                                                                           match process_indentation seq with
-                                                                          | Indent -> ELSE
                                                                           | Dedent -> Queue.add ELSE pending_tokens; Queue.take pending_tokens
-                                                                          | Skip -> ELSE
+                                                                          | _ -> failwith ("expected dedentation before 'else'")
                                                                         }
     | ('\n'+ as nls) ((' '*) | ('\t'*) as seq)                          { 
                                                                           String.iter (fun _ -> next_line lexbuf) nls;
@@ -140,7 +139,7 @@ rule token = parse
                                                                                 Queue.take pending_tokens
                                                                             end
                                                                         }
-    | _                                                                 { failwith ("Unexpected character: " ^ Lexing.lexeme lexbuf) }
+    | _                                                                 { failwith ("unexpected character: " ^ Lexing.lexeme lexbuf) }
 
 {
     let next_token lexbuf =

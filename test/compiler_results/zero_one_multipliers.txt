@@ -1,3 +1,5 @@
 R1: ch 20 [20]
 R2: sc 20 [20]
 R3: inc, sc 18, inc [22]
+R4: sc 20, dc 2 [22]
+R5: ch, sc 21, sl st [23]

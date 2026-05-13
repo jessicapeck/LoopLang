@@ -1,5 +1,6 @@
-def foo():
-    return(inc)
+def foo(i):
+    return(inc i)
 
 r1: ch 5
-r2: sc 2, foo(), sc 2
+let i = 1
+r2: sc 2, foo(i), sc 2

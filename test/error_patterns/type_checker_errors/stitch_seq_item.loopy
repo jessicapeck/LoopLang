@@ -1,4 +1,2 @@
-def foo():
-    return(false)
-
-row 1: dc 2, foo(), dc 2
+r1: ch 30
+r2: sc, false, dc 10

@@ -1,0 +1,4 @@
+if true:
+    r1: ch 30
+    else: 
+        r1: dc 30

@@ -1,0 +1,1 @@
+Pattern([FuncDef(foo, [], [Return(ReturnRowList([RowLitItem(RowLit(Int(1), StitchSeq([StitchSeqItem(StitchMultExpr(CH, Int(30)), None)]), None, None)), RowLitItem(RowLit(Int(2), StitchSeq([StitchSeqItem(StitchMultExpr(SC, Int(30)), None)]), None, None))]))]), FuncDef(goo, [], [Return(ReturnRowList([]))]), Stmt(RowList(RowFuncCall(foo, []))), Stmt(RowList(RowFuncCall(goo, [])))])

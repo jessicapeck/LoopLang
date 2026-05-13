@@ -1,0 +1,1 @@
+Pattern([FuncDef(foo, [], [LetDef(DefExpr(i, Int(0))), For(j, Int(1), Int(5), [LetDef(DefExpr(i, BinOp(ExprVar(i), ADD, Int(1))))]), Return(ReturnVar(i))]), Stmt(Row(RowLit(Int(1), StitchSeq([StitchSeqItem(StitchMultExpr(CH, ExprFuncCall(foo, [])), None)]), None, None)))])

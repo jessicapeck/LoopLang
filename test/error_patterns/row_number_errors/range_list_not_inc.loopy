@@ -1,0 +1,7 @@
+def foo():
+    return(
+        R2-1: sc 30
+    )
+
+R1: ch 30
+foo()

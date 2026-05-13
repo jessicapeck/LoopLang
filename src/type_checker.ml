@@ -246,9 +246,8 @@ and check_stitch_seq_item env i_env = function
 and check_stitch_seq env i_env expected_t = function
     | StitchSeq(seq) ->
         let seq_ast = List.map (fun item ->
-            let item_ast, t_item = check_stitch_seq_item env i_env item in
-            if t_item = TStitchSeqItem then item_ast
-            else raise (TypeError "stitch sequence expects StitchSequenceItem values")
+            let item_ast, t_item = check_stitch_seq_item env i_env item in (* this (and parser) enforces TStitchSeqItem*)
+            item_ast
         ) seq in
         (StitchSeq(seq_ast), TStitchSeq)
     | StitchSeqVar(v) ->
@@ -306,7 +305,7 @@ and check_row_lit env i_env = function
         else raise (TypeError "row number expects an Integer")
     | RowRangeLit((n1, n2), seq, count, c_opt) ->
         (* n1 and n2 are forced to be integers in the lexer *)
-        let seq_ast, t_seq = check_stitch_seq env i_env TStitchSeq seq in
+        let seq_ast, t_seq = check_stitch_seq env i_env TStitchSeq seq in (* this enforces TStitchSeq*)
         let count_ast, t_count = (
             match count with
             | Some(e) ->
@@ -314,10 +313,8 @@ and check_row_lit env i_env = function
                 (Some e_ast, t_e)
             | None -> (None, TInt)
         ) in
-        if t_seq = TStitchSeq then
-            if t_count = TInt then (RowRangeLit((n1, n2), seq_ast, count_ast, c_opt), TRow)
-            else raise (TypeError "stitch count expects an Integer")
-        else raise (TypeError "row content expects a StitchSequence")
+        if t_count = TInt then (RowRangeLit((n1, n2), seq_ast, count_ast, c_opt), TRow)
+        else raise (TypeError "stitch count expects an Integer")
 
 let check_row_expr env i_env = function
     | RowVar(v) ->

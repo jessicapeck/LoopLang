@@ -51,7 +51,12 @@ let tests = [
     ("Multipliers of zero and one", "zero_one_multipliers");
     ("Row range in a variable", "row_range_var");
     ("Rows with stitch count and comment combinations", "count_comment_rows");
-    ("Sphere", "sphere")
+    ("Sphere", "sphere");
+    ("Row list variations", "row_list_variations");
+    ("For-loop in function body", "for_loop_in_func");
+    ("If-else statement in function body", "if_statement_in_func");
+    ("Stitch count warnings", "stitch_count_warnings");
+    ("Unreturned row warnings", "unreturned_row_warnings")
 ]
 
 
@@ -70,7 +75,8 @@ let type_checker_error_tests = [
     ("Stitch multiplier", "stitch_multiplier", Type_checker.TypeError "stitch multiplier expression expects an Integer multiplier");
     ("Stitch sequence multiplier (number)", "stitch_sequence_multiplier_number", Type_checker.TypeError "stitch sequence multiplier expression expects an Integer multiplier");
     ("Stitch sequence multiplier (sequence)", "stitch_sequence_multiplier_seq", Type_checker.TypeError "variable 'myrow' expected to be a StitchSequence, but found RowList");
-    ("Stitch sequence item", "stitch_seq_item", Type_checker.TypeError "function 'foo' expected to return a StitchSequence, but found Boolean");
+    ("Stitch sequence item from function", "stitch_seq_item_func", Type_checker.TypeError "function 'foo' expected to return a StitchSequence, but found Boolean");
+    ("Stitch sequence item from variable", "stitch_seq_item_var", Type_checker.TypeError "variable 'x' expected to be a StitchSequence, but found Boolean");
     ("Row number", "row_number", Type_checker.TypeError "row number expects an Integer");
     ("Row content", "row_content", Type_checker.TypeError "variable 'z' expected to be a StitchSequence, but found Integer");
     ("If-else statement condition", "if_else_condition", Type_checker.TypeError "if-else statement condition expected to be a Boolean");
@@ -93,7 +99,9 @@ let row_number_error_tests = [
     ("Row from function", "row_from_func", Backend.RowNumberError "expected row number 2, but found row number 3 in its place");
     ("Not starting from one", "not_starting_from_one", Backend.RowNumberError "expected row number 1, but found row number 2 in its place");
     ("Row number range not increasing", "range_not_inc", Backend.RowNumberError "lower bound row number (3) should be strictly less than upper bound row number (1)");
-    ("Incorrect lower bound row number", "lower_row_num", Backend.RowNumberError "expected row number 3, but found row number 4 in its place")
+    ("Incorrect lower bound row number", "lower_row_num", Backend.RowNumberError "expected row number 3, but found row number 4 in its place");
+    ("Incorrect lower bound row number from list", "lower_row_num_list", Backend.RowNumberError "expected row number 2, but found row number 3 in its place");
+    ("Row number range from list not increasing", "range_list_not_inc", Backend.RowNumberError "lower bound row number (2) should be strictly less than upper bound row number (1)");
 ]
 
 
@@ -109,7 +117,9 @@ let stitch_error_tests = [
 let stitch_count_error_tests = [
     ("Increase stitch", "inc_stitch", Backend.StitchCountError "row number 3 is built on top of 5 stitches which is inconsistent with the previous stitch count of 10");
     ("Decrease stitch", "dec_stitch", Backend.StitchCountError "row number 4 is built on top of 9 stitches which is inconsistent with the previous stitch count of 8");
-    ("Rows from function", "rows_from_function", Backend.StitchCountError "row number 2 is built on top of 8 stitches which is inconsistent with the previous stitch count of 5")
+    ("Rows from function", "rows_from_function", Backend.StitchCountError "row number 2 is built on top of 8 stitches which is inconsistent with the previous stitch count of 5");
+    ("Row range", "row_range", Backend.StitchCountError "row number 2 is built on top of 31 stitches which is inconsistent with the previous stitch count of 30");
+    ("Row range in a list", "row_range_in_list", Backend.StitchCountError "row number 2 is built on top of 31 stitches which is inconsistent with the previous stitch count of 30")
 ]
 
 
@@ -122,6 +132,13 @@ let for_loop_error_tests = [
 (* divide by zero error tests *)
 let divide_by_zero_error_tests = [
     ("Division by zero", "divide_by_zero", Backend.DivideByZeroError "division by zero encountered during expression evaluation")
+]
+
+
+(* lexer error tests *)
+let lexer_error_tests = [
+    ("Unexpected character", "unexpected_character", Failure "unexpected character: #");
+    ("Expected dedentation", "expected_dedent", Failure "expected dedentation before 'else'")
 ]
 
 
@@ -227,14 +244,24 @@ let for_loop_error_test_suite =
     List.map create_for_loop_error_test for_loop_error_tests
 
 
-let create_divide_by_zer_error_test (test_name, filename, expected_error) =
+let create_divide_by_zero_error_test (test_name, filename, expected_error) =
     let test_fn () =
         Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_backend ("./test/error_patterns/divide_by_zero_errors/" ^ filename ^ ".loopy"))
     in
     Alcotest.test_case test_name `Quick test_fn
 
 let divide_by_zero_error_test_suite =
-    List.map create_divide_by_zer_error_test divide_by_zero_error_tests
+    List.map create_divide_by_zero_error_test divide_by_zero_error_tests
+
+
+let create_lexer_error_test (test_name, filename, expected_error) =
+    let test_fn () =
+        Alcotest.check_raises test_name expected_error (fun () -> Test_utils.run_backend ("./test/error_patterns/lexer_errors/" ^ filename ^ ".loopy"))
+    in
+    Alcotest.test_case test_name `Quick test_fn
+
+let lexer_error_test_suite =
+    List.map create_lexer_error_test lexer_error_tests
 
 
 (* RUN TESTS *)
@@ -250,6 +277,7 @@ let () =
         ("Stitch Error Test", stitch_error_test_suite);
         ("Stitch Count Error Test", stitch_count_error_test_suite);
         ("For-Loop Error Test", for_loop_error_test_suite);
-        ("Divide By Zero Error Test", divide_by_zero_error_test_suite)
+        ("Divide By Zero Error Test", divide_by_zero_error_test_suite);
+        ("Lexer Error Test", lexer_error_test_suite)
     ] in
     run "LoopLang Compiler" test_suites

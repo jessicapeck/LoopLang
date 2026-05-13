@@ -1,0 +1,8 @@
+def foo():
+    let i = 0
+    for j = 1 to 5:
+        let i = i + 1
+
+    return(i)
+
+R1: ch foo()

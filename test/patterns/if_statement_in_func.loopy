@@ -1,0 +1,9 @@
+def foo(b):
+    if b:
+        let seq = ch 8
+    else:
+        let seq = mr 8
+
+    return(seq)
+
+R1: foo(false)

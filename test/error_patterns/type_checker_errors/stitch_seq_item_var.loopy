@@ -1,0 +1,3 @@
+let x = false
+r1: ch 30
+r2: sc, x, dc 10

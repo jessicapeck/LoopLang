@@ -1,0 +1,1 @@
+Pattern([FuncDef(foo, [b], [If(ExprVar(b), [LetDef(DefStitchSeq(seq, StitchSeq([StitchSeqItem(StitchMultExpr(CH, Int(8)), None)])))], [LetDef(DefStitchSeq(seq, StitchSeq([StitchSeqItem(StitchMultExpr(MR, Int(8)), None)])))]), Return(ReturnVar(seq))]), Stmt(Row(RowLit(Int(1), StitchSeqFuncCall(foo, [ArgExpr(Bool(false))]), None, None)))])
