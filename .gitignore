@@ -15,13 +15,7 @@ syntax_notes.md
 test/patterns/*.txt
 
 test/user_study_patterns
-test/user_stidy_patterns/*
-
-_coverage
-_coverage/*
-
-_coverage_data
-_coverage_data/*
+test/user_study_patterns/*
 
 parser_rule_coverage.txt
 
