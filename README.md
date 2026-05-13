@@ -15,6 +15,10 @@ The LoopLang compiler translates LoopLang programs into traditional crochet patt
 - ensuring the structural correctess of crochet patterns by verifying that neighbouring stitch count relationships are consistent
 - verifying that only certain stitch types appear in row 1
 
+## The Website
+
+Play around with the LoopLang compiler online at [jessicapeck.github.io/LoopLang](https://jessicapeck.github.io/LoopLang/)!
+
 ## Setup and Execution
 
 ### Makefile Rules
