@@ -33,6 +33,14 @@ Targets:
   coverage        Run tests with coverage tracking and generate reports
 ```
 
+After you have downloaded the repository, run the following commands before attempting to use the LoopLang compiler:
+
+```
+eval $(opam env)
+make clean
+make all
+```
+
 ### Running the Compiler
 Executing the following command will compile the given `.loopy` file into a `.txt` file of the same filename.
 ```
@@ -44,3 +52,16 @@ Executing the following command will compile the given `.loopy` file into a `.tx
 eval $(opam env)
 ./test/unit_tests --show-errors
 ```
+
+### Requirements
+
+```
+# Name               # Installed # Synopsis
+alcotest             1.9.1       Alcotest is a lightweight and colourful test framework
+bisect_ppx           2.8.3       Code coverage for OCaml
+js_of_ocaml          6.2.0       Compiler from OCaml bytecode to JavaScript
+js_of_ocaml-ppx      6.2.0       Compiler from OCaml bytecode to JavaScript
+menhir               20250912    An LR(1) parser generator
+ocaml                4.14.1      The OCaml compiler (virtual package)
+```
+
